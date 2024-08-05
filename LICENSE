@@ -659,3 +659,10 @@ specific requirements.
 if any, to sign a "copyright disclaimer" for the program, if necessary.
 For more information on this, and how to apply and follow the GNU AGPL, see
 <https://www.gnu.org/licenses/>.
+
+Information about open source software that used in this product:
+
+## Ingress-nginx Helm Chart
+- License: Apache License 2.0
+- Source: https://github.com/kubernetes/ingress-nginx/tree/main
+- License File: https://github.com/kubernetes/ingress-nginx/blob/main/LICENSE

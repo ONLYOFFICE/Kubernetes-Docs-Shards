@@ -275,7 +275,7 @@ Note: If you need to add license after the ONLYOFFICE Docs is already installed,
 To deploy ONLYOFFICE Docs with the release name `documentserver`:
 
 ```bash
-$ helm install documentserver onlyoffice/docs-shards --set redis.master.persistence.storageClass=PERSISTENT_STORAGE_CLASS
+$ helm install documentserver onlyoffice/docs-shards
 ```
 
 The command deploys ONLYOFFICE Docs on the Kubernetes cluster in the default configuration. The [Parameters](#4-parameters) section lists the parameters that can be configured during installation. 
@@ -303,7 +303,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `connections.redisDBNum`                                    | Number of the redis logical database to be [selected](https://redis.io/commands/select/). The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file | `0`                                           |
 | `connections.redisClusterNodes`                             | List of nodes in the Redis cluster. There is no need to specify every node in the cluster, 3 should be enough. You can specify multiple values. It must be specified in the `host:port` format | `[]`                                                                      |
 | `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves. Used if `connections.redisConnectorName` is set to `ioredis`                                   | `mymaster`                                                                                |
-| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret` and `redis.auth.password`. The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file| `""`                   |
+| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret`. The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file| `""`                   |
 | `connections.redisSecretKeyName`                            | The name of the key that contains the Redis user password                                                                                                                      | `redis-password`                                                                          |
 | `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
@@ -758,7 +758,7 @@ $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.gi
 **Now**, when your nginx-ingress controller if configure, you can deploy ONLYOFFICE Docs with command:
 
 ```bash
-$ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false --set redis.master.persistence.storageClass=PERSISTENT_STORAGE_CLASS --set redis.auth.password=<YOUR_REDIS_PASSWORD>
+$ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false
 ```
 
 ## Using Grafana to visualize metrics (optional)

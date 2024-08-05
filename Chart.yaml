@@ -13,8 +13,3 @@ dependencies:
   version: 4.9.0
   repository: https://kubernetes.github.io/ingress-nginx
   condition: ingress-nginx.enabled
-
-- name: redis
-  version: 19.5.3
-  repository: https://charts.bitnami.com/bitnami
-  condition: redis.enabled

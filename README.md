@@ -832,11 +832,11 @@ See more details about installing Grafana via Helm [here](https://github.com/bit
 
 ### 2 Access to Grafana via Ingress
 
-Note: It is assumed that step [#5.3.2.1](#5321-installing-the-kubernetes-nginx-ingress-controller) has already been completed.
+Note: It is assumed that step, please make sure that the nginx-ingress controller is installed in your cluster. If you already deploy ONLYOFFICE Docs and did not turn off the controller with the parameter `ingress-nginx.enabled=false` it is already present in the cluster.
 
 If ONLYOFFICE Docs was installed with the parameter `grafana.ingress.enabled` (step [#5.2](#52-metrics-deployment-optional)) then access to Grafana will be at: `http://INGRESS-ADDRESS/grafana/`
 
-If Ingres was installed using a secure connection (step [#5.3.2.3](#5323-expose-onlyoffice-docs-via-https)), then access to Grafana will be at: `https://your-domain-name/grafana/`
+If Ingres was installed using a secure connection (step [#5.3](#53-expose-onlyoffice-docs-via-https)), then access to Grafana will be at: `https://your-domain-name/grafana/`
 
 ### 3. View gathered metrics in Grafana
 

@@ -1,0 +1,19 @@
+controller:
+  allowSnippetAnnotations: true
+  extraVolumeMounts:
+  - name: custom-balancer
+    mountPath: /etc/nginx/custom_balancer.conf
+    subPath: custom_balancer.conf
+  - name: balancer-lua
+    mountPath: /etc/nginx/lua/balancer.lua
+    subPath: balancer.lua
+  extraVolumes:
+  - name: custom-balancer
+    configMap:
+      name: balancer-snippet
+  - name: balancer-lua
+    configMap:
+      name: balancer-lua
+  publishService:
+    enabled: true
+  replicaCount: 2

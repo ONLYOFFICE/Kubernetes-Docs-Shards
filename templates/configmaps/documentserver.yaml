@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: documentserver
+  namespace: {{ include "ds.namespace" . | quote }}
+  {{- if .Values.commonLabels }}
+  labels:
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+  {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  DB_TYPE: "postgres"
+  DB_USER: "postgres"
+  DB_HOST: "localhost"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+  REDIS_CONNECTOR_NAME: {{ .Values.connections.redisConnectorName }}
+  REDIS_SERVER_HOST: {{ include "ds.redis.subchart.prefix" . }}{{ .Values.connections.redisHost }}
+  REDIS_SERVER_PORT: {{ .Values.connections.redisPort | quote }}
+  REDIS_SERVER_USER: {{ .Values.connections.redisUser }}
+  REDIS_SERVER_DB_NUM: {{ .Values.connections.redisDBNum | quote }}
+  {{- if.Values.connections.redisClusterNodes }}
+  REDIS_CLUSTER_NODES: {{ join " " .Values.connections.redisClusterNodes }}
+  {{- end }}
+  {{- if eq .Values.connections.redisConnectorName "ioredis" }}
+  REDIS_SENTINEL_GROUP_NAME: {{ .Values.connections.redisSentinelGroupName }}
+  {{- end }}
+  AMQP_TYPE: "rabbitmq"
+  AMQP_PORT: "5672"
+  AMQP_VHOST: "/"
+  AMQP_HOST: "localhost"
+  AMQP_USER: "guest"
+  AMQP_PROTO: "amqp"
+  METRICS_ENABLED: {{ .Values.metrics.enabled | quote }}
+  {{- if .Values.metrics.enabled }}
+  METRICS_HOST: {{ .Values.metrics.host }}
+  METRICS_PORT: {{ .Values.metrics.port | quote }}
+  METRICS_PREFIX: {{ .Values.metrics.prefix }}
+  {{- end }}
+  LOG_LEVEL: {{ .Values.log.level }}
+  LOG_TYPE: {{ .Values.log.type }}
+  LOG_PATTERN: {{ .Values.log.pattern | quote }}
+  NGINX_ACCESS_LOG: {{ .Values.documentserver.proxy.accessLog | quote }}
+  NGINX_GZIP_PROXIED: {{ .Values.documentserver.proxy.gzipProxied | quote }}
+  NGINX_WORKER_CONNECTIONS: {{ .Values.documentserver.proxy.workerConnections | quote }}
+  NGINX_WORKER_PROCESSES: {{ .Values.documentserver.proxy.workerProcesses | quote }}
+  SECURE_LINK_SECRET: {{ .Values.documentserver.proxy.secureLinkSecret | quote }}
+  {{- if .Values.example.enabled }}
+  EXAMPLE_HOST_PORT: example:3000
+  {{- end }}
+  WOPI_ENABLED: {{ .Values.wopi.enabled | quote }}
+  {{- if .Values.webProxy.enabled }}
+  http_proxy: {{ .Values.webProxy.http | quote }}
+  https_proxy: {{ .Values.webProxy.https | quote }}
+  no_proxy: {{ .Values.webProxy.noProxy | quote }}
+  {{- end }}
+  {{- if typeIs "bool" .Values.requestFilteringAgent.allowPrivateIPAddress }}
+  ALLOW_PRIVATE_IP_ADDRESS: {{ .Values.requestFilteringAgent.allowPrivateIPAddress | quote }}
+  {{- end }}
+  {{- if typeIs "bool" .Values.requestFilteringAgent.allowMetaIPAddress }}
+  ALLOW_META_IP_ADDRESS: {{ .Values.requestFilteringAgent.allowMetaIPAddress | quote }}
+  {{- end }}
+  {{- if .Values.requestFilteringAgent.allowIPAddressList }}
+  ALLOW_IP_ADDRESS_LIST: {{ toJson .Values.requestFilteringAgent.allowIPAddressList | squote }}
+  {{- end }}
+  {{- if .Values.requestFilteringAgent.denyIPAddressList }}
+  DENY_IP_ADDRESS_LIST: {{ toJson .Values.requestFilteringAgent.denyIPAddressList | squote }}
+  {{- end }}
+  STORAGE_SUBDIRECTORY_NAME: {{ .Values.documentserver.docservice.image.tag }}

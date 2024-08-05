@@ -1,0 +1,82 @@
+{{- if .Values.tests.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-ds
+  namespace: {{ include "ds.namespace" . | quote }}
+  labels:
+    app.kubernetes.io/component: test-ds
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{- if or .Values.commonAnnotations .Values.tests.annotations }}
+    {{- $dictValue := default .Values.commonAnnotations .Values.tests.annotations }}
+    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  serviceAccountName: {{ include "ds.serviceAccountName" . }}
+  {{- if .Values.podSecurityContext.enabled }}
+  securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.tests.customPodAntiAffinity .Values.tests.podAffinity .Values.tests.nodeAffinity }}
+  affinity:
+    {{- with .Values.tests.customPodAntiAffinity }}
+    podAntiAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.tests.podAffinity }}
+    podAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.tests.nodeAffinity }}
+    nodeAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- if or .Values.nodeSelector .Values.tests.nodeSelector }}
+  nodeSelector: {{ toYaml (default .Values.nodeSelector .Values.tests.nodeSelector) | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.tolerations .Values.tests.tolerations }}
+  tolerations: {{ toYaml (default .Values.tolerations .Values.tests.tolerations) | nindent 4 }}
+  {{- end }}
+  {{- if .Values.imagePullSecrets }}
+  imagePullSecrets:
+  - name: {{ .Values.imagePullSecrets }}
+  {{- end }}
+  containers:
+  - name: test-ds
+    image: {{ .Values.tests.image.repository }}:{{ .Values.tests.image.tag }}
+    imagePullPolicy: {{ .Values.tests.image.pullPolicy }}
+    {{- if .Values.tests.containerSecurityContext.enabled }}
+    securityContext: {{- omit .Values.tests.containerSecurityContext "enabled" | toYaml | nindent 6 }}
+    {{- end }}
+    resources: {{ toYaml .Values.tests.resources | nindent 6 }}
+    env:
+    - name: REDIS_SERVER_PWD
+      valueFrom:
+        secretKeyRef:
+          name: {{ template "ds.redis.secretName" . }}
+          key: {{ .Values.connections.redisSecretKeyName }}
+    envFrom:
+    - configMapRef:
+        name: documentserver
+    volumeMounts:
+    - name: test-ds
+      mountPath: /scripts/test_ds.py
+      subPath: test_ds.py
+    {{- if .Values.webProxy.enabled }}
+    command: ['http_proxy={{ .Values.webProxy.http }}', 'https_proxy={{ .Values.webProxy.https }}', 'no_proxy={{ .Values.webProxy.noProxy }}', 'python', '/scripts/test_ds.py']
+    {{- else }}
+    command: ['python', '/scripts/test_ds.py']
+    {{- end }}
+  volumes:
+  - name: test-ds
+    configMap:
+      name: test-ds
+      defaultMode: 0755
+  restartPolicy: Never
+{{- end }}

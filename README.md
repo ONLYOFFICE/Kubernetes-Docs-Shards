@@ -13,7 +13,7 @@ ONLYOFFICE Docs for Kubernetes
     + [5.1 Add Helm repositories](#51-add-helm-repositories)
     + [5.2 Installing Prometheus](#52-installing-prometheus)
     + [5.3 Installing StatsD exporter](#53-installing-statsd-exporter)
-  * [6. Make changes to Node-config configuration files](65-make-changes-to-Node-config-configuration-files)
+  * [6. Make changes to Node-config configuration files](#6-make-changes-to-Node-config-configuration-files)
     + [6.1 Create a ConfigMap containing a json file](#61-create-a-configmap-containing-a-json-file)
     + [6.2 Specify parameters when installing ONLYOFFICE Docs](#62-specify-parameters-when-installing-onlyoffice-docs)
   * [7. Add custom Fonts](#7-add-custom-fonts)

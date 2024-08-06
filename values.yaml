@@ -24,22 +24,6 @@ ingress-nginx:
     service:
       annotations: {}
 
-## redis.enabled parameters for manage redis subchart condition
-redis:
-  enabled: true
-  architecture: "standalone"
-  secretAnnotations:
-     helm.sh/hook: pre-install
-     helm.sh/hook-weight: "1"
-  master:
-    persistence:
-      size: 8Gi
-      storageClass: ""
-  metrics:
-    enabled: false
-  auth:
-    password: ""
-
 ## Default values for Onlyoffice Docs
 
 ## product.name Specifies name of the product

@@ -686,7 +686,7 @@ Or modify the values.yaml file and run the command:
 $ helm upgrade documentserver -f values.yaml onlyoffice/docs-shards
 ```
 
-When the `helm upgrade` command is executed, replicas will be turned off one by one, and all active documents will be forced closed and saved. Also, disabled replicas will be removed from the Redis balancing tables.
+When the `helm upgrade` command is executed, replicas will be turned off one by one, and active documents on disabled replicas will be forced closed and saved. Also, disabled replicas will be removed from the Redis balancing tables.
 
 ### 8. Update ONLYOFFICE Docs license (optional)
 

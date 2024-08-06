@@ -213,7 +213,7 @@ license:
 log:
   ## log.level Defines the type and severity of a logged event
   ## Possible values are `ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`, `MARK`, `OFF`
-  level: ALL
+  level: WARN
   ## log.type Defines the format of a logged event
   ## Possible values are `pattern`, `json`, `basic`, `coloured`, `messagePassThrough`, `dummy`
   type: pattern
@@ -595,7 +595,7 @@ documentserver:
     ## ref: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
     ## Example:
     ## accessLog: "main"
-    accessLog: "main"
+    accessLog: "off"
     ## documentserver.proxy.gzipProxied Defines the nginx config gzip_proxied directive
     ## ref: https://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_proxied
     gzipProxied: "off"

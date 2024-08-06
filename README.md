@@ -674,7 +674,7 @@ where `POD_COUNT` is a number of the `documentserver` pods.
 It's necessary to set the parameters for updating. For example,
 
 ```bash
-$ helm upgrade documentserver onlyoffice/docs \
+$ helm upgrade documentserver onlyoffice/docs-shards \
   --set docservice.image.tag=[version]
 ```
 
@@ -683,7 +683,7 @@ $ helm upgrade documentserver onlyoffice/docs \
 Or modify the values.yaml file and run the command:
 
 ```bash
-$ helm upgrade documentserver -f values.yaml onlyoffice/docs
+$ helm upgrade documentserver -f values.yaml onlyoffice/docs-shards
 ```
 
 When the `helm upgrade` command is executed, all active documents will be forced closed and saved. During the period specified in the `documentserver.terminationGracePeriodSeconds` parameter, the balancing tables in Redis will be cleaned.

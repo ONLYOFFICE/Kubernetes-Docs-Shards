@@ -178,6 +178,17 @@ Get the ds annotations
 {{- end -}}
 
 {{/*
+Get the update strategy type for ds
+*/}}
+{{- define "ds.update.strategyType" -}}
+{{- if eq .type "RollingUpdate" -}}
+    {{- toYaml . | nindent 4 -}}
+{{- else -}}
+    {{- omit . "rollingUpdate" | toYaml | nindent 4 -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Get the ds Service Account name
 */}}
 {{- define "ds.serviceAccountName" -}}

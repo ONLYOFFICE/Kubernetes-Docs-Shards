@@ -327,11 +327,18 @@ documentserver:
   ## documentserver.replicas Number of Documentserver replicas to deploy
   ## If the `documentserver.autoscaling.enabled` parameter is enabled, it is ignored
   replicas: 3
-  ## Update strategy used to replace old Pods by new ones. Allowed values: `RollingUpdate` or `Recreate`
-  ## It is recommended to use the `RollingUpdate` type
-  ## docservice.updateStrategy.type Docservice deployment update strategy type
+  ## Update strategy used to replace old Pods by new ones
   updateStrategy:
+    ## documentserver.updateStrategy.type Documentserver deployment update strategy type
+    ## Allowed values: `RollingUpdate` or `Recreate`
+    ## It is recommended to use the `RollingUpdate` type
     type: RollingUpdate
+    # documentserver.updateStrategy.rollingUpdate Used only when `documentserver.updateStrategy.type=RollingUpdate`
+    rollingUpdate:
+      # documentserver.updateStrategy.rollingUpdate.maxUnavailable Maximum number of Documentserver Pods unavailable during the update process
+      maxUnavailable: 25%
+      # documentserver.updateStrategy.rollingUpdate.maxSurge Maximum number of Documentserver Pods created over the desired number of Pods
+      maxSurge: 25%
   ## documentserver.customPodAntiAffinity Prohibiting the scheduling of Documentserver Pods relative to other Pods containing the specified labels on the same node
   ## Example:
   ## customPodAntiAffinity:

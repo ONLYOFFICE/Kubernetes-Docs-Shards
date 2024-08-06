@@ -23,7 +23,7 @@ spec:
       {{- include "ds.labels.commonLabels" . | trim | nindent 6 }}
       {{- end }}
   {{- if .Values.documentserver.updateStrategy }}
-  strategy: {{- toYaml .Values.documentserver.updateStrategy | nindent 4 }}
+  strategy: {{- include "ds.update.strategyType" .Values.documentserver.updateStrategy }}
   {{- end }}
   template:
     metadata:

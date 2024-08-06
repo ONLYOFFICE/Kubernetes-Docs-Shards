@@ -34,12 +34,13 @@ ONLYOFFICE Docs for Kubernetes
   * [5.3 Expose ONLYOFFICE Docs via HTTPS](#53-expose-onlyoffice-docs-via-https)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
       + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
-      + [6.2 Manual scaling](#62-manual-scaling) 
-  * [7. Update ONLYOFFICE Docs license (optional)](#7-update-onlyoffice-docs-license-optional)
-  * [8. ONLYOFFICE Docs installation test (optional)](#8-onlyoffice-docs-installation-test-optional)
-  * [9. Access to the info page (optional)](#9-access-to-the-info-page-optional)
-  * [10. Deploy ONLYOFFICE Docs with your own dependency (optional)](#10-deploy-onlyoffice-docs-with-your-own-dependency-optional)
-  * [10.1 Use your own nginx-ingress controller](#101-use-your-own-nginx-ingress-controller)
+      + [6.2 Manual scaling](#62-manual-scaling)
+  * [7. Update ONLYOFFICE Docs](#7-update-onlyoffice-docs) 
+  * [8. Update ONLYOFFICE Docs license (optional)](#8-update-onlyoffice-docs-license-optional)
+  * [9. ONLYOFFICE Docs installation test (optional)](#9-onlyoffice-docs-installation-test-optional)
+  * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
+  * [11. Deploy ONLYOFFICE Docs with your own dependency (optional)](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
+  * [11.1 Use your own nginx-ingress controller](#111-use-your-own-nginx-ingress-controller)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -122,7 +123,7 @@ ONLYOFFICE Docs use ingress-nginx by kubernetes as dependencies chart. Bundle ng
 
 If you want to manage the configuration of ingress-nginx controller dependent chart, please check section [#4.1](#41-configure-ingress-nginxkubernetes-subchart)
 
-(Optional) Also, you can use your own ingress-nginx controller, for more information please refer to step [#10](#10-deploy-onlyoffice-docs-with-your-own-dependency-optional)
+(Optional) Also, you can use your own ingress-nginx controller, for more information please refer to step [#11](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
 
 #### 4.1 Configure ingress-nginx/kubernetes subchart
 
@@ -421,7 +422,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.proxy.workerProcesses`                      | Defines the nginx config worker_processes directive                                                                                                                            | `1`                                                                                       |
 | `documentserver.proxy.secureLinkSecret`                     | Defines secret for the nginx config directive [secure_link_md5](https://nginx.org/en/docs/http/ngx_http_secure_link_module.html#secure_link_md5)                               | `verysecretstring`                                                                        |
 | `documentserver.proxy.infoAllowedIP`                        | Defines ip addresses for accessing the info page                                                                                                                               | `[]`                                                                                      |
-| `documentserver.proxy.infoAllowedUser`                      | Defines user name for accessing the info page. If not set to, Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) will not be applied to access the info page. For more details, see [here](#12-access-to-the-info-page-optional) | `""` |
+| `documentserver.proxy.infoAllowedUser`                      | Defines user name for accessing the info page. If not set to, Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) will not be applied to access the info page. For more details, see [here](#10-access-to-the-info-page-optional) | `""` |
 | `documentserver.proxy.infoAllowedPassword`                  | Defines user password for accessing the info page. Used if `proxy.infoAllowedUser` is set                                                                                      | `password`                                                                                |
 | `documentserver.proxy.infoAllowedSecretKeyName`             | The name of the key that contains the info auth user password. Used if `proxy.infoAllowedUser` is set                                                                          | `info-auth-password`                                                                      |
 | `documentserver.proxy.infoAllowedExistingSecret`            | Name of existing secret to use for info auth password. Used if `proxy.infoAllowedUser` is set. Must contain the key specified in `proxy.infoAllowedSecretKeyName`. If set to, it takes priority over the `proxy.infoAllowedPassword` | `""`                                |
@@ -668,7 +669,26 @@ $ kubectl scale -n default deployment documentserver --replicas=POD_COUNT
 
 where `POD_COUNT` is a number of the `documentserver` pods.
 
-### 7. Update ONLYOFFICE Docs license (optional)
+### 7. Update ONLYOFFICE Docs
+
+It's necessary to set the parameters for updating. For example,
+
+```bash
+$ helm upgrade documentserver onlyoffice/docs-shards \
+  --set docservice.image.tag=[version]
+```
+
+  > **Note**: also need to specify the parameters that were specified during installation
+
+Or modify the values.yaml file and run the command:
+
+```bash
+$ helm upgrade documentserver -f values.yaml onlyoffice/docs-shards
+```
+
+When the `helm upgrade` command is executed, replicas will be turned off one by one, and active documents on disabled replicas will be forced closed and saved. Also, disabled replicas will be removed from the Redis balancing tables.
+
+### 8. Update ONLYOFFICE Docs license (optional)
 
 In order to update the license, you need to perform the following steps:
  - Place the license.lic file containing the new key in some directory
@@ -682,7 +702,7 @@ $ kubectl create secret generic license --from-file=path/to/license.lic -n <NAME
 $ kubectl delete pod documentserver-*** -n <NAMESPACE>
 ```
 
-### 8. ONLYOFFICE Docs installation test (optional)
+### 9. ONLYOFFICE Docs installation test (optional)
 
 You can test ONLYOFFICE Docs availability and access to connected dependencies by running the following command:
 
@@ -714,7 +734,7 @@ Note: This testing is for informational purposes only and cannot guarantee 100% 
 It may be that even though all checks are completed successfully, an error occurs in the application.
 In this case, more detailed information can be found in the application logs.
 
-### 9. Access to the info page (optional)
+### 10. Access to the info page (optional)
 
 The access to `/info` page is limited by default.
 In order to allow the access to it, you need to specify the IP addresses or subnets (that will be Proxy container clients in this case) using `proxy.infoAllowedIP` parameter.
@@ -723,9 +743,9 @@ Generally the Pods / Nodes / Load Balancer addresses will actually be the client
 In this case the access to the info page will be available to everyone.
 You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `proxy.infoAllowedUser` parameter value and by setting the password using `proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `proxy.infoAllowedExistingSecret` parameter.
 
-### 10. Deploy ONLYOFFICE Docs with your own dependency (optional)
+### 11. Deploy ONLYOFFICE Docs with your own dependency (optional)
 
-### 10.1 Use your own nginx-ingress controller
+### 11.1 Use your own nginx-ingress controller
 
 **Note:** ONLYOFFICE Docs support **only** nginx-ingress controller [by the kubernetes](https://github.com/kubernetes/ingress-nginx). 
 

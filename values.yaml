@@ -49,11 +49,11 @@ connections:
   redisPort: "6379"
   ## connections.redisUser The Redis user name
   ## ref: https://redis.io/docs/management/security/acl/
-  ## The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisUser: default
   ## connections.redisDBNum Number of the redis logical database to be selected
   ## ref: https://redis.io/commands/select/
-  ## The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   ## Not used if values are set in `connections.redisClusterNodes`
   redisDBNum: "0"
   ## connections.redisClusterNodes List of nodes in the Redis cluster
@@ -70,14 +70,14 @@ connections:
   redisSentinelGroupName: mymaster
   ## connections.redisExistingSecret Name of existing secret to use for Redis passwords
   ## Must contain the key specified in `connections.redisSecretKeyName`
-  ## The password from this secret overrides the value for the password set in the `options` object in `production-linux-local.json` if you add custom configuration file
+  ## The password from this secret overrides the value for the password set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisExistingSecret: redis
   ## connections.redisSecretKeyName The name of the key that contains the Redis user password
   ## If you set a password in `redisPassword`, a secret will be automatically created, the key name of which will be the value set here
   redisSecretKeyName: redis-password
   ## connections.redisPassword The password set for the Redis account
   ## If set to, it takes priority over the `connections.redisExistingSecret`
-  ## The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisPassword: ""
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`

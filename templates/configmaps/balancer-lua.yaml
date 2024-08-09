@@ -1,3 +1,4 @@
+{{- if index .Values "ingress-nginx" "enabled" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -393,3 +394,4 @@ data:
      }})
      
      return _M
+{{- end }}

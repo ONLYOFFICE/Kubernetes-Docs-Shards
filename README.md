@@ -739,11 +739,11 @@ In this case, more detailed information can be found in the application logs.
 ### 10. Access to the info page (optional)
 
 The access to `/info` page is limited by default.
-In order to allow the access to it, you need to specify the IP addresses or subnets (that will be Proxy container clients in this case) using `proxy.infoAllowedIP` parameter.
+In order to allow the access to it, you need to specify the IP addresses or subnets (that will be Proxy container clients in this case) using `documentserver.proxy.infoAllowedIP` parameter.
 Taking into consideration the specifics of Kubernetes net interaction it is possible to get the original IP of the user (being Proxy client) though it's not a standard scenario.
 Generally the Pods / Nodes / Load Balancer addresses will actually be the clients, so these addresses are to be used.
 In this case the access to the info page will be available to everyone.
-You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `proxy.infoAllowedUser` parameter value and by setting the password using `proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `proxy.infoAllowedExistingSecret` parameter.
+You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `documentserver.proxy.infoAllowedUser` parameter value and by setting the password using `documentserver.proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `documentserver.proxy.infoAllowedExistingSecret` parameter.
 
 ### 11. Deploy ONLYOFFICE Docs with your own dependency (optional)
 

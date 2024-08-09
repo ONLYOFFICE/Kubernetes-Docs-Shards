@@ -620,10 +620,10 @@ documentserver:
     secureLinkSecret: verysecretstring
     ## documentserver.proxy.infoAllowedIP Defines ip addresses for accessing the info page
     ## Example:
-    infoAllowedIP:
-    - 10.244.0.0/16
-    - 10.135.0.0/16
-    ## infoAllowedIP: []
+    ## infoAllowedIP:
+    ## - 10.244.0.79
+    ## - 192.168.1.0/24
+    infoAllowedIP: []
     ## documentserver.proxy.infoAllowedUser Defines user name for accessing the info page
     ## If not set to, Nginx Basic Authentication will not be applied to access the info page
     ## ref: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html

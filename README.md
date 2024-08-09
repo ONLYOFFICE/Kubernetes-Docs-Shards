@@ -193,21 +193,21 @@ To allow the StatsD metrics in ONLYOFFICE Docs, follow step [5.2](#52-metrics-de
 
 #### 6.1 Create a ConfigMap containing a json file
 
-In order to create a ConfigMap from a file that contains the `production-linux-local.json` structure, you need to run the following command:
+In order to create a ConfigMap from a file that contains the `local-production-linux.json` structure, you need to run the following command:
 
 ```bash
 $ kubectl create configmap custom-local-config \
-  --from-file=./production-linux-local.json
+  --from-file=./local-production-linux.json
 ```
 
 Note: Any name except `local-config` can be used instead of `custom-local-config`.
 
 #### 6.2 Specify parameters when installing ONLYOFFICE Docs
 
-When installing ONLYOFFICE Docs, specify the `extraConf.configMap=custom-local-config` and `extraConf.filename=production-linux-local.json` parameters
+When installing ONLYOFFICE Docs, specify the `extraConf.configMap=custom-local-config` and `extraConf.filename=local-production-linux.json` parameters
 
 Note: If you need to add a configuration file after the ONLYOFFICE Docs is already installed, you need to execute step [6.1](#61-create-a-configmap-containing-a-json-file) 
-and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraConf.configMap=custom-local-config --set extraConf.filename=production-linux-local.json` command or 
+and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraConf.configMap=custom-local-config --set extraConf.filename=local-production-linux.json` command or 
 `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
 ### 7. Add custom Fonts
@@ -300,13 +300,13 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `connections.redisConnectorName`                            | Defines which connector to use to connect to Redis. If you need to connect to Redis Sentinel, set the value `ioredis`                                                          | `redis`                                                                                   |
 | `connections.redisHost`                                     | The IP address or the name of the Redis host                                                                                                                                   | `redis-master.default.svc.cluster.local`                                                  |
 | `connections.redisPort`                                     | The Redis server port number                                                                                                                                                   | `6379`                                                                                    |
-| `connections.redisUser`                                     | The Redis [user](https://redis.io/docs/management/security/acl/) name. The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file | `default`                                                        |
-| `connections.redisDBNum`                                    | Number of the redis logical database to be [selected](https://redis.io/commands/select/). The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file | `0`                                           |
+| `connections.redisUser`                                     | The Redis [user](https://redis.io/docs/management/security/acl/) name. The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file | `default`                                                        |
+| `connections.redisDBNum`                                    | Number of the redis logical database to be [selected](https://redis.io/commands/select/). The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file | `0`                                           |
 | `connections.redisClusterNodes`                             | List of nodes in the Redis cluster. There is no need to specify every node in the cluster, 3 should be enough. You can specify multiple values. It must be specified in the `host:port` format | `[]`                                                                      |
 | `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves. Used if `connections.redisConnectorName` is set to `ioredis`                                   | `mymaster`                                                                                |
-| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret`. The value in this parameter overrides the value set in the `options` object in `production-linux-local.json` if you add custom configuration file| `""`                   |
+| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret`. The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file| `""`                   |
 | `connections.redisSecretKeyName`                            | The name of the key that contains the Redis user password                                                                                                                      | `redis-password`                                                                          |
-| `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `production-linux-local.json` | `redis`                                             |
+| `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local-production-linux.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
 | `webProxy.enabled`                                          | Specify whether a Web proxy is used in your network to access the Pods of k8s cluster to the Internet                                                                          | `false`                                                                                   |
 | `webProxy.http`                                             | Web Proxy address for `HTTP` traffic                                                                                                                                           | `http://proxy.example.com`                                                                |
@@ -356,7 +356,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `jwt.outbox`                                                | JSON Web Token validation parameters for outbox requests only. If not specified, the values of the parameters of the common `jwt` are used                                     | `{}`                                                                                      |
 | `jwt.existingSecret`                                        | The name of an existing secret containing variables for jwt. If not specified, a secret named `jwt` will be created                                                            | `""`                                                                                      |
 | `extraConf.configMap`                                       | The name of the ConfigMap containing the json file that override the default values                                                                                            | `""`                                                                                      |
-| `extraConf.filename`                                        | The name of the json file that contains custom values. Must be the same as the `key` name in `extraConf.ConfigMap`                                                             | `production-linux-local.json`                                                                              |
+| `extraConf.filename`                                        | The name of the json file that contains custom values. Must be the same as the `key` name in `extraConf.ConfigMap`                                                             | `local-production-linux.json`                                                                              |
 | `extraThemes.configMap`                                     | The name of the ConfigMap containing the json file that contains the interface themes                                                                                          | `""`                                                                                      |
 | `extraThemes.filename`                                      | The name of the json file that contains custom interface themes. Must be the same as the `key` name in `extraThemes.configMap`                                                 | `custom-themes.json`                                                                      |
 | `sqlScripts.branchName`                                     | The name of the repository branch from which sql scripts will be downloaded                                                                                                    | `master`                                                                                  |

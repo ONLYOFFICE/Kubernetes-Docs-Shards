@@ -762,7 +762,7 @@ If you want to deploy ONLYOFFICE Docs in cluster where already exist nginx-ingre
 > All available Redis connections parameters present [here](#4-parameters) with the `connections.` prefix
 
 ```bash
-helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --dry-run=client > ./ingressConfigMaps.yaml 
+helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --dry-run=server > ./ingressConfigMaps.yaml 
 ```
 
 **The second step**, apply configMaps that you create with command below:

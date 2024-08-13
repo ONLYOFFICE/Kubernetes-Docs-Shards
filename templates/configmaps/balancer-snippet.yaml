@@ -1,3 +1,4 @@
+{{- if index .Values "ingress-nginx" "enabled" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -140,7 +141,7 @@ data:
         if API_ARG then
            local API_KEY = handle_api_key(API_ARG)
            red:set_timeouts(1000, 1000, 1000) -- 1 sec
-           local ok, err = red:connect("{{ include "ds.redis.subchart.prefix" . }}{{ .Values.connections.redisHost }}", {{ .Values.connections.redisPort }})
+           local ok, err = red:connect({{ .Values.connections.redisHost | quote }}, {{ .Values.connections.redisPort }})
            if not ok then
                 ngx.say("1: failed to connect: ",err)
                 return
@@ -228,3 +229,4 @@ data:
      if ($docs_wopisrc) {
          proxy_pass http://$custom_endpoint;
      }
+{{- end }}

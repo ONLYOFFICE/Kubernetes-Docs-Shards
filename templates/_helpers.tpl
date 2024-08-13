@@ -4,10 +4,8 @@ Get the Redis password secret
 {{- define "ds.redis.secretName" -}}
 {{- if or .Values.connections.redisPassword .Values.connections.redisNoPass -}}
     {{- printf "%s-redis" .Release.Name -}}
-{{- else if and (not .Values.redis.enabled) (.Values.connections.redisExistingSecret) -}}
+{{- else if .Values.connections.redisExistingSecret -}}
     {{- printf "%s" (tpl .Values.connections.redisExistingSecret $) -}}
-{{- else if and .Values.redis.enabled .Values.redis.auth.password -}}
-    {{- printf "%s-%s" .Release.Name (tpl .Values.connections.redisExistingSecret $) -}}
 {{- end -}}
 {{- end -}}
 
@@ -20,19 +18,8 @@ Get the redis password
 {{- $keyValue := (get $secretKey .Values.connections.redisSecretKeyName) | b64dec }}
 {{- if .Values.connections.redisPassword -}}
     {{- printf "%s" .Values.connections.redisPassword -}}
-{{- else if and .Values.redis.enabled .Values.redis.auth.password -}}
-    {{- printf "%s" .Values.redis.auth.password -}}
 {{- else if $keyValue -}}
     {{- printf "%s" $keyValue -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return ds release name prefix for redis host name if redis subchart was deployed
-*/}}
-{{- define "ds.redis.subchart.prefix" -}}
-{{- if .Values.redis.enabled -}}
-    {{- printf "%s-" .Release.Name -}}
 {{- end -}}
 {{- end -}}
 
@@ -188,6 +175,17 @@ Get the ds annotations
 {{- else }}
     {{- $annotations }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Get the update strategy type for ds
+*/}}
+{{- define "ds.update.strategyType" -}}
+{{- if eq .type "RollingUpdate" -}}
+    {{- toYaml . | nindent 4 -}}
+{{- else -}}
+    {{- omit . "rollingUpdate" | toYaml | nindent 4 -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

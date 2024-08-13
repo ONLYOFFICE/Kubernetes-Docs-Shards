@@ -17,7 +17,7 @@ data:
   DB_PORT: "5432"
   DB_NAME: "postgres"
   REDIS_CONNECTOR_NAME: {{ .Values.connections.redisConnectorName }}
-  REDIS_SERVER_HOST: {{ include "ds.redis.subchart.prefix" . }}{{ .Values.connections.redisHost }}
+  REDIS_SERVER_HOST: {{ .Values.connections.redisHost }}
   REDIS_SERVER_PORT: {{ .Values.connections.redisPort | quote }}
   REDIS_SERVER_USER: {{ .Values.connections.redisUser }}
   REDIS_SERVER_DB_NUM: {{ .Values.connections.redisDBNum | quote }}

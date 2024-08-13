@@ -6,21 +6,21 @@ ONLYOFFICE Docs for Kubernetes
 - [Deploy prerequisites](#deploy-prerequisites)
   * [1. Add Helm repositories](#1-add-helm-repositories)
   * [2. Install Persistent Storage](#2-install-persistent-storage)
-  * [3. Configure dependent charts](#3-configure-dependent-charts)
-    + [3.1 Configure redis/bitnami subchart](#31-configure-redisbitnami-subchart)
-    + [3.2 Configure ingress-nginx/kubernetes subchart](#32-configure-ingress-nginxkubernetes-subchart)
-  * [4. Deploy StatsD exporter](#4-deploy-statsd-exporter)
-    + [4.1 Add Helm repositories](#41-add-helm-repositories)
-    + [4.2 Installing Prometheus](#42-installing-prometheus)
-    + [4.3 Installing StatsD exporter](#43-installing-statsd-exporter)
-  * [5. Make changes to Node-config configuration files](#5-make-changes-to-Node-config-configuration-files)
-    + [5.1 Create a ConfigMap containing a json file](#51-create-a-configmap-containing-a-json-file)
-    + [5.2 Specify parameters when installing ONLYOFFICE Docs](#52-specify-parameters-when-installing-onlyoffice-docs)
-  * [6. Add custom Fonts](#6-add-custom-fonts)
-  * [7. Add Plugins](#7-add-plugins)
-  * [8. Change interface themes](#8-change-interface-themes)
-    + [8.1 Create a ConfigMap containing a json file](#81-create-a-configmap-containing-a-json-file)
-    + [8.2 Specify parameters when installing ONLYOFFICE Docs](#82-specify-parameters-when-installing-onlyoffice-docs)
+  * [3. Deploy Redis](#3-deploy-redis)
+  * [4. Configure dependent charts](#4-configure-dependent-charts)
+    + [4.1 Configure ingress-nginx/kubernetes subchart](#41-configure-ingress-nginxkubernetes-subchart)
+  * [5. Deploy StatsD exporter](#5-deploy-statsd-exporter)
+    + [5.1 Add Helm repositories](#51-add-helm-repositories)
+    + [5.2 Installing Prometheus](#52-installing-prometheus)
+    + [5.3 Installing StatsD exporter](#53-installing-statsd-exporter)
+  * [6. Make changes to Node-config configuration files](#6-make-changes-to-Node-config-configuration-files)
+    + [6.1 Create a ConfigMap containing a json file](#61-create-a-configmap-containing-a-json-file)
+    + [6.2 Specify parameters when installing ONLYOFFICE Docs](#62-specify-parameters-when-installing-onlyoffice-docs)
+  * [7. Add custom Fonts](#7-add-custom-fonts)
+  * [8. Add Plugins](#8-add-plugins)
+  * [9. Change interface themes](#9-change-interface-themes)
+    + [9.1 Create a ConfigMap containing a json file](#91-create-a-configmap-containing-a-json-file)
+    + [9.2 Specify parameters when installing ONLYOFFICE Docs](#92-specify-parameters-when-installing-onlyoffice-docs)
 - [Deploy ONLYOFFICE Docs](#deploy-onlyoffice-docs)
   * [1. Deploy the ONLYOFFICE Docs license](#1-deploy-the-onlyoffice-docs-license)
     + [1.1 Create secret](#11-create-secret)
@@ -34,15 +34,13 @@ ONLYOFFICE Docs for Kubernetes
   * [5.3 Expose ONLYOFFICE Docs via HTTPS](#53-expose-onlyoffice-docs-via-https)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
       + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
-      + [6.2 Manual scaling](#62-manual-scaling) 
-  * [7. Update ONLYOFFICE Docs license (optional)](#7-update-onlyoffice-docs-license-optional)
-  * [8. ONLYOFFICE Docs installation test (optional)](#8-onlyoffice-docs-installation-test-optional)
-  * [9. Access to the info page (optional)](#9-access-to-the-info-page-optional)
-  * [10. Deploy ONLYOFFICE Docs with your own dependency (optional)](#10-deploy-onlyoffice-docs-with-your-own-dependency-optional)
-  * [10.1 Use your own Redis](#101-use-your-own-redis)
-      + [10.1.1 Connect ONLYOFFICE Docs to Redis using password](#1011-connect-to-redis-using-password)
-      + [10.1.2 Connect ONLYOFFICE Docs to Redis using existing secret](#1012-alternative-connect-to-redis-using-existing-secret)
-  * [10.2 Use your own nginx-ingress controller](#102-use-your-own-nginx-ingress-controller)
+      + [6.2 Manual scaling](#62-manual-scaling)
+  * [7. Update ONLYOFFICE Docs](#7-update-onlyoffice-docs) 
+  * [8. Update ONLYOFFICE Docs license (optional)](#8-update-onlyoffice-docs-license-optional)
+  * [9. ONLYOFFICE Docs installation test (optional)](#9-onlyoffice-docs-installation-test-optional)
+  * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
+  * [11. Deploy ONLYOFFICE Docs with your own dependency (optional)](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
+  * [11.1 Use your own nginx-ingress controller](#111-use-your-own-nginx-ingress-controller)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -61,6 +59,7 @@ ONLYOFFICE Docs for Kubernetes
 ### 1. Add Helm repositories
 
 ```bash
+$ helm repo add bitnami https://charts.bitnami.com/bitnami
 $ helm repo add nfs-server-provisioner https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner
 $ helm repo add onlyoffice https://download.onlyoffice.com/charts/stable
 $ helm repo update
@@ -102,37 +101,31 @@ Configure a Persistent Volume Claim
 
 Note: If you want to enable `WOPI`, please set the parameter `wopi.enabled=true`. In this case Persistent Storage must be connected to the cluster nodes with the disabled caching attributes for the mounted directory for the clients. For NFS Server Provisioner it can be achieved by adding `noac` option to the parameter `storageClass.mountOptions`. Please find more information [here](https://github.com/kubernetes-sigs/nfs-ganesha-server-and-external-provisioner/blob/master/charts/nfs-server-provisioner/values.yaml#L83).
 
-### 3. Configure dependent charts 
+### 3. Deploy Redis
 
-ONLYOFFICE Docs use redis by bitnami and ingress-nginx by kubernetes as dependencies charts. This bundle ingress-nginx+redis is used to implement balancing in sharded mode. You can manage the configuration of dependent charts, or disable them to use your dependencies. 
+To install Redis to your cluster, run the following command:
 
-If you want to manage the configuration of dependent charts, please check section [#3.1](#31-configure-redisbitnami-subchart) for Redis and [#3.2](#32-configure-ingress-nginxkubernetes-subchart) for ingress-nginx controller
+```bash
+$ helm install redis bitnami/redis \
+  --set architecture=standalone \
+  --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set master.persistence.size=8Gi \
+  --set metrics.enabled=false
+```
 
-(Optional) Also, you can use your own Redis or ingress-nginx controller, for more information please refer to step [#10](#10-deploy-onlyoffice-docs-with-your-own-dependency-optional)
-
-#### 3.1 Configure redis/bitnami subchart
-
-Redis/bitnami subchart is **enabled by default**
-
-Note: Set the `redis.metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus.
-
-Some overridden values ​​for the Redis/Bitnami subchart can be found in the table below:
-
-### Redis subchart parameters
-
-| Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
-|-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `redis.master.persistence.size`                             | Persistent Volume size                                                                                                                                                         | `8Gi`                                                                                     |
-| `redis.enabled`                                             | Define that to enable or disable Redis/Bitnami subchart during deployment                                                                                                      | `true`                                                                                    |
-| `redis.architecture`                                        | Redis® architecture. Allowed values: standalone or replication                                                                                                                 | `standalone`                                                                              |
-| `redis.secretAnnotations`                                   | Annotations to add to secret. Some service annotations added for correct deployment along with the ONLYOFFICE Docs chart                                                | `helm.sh/hook: pre-install  helm.sh/hook-weight: "1"`                                     |
-| `redis.master.persistence.storageClass`                     | Persistent Volume storage class                                                                                                                                                | `""`                                                                                      |
-| `redis.metric.enabled`                                      | Start a sidecar prometheus exporter to expose Redis® metrics                                                                                                                   | `false`                                                                                   |
-| `redis.auth.password`                                       | Redis® password                                                                                                                                                                | `""`                                                                                      |
+Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus.
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
-#### 3.2 Configure ingress-nginx/kubernetes subchart
+### 4. Configure dependent charts 
+
+ONLYOFFICE Docs use ingress-nginx by kubernetes as dependencies chart. Bundle nginx-ingress+Redis is used to implement balancing in sharded mode. You can manage the configuration of dependent chart, or disable it to use your own nginx-ingress controller. 
+
+If you want to manage the configuration of ingress-nginx controller dependent chart, please check section [#4.1](#41-configure-ingress-nginxkubernetes-subchart)
+
+(Optional) Also, you can use your own ingress-nginx controller, for more information please refer to step [#11](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
+
+#### 4.1 Configure ingress-nginx/kubernetes subchart
 
 ingress-nginx/kubernetes subchart is **enabled by default**
 
@@ -154,11 +147,11 @@ Some overridden values ​​for the ingress-nginx/Kubernetes subchart can be fo
 
 See more details about installing ingress-nginx via Helm [here](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx).
 
-### 4. Deploy StatsD exporter
+### 5. Deploy StatsD exporter
 
-*This step is optional. You can skip step [#4](#4-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
+*This step is optional. You can skip step [#5](#5-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
 
-#### 4.1 Add Helm repositories
+#### 5.1 Add Helm repositories
 
 ```bash
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -166,7 +159,7 @@ $ helm repo add kube-state-metrics https://kubernetes.github.io/kube-state-metri
 $ helm repo update
 ```
 
-#### 4.2 Installing Prometheus
+#### 5.2 Installing Prometheus
 
 To install Prometheus to your cluster, run the following command:
 
@@ -179,7 +172,7 @@ To change the scrape interval, specify the `server.global.scrape_interval` param
 
 See more details about installing Prometheus via Helm [here](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus).
 
-#### 4.3 Installing StatsD exporter
+#### 5.3 Installing StatsD exporter
 
 To install StatsD exporter to your cluster, run the following command:
 
@@ -194,48 +187,48 @@ See more details about installing Prometheus StatsD exporter via Helm [here](htt
 
 To allow the StatsD metrics in ONLYOFFICE Docs, follow step [5.2](#52-metrics-deployment-optional)
 
-### 5. Make changes to Node-config configuration files
+### 6. Make changes to Node-config configuration files
 
-*This step is optional. You can skip step [#5](#5-make-changes-to-node-config-configuration-files) entirely if you don't need to make changes to the configuration files*
+*This step is optional. You can skip step [#6](#6-make-changes-to-node-config-configuration-files) entirely if you don't need to make changes to the configuration files*
 
-#### 5.1 Create a ConfigMap containing a json file
+#### 6.1 Create a ConfigMap containing a json file
 
-In order to create a ConfigMap from a file that contains the `production-linux-local.json` structure, you need to run the following command:
+In order to create a ConfigMap from a file that contains the `local-production-linux.json` structure, you need to run the following command:
 
 ```bash
 $ kubectl create configmap custom-local-config \
-  --from-file=./production-linux-local.json
+  --from-file=./local-production-linux.json
 ```
 
 Note: Any name except `local-config` can be used instead of `custom-local-config`.
 
-#### 5.2 Specify parameters when installing ONLYOFFICE Docs
+#### 6.2 Specify parameters when installing ONLYOFFICE Docs
 
-When installing ONLYOFFICE Docs, specify the `extraConf.configMap=custom-local-config` and `extraConf.filename=production-linux-local.json` parameters
+When installing ONLYOFFICE Docs, specify the `extraConf.configMap=custom-local-config` and `extraConf.filename=local-production-linux.json` parameters
 
-Note: If you need to add a configuration file after the ONLYOFFICE Docs is already installed, you need to execute step [5.1](#51-create-a-configmap-containing-a-json-file) 
-and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraConf.configMap=custom-local-config --set extraConf.filename=production-linux-local.json` command or 
+Note: If you need to add a configuration file after the ONLYOFFICE Docs is already installed, you need to execute step [6.1](#61-create-a-configmap-containing-a-json-file) 
+and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraConf.configMap=custom-local-config --set extraConf.filename=local-production-linux.json` command or 
 `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
-### 6. Add custom Fonts
+### 7. Add custom Fonts
 
-*This step is optional. You can skip step [#6](#6-add-custom-fonts) entirely if you don't need to add your fonts*
+*This step is optional. You can skip step [#7](#7-add-custom-fonts) entirely if you don't need to add your fonts*
 
 In order to add fonts to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 7. Add Plugins
+### 8. Add Plugins
 
-*This step is optional. You can skip step [#7](#7-add-plugins) entirely if you don't need to add plugins*
+*This step is optional. You can skip step [#8](#8-add-plugins) entirely if you don't need to add plugins*
 
 In order to add plugins to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 8. Change interface themes
+### 9. Change interface themes
 
-*This step is optional. You can skip step [#8](#8-change-interface-themes) entirely if you don't need to change the interface themes*
+*This step is optional. You can skip step [#9](#9-change-interface-themes) entirely if you don't need to change the interface themes*
 
-#### 8.1 Create a ConfigMap containing a json file
+#### 9.1 Create a ConfigMap containing a json file
 
 To create a ConfigMap with a json file that contains the interface themes, you need to run the following command:
 
@@ -246,11 +239,11 @@ $ kubectl create configmap custom-themes \
 
 Note: Instead of `custom-themes` and `custom-themes.json` you can use any other names.
 
-#### 8.2 Specify parameters when installing ONLYOFFICE Docs
+#### 9.2 Specify parameters when installing ONLYOFFICE Docs
 
 When installing ONLYOFFICE Docs, specify the `extraThemes.configMap=custom-themes` and `extraThemes.filename=custom-themes.json` parameters.
 
-Note: If you need to add interface themes after the ONLYOFFICE Docs is already installed, you need to execute step [5.1](#51-create-a-configmap-containing-a-json-file)
+Note: If you need to add interface themes after the ONLYOFFICE Docs is already installed, you need to execute step [6.1](#61-create-a-configmap-containing-a-json-file)
 and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraThemes.configMap=custom-themes --set extraThemes.filename=custom-themes.json` command or
 `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
@@ -283,7 +276,7 @@ Note: If you need to add license after the ONLYOFFICE Docs is already installed,
 To deploy ONLYOFFICE Docs with the release name `documentserver`:
 
 ```bash
-$ helm install documentserver onlyoffice/docs-shards --set redis.master.persistence.storageClass=PERSISTENT_STORAGE_CLASS
+$ helm install documentserver onlyoffice/docs-shards
 ```
 
 The command deploys ONLYOFFICE Docs on the Kubernetes cluster in the default configuration. The [Parameters](#4-parameters) section lists the parameters that can be configured during installation. 
@@ -305,15 +298,15 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
 |-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | `connections.redisConnectorName`                            | Defines which connector to use to connect to Redis. If you need to connect to Redis Sentinel, set the value `ioredis`                                                          | `redis`                                                                                   |
-| `connections.redistHost`                                    | The IP address or the name of the Redis host                                                                                                                                   | `redis-master`                                                                            |
+| `connections.redisHost`                                     | The IP address or the name of the Redis host                                                                                                                                   | `redis-master.default.svc.cluster.local`                                                  |
 | `connections.redisPort`                                     | The Redis server port number                                                                                                                                                   | `6379`                                                                                    |
-| `connections.redisUser`                                     | The Redis [user](https://redis.io/docs/management/security/acl/) name. The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file | `default`                                                        |
-| `connections.redisDBNum`                                    | Number of the redis logical database to be [selected](https://redis.io/commands/select/). The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file | `0`                                           |
+| `connections.redisUser`                                     | The Redis [user](https://redis.io/docs/management/security/acl/) name. The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file | `default`                                                        |
+| `connections.redisDBNum`                                    | Number of the redis logical database to be [selected](https://redis.io/commands/select/). The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file | `0`                                           |
 | `connections.redisClusterNodes`                             | List of nodes in the Redis cluster. There is no need to specify every node in the cluster, 3 should be enough. You can specify multiple values. It must be specified in the `host:port` format | `[]`                                                                      |
 | `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves. Used if `connections.redisConnectorName` is set to `ioredis`                                   | `mymaster`                                                                                |
-| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret` and `redis.auth.password`. The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file| `""`                   |
+| `connections.redisPassword`                                 | The password set for the Redis account. If set to, it takes priority over the `connections.redisExistingSecret`. The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file| `""`                   |
 | `connections.redisSecretKeyName`                            | The name of the key that contains the Redis user password                                                                                                                      | `redis-password`                                                                          |
-| `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local.json` | `redis`                                             |
+| `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local-production-linux.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
 | `webProxy.enabled`                                          | Specify whether a Web proxy is used in your network to access the Pods of k8s cluster to the Internet                                                                          | `false`                                                                                   |
 | `webProxy.http`                                             | Web Proxy address for `HTTP` traffic                                                                                                                                           | `http://proxy.example.com`                                                                |
@@ -363,7 +356,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `jwt.outbox`                                                | JSON Web Token validation parameters for outbox requests only. If not specified, the values of the parameters of the common `jwt` are used                                     | `{}`                                                                                      |
 | `jwt.existingSecret`                                        | The name of an existing secret containing variables for jwt. If not specified, a secret named `jwt` will be created                                                            | `""`                                                                                      |
 | `extraConf.configMap`                                       | The name of the ConfigMap containing the json file that override the default values                                                                                            | `""`                                                                                      |
-| `extraConf.filename`                                        | The name of the json file that contains custom values. Must be the same as the `key` name in `extraConf.ConfigMap`                                                             | `production-linux-local.json`                                                                              |
+| `extraConf.filename`                                        | The name of the json file that contains custom values. Must be the same as the `key` name in `extraConf.ConfigMap`                                                             | `local-production-linux.json`                                                                              |
 | `extraThemes.configMap`                                     | The name of the ConfigMap containing the json file that contains the interface themes                                                                                          | `""`                                                                                      |
 | `extraThemes.filename`                                      | The name of the json file that contains custom interface themes. Must be the same as the `key` name in `extraThemes.configMap`                                                 | `custom-themes.json`                                                                      |
 | `sqlScripts.branchName`                                     | The name of the repository branch from which sql scripts will be downloaded                                                                                                    | `master`                                                                                  |
@@ -379,6 +372,8 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.podAnnotations`                             | Map of annotations to add to the Documentserver deployment pods                                                                                                                | `rollme: "{{ randAlphaNum 5 | quote }}"`                                                  |
 | `documentserver.replicas`                                   | Number of Documentserver replicas to deploy. If the `documentserver.autoscaling.enabled` parameter is enabled, it is ignored.                                                  | `3`                                                                                       |
 | `documentserver.updateStrategy.type`                        | Documentserver deployment update strategy type                                                                                                                                 | `RollingUpdate`                                                                           |
+| `documentserver.updateStrategy.rollingUpdate.maxUnavailable` | Maximum number of Documentserver Pods unavailable during the update process                                                                                                   | `25%`                                                                                     |
+| `documentserver.updateStrategy.rollingUpdate.maxSurge`      | Maximum number of Documentserver Pods created over the desired number of Pods                                                                                                  | `25%`                                                                                     |
 | `documentserver.customPodAntiAffinity`                      | Prohibiting the scheduling of Documentserver Pods relative to other Pods containing the specified labels on the same node                                                      | `{}`                                                                                      |
 | `documentserver.podAffinity`                                | Pod affinity rules for Documentserver Pods scheduling by nodes relative to other Pods                                                                                          | `{}`                                                                                      |
 | `documentserver.nodeAffinity`                               | Node affinity rules for Documentserver Pods scheduling by nodes                                                                                                                | `{}`                                                                                      |
@@ -429,7 +424,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.proxy.workerProcesses`                      | Defines the nginx config worker_processes directive                                                                                                                            | `1`                                                                                       |
 | `documentserver.proxy.secureLinkSecret`                     | Defines secret for the nginx config directive [secure_link_md5](https://nginx.org/en/docs/http/ngx_http_secure_link_module.html#secure_link_md5)                               | `verysecretstring`                                                                        |
 | `documentserver.proxy.infoAllowedIP`                        | Defines ip addresses for accessing the info page                                                                                                                               | `[]`                                                                                      |
-| `documentserver.proxy.infoAllowedUser`                      | Defines user name for accessing the info page. If not set to, Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) will not be applied to access the info page. For more details, see [here](#12-access-to-the-info-page-optional) | `""` |
+| `documentserver.proxy.infoAllowedUser`                      | Defines user name for accessing the info page. If not set to, Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) will not be applied to access the info page. For more details, see [here](#10-access-to-the-info-page-optional) | `""` |
 | `documentserver.proxy.infoAllowedPassword`                  | Defines user password for accessing the info page. Used if `proxy.infoAllowedUser` is set                                                                                      | `password`                                                                                |
 | `documentserver.proxy.infoAllowedSecretKeyName`             | The name of the key that contains the info auth user password. Used if `proxy.infoAllowedUser` is set                                                                          | `info-auth-password`                                                                      |
 | `documentserver.proxy.infoAllowedExistingSecret`            | Name of existing secret to use for info auth password. Used if `proxy.infoAllowedUser` is set. Must contain the key specified in `proxy.infoAllowedSecretKeyName`. If set to, it takes priority over the `proxy.infoAllowedPassword` | `""`                                |
@@ -676,7 +671,26 @@ $ kubectl scale -n default deployment documentserver --replicas=POD_COUNT
 
 where `POD_COUNT` is a number of the `documentserver` pods.
 
-### 7. Update ONLYOFFICE Docs license (optional)
+### 7. Update ONLYOFFICE Docs
+
+It's necessary to set the parameters for updating. For example,
+
+```bash
+$ helm upgrade documentserver onlyoffice/docs-shards \
+  --set docservice.image.tag=[version]
+```
+
+  > **Note**: also need to specify the parameters that were specified during installation
+
+Or modify the values.yaml file and run the command:
+
+```bash
+$ helm upgrade documentserver -f values.yaml onlyoffice/docs-shards
+```
+
+When the `helm upgrade` command is executed, replicas will be turned off one by one, and active documents on disabled replicas will be forced closed and saved. Also, disabled replicas will be removed from the Redis balancing tables.
+
+### 8. Update ONLYOFFICE Docs license (optional)
 
 In order to update the license, you need to perform the following steps:
  - Place the license.lic file containing the new key in some directory
@@ -690,7 +704,7 @@ $ kubectl create secret generic license --from-file=path/to/license.lic -n <NAME
 $ kubectl delete pod documentserver-*** -n <NAMESPACE>
 ```
 
-### 8. ONLYOFFICE Docs installation test (optional)
+### 9. ONLYOFFICE Docs installation test (optional)
 
 You can test ONLYOFFICE Docs availability and access to connected dependencies by running the following command:
 
@@ -722,42 +736,18 @@ Note: This testing is for informational purposes only and cannot guarantee 100% 
 It may be that even though all checks are completed successfully, an error occurs in the application.
 In this case, more detailed information can be found in the application logs.
 
-### 9. Access to the info page (optional)
+### 10. Access to the info page (optional)
 
 The access to `/info` page is limited by default.
-In order to allow the access to it, you need to specify the IP addresses or subnets (that will be Proxy container clients in this case) using `proxy.infoAllowedIP` parameter.
+In order to allow the access to it, you need to specify the IP addresses or subnets (that will be Proxy container clients in this case) using `documentserver.proxy.infoAllowedIP` parameter.
 Taking into consideration the specifics of Kubernetes net interaction it is possible to get the original IP of the user (being Proxy client) though it's not a standard scenario.
 Generally the Pods / Nodes / Load Balancer addresses will actually be the clients, so these addresses are to be used.
 In this case the access to the info page will be available to everyone.
-You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `proxy.infoAllowedUser` parameter value and by setting the password using `proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `proxy.infoAllowedExistingSecret` parameter.
+You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `documentserver.proxy.infoAllowedUser` parameter value and by setting the password using `documentserver.proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `documentserver.proxy.infoAllowedExistingSecret` parameter.
 
-### 10. Deploy ONLYOFFICE Docs with your own dependency (optional)
+### 11. Deploy ONLYOFFICE Docs with your own dependency (optional)
 
-### 10.1 Use your own Redis
-
-#### 10.1.1 Connect to Redis using password
-
-To use your own Redis, you need to disable the Redis/bitnami subchart during ONLYOFFICE Docs deployment and configure `connections.redis` options.
-
-For deploy ONLYOFFICE Docs and connect to existing Redis using `connections.redisHost` and `connections.redisPassword` follow the command:
-
-```bash
-$ helm install documentserver onlyoffice/docs-shards --set redis.enabled=false --set connections.redisHost=YOUR_REDIS_HOST --set connections.redisPassword=YOUR_SECURE_PWD
-```
-
-Note: This command will create a secret with the password value that you set, and use the value from this secret to connect to Redis.
-
-#### 10.1.2 (Alternative) Connect to Redis using existing secret
-
-Alternative, you can create secret with the Redis password by yourself, and specify `connections.redisExistingSecret` parameter during deployment ONLYOFFICE Docs , for example:
-
-```bash
-$ helm install documentserver onlyoffice/docs-shards --set redis.enabled=false --set connections.redisHost=YOUR_REDIS_HOST --set connections.redisExistingSecret=YOUR_SECRET_NAME
-```
-
-Note: In your own secret, the key that contains the password must be named `redis-password`. If this is not the case, add a parameter that will override key name in the secret with parameter `redisSecretKeyName`.
-
-### 10.2 Use your own nginx-ingress controller
+### 11.1 Use your own nginx-ingress controller
 
 **Note:** ONLYOFFICE Docs support **only** nginx-ingress controller [by the kubernetes](https://github.com/kubernetes/ingress-nginx). 
 
@@ -772,7 +762,7 @@ If you want to deploy ONLYOFFICE Docs in cluster where already exist nginx-ingre
 > All available Redis connections parameters present [here](#4-parameters) with the `connections.` prefix
 
 ```bash
-helm template docs onlyoffice/docs-shards --set connections.redisPassword=<YOUR_REDIS_PASSWORD> --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --dry-run=client > ./ingressConfigMaps.yaml 
+helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --dry-run=server > ./ingressConfigMaps.yaml 
 ```
 
 **The second step**, apply configMaps that you create with command below:
@@ -790,7 +780,7 @@ $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.gi
 **Now**, when your nginx-ingress controller if configure, you can deploy ONLYOFFICE Docs with command:
 
 ```bash
-$ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false --set redis.master.persistence.storageClass=PERSISTENT_STORAGE_CLASS --set redis.auth.password=<YOUR_REDIS_PASSWORD>
+$ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false
 ```
 
 ## Using Grafana to visualize metrics (optional)
@@ -864,11 +854,11 @@ See more details about installing Grafana via Helm [here](https://github.com/bit
 
 ### 2 Access to Grafana via Ingress
 
-Note: It is assumed that step [#5.3.2.1](#5321-installing-the-kubernetes-nginx-ingress-controller) has already been completed.
+Note: It is assumed that step, please make sure that the nginx-ingress controller is installed in your cluster. If you already deploy ONLYOFFICE Docs and did not turn off the controller with the parameter `ingress-nginx.enabled=false` it is already present in the cluster.
 
 If ONLYOFFICE Docs was installed with the parameter `grafana.ingress.enabled` (step [#5.2](#52-metrics-deployment-optional)) then access to Grafana will be at: `http://INGRESS-ADDRESS/grafana/`
 
-If Ingres was installed using a secure connection (step [#5.3.2.3](#5323-expose-onlyoffice-docs-via-https)), then access to Grafana will be at: `https://your-domain-name/grafana/`
+If Ingres was installed using a secure connection (step [#5.3](#53-expose-onlyoffice-docs-via-https)), then access to Grafana will be at: `https://your-domain-name/grafana/`
 
 ### 3. View gathered metrics in Grafana
 

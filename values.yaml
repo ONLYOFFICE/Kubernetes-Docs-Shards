@@ -24,22 +24,6 @@ ingress-nginx:
     service:
       annotations: {}
 
-## redis.enabled parameters for manage redis subchart condition
-redis:
-  enabled: true
-  architecture: "standalone"
-  secretAnnotations:
-     helm.sh/hook: pre-install
-     helm.sh/hook-weight: "1"
-  master:
-    persistence:
-      size: 8Gi
-      storageClass: ""
-  metrics:
-    enabled: false
-  auth:
-    password: ""
-
 ## Default values for Onlyoffice Docs
 
 ## product.name Specifies name of the product
@@ -65,11 +49,11 @@ connections:
   redisPort: "6379"
   ## connections.redisUser The Redis user name
   ## ref: https://redis.io/docs/management/security/acl/
-  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisUser: default
   ## connections.redisDBNum Number of the redis logical database to be selected
   ## ref: https://redis.io/commands/select/
-  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   ## Not used if values are set in `connections.redisClusterNodes`
   redisDBNum: "0"
   ## connections.redisClusterNodes List of nodes in the Redis cluster
@@ -86,14 +70,14 @@ connections:
   redisSentinelGroupName: mymaster
   ## connections.redisExistingSecret Name of existing secret to use for Redis passwords
   ## Must contain the key specified in `connections.redisSecretKeyName`
-  ## The password from this secret overrides the value for the password set in the `options` object in `local.json` if you add custom configuration file
+  ## The password from this secret overrides the value for the password set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisExistingSecret: redis
   ## connections.redisSecretKeyName The name of the key that contains the Redis user password
   ## If you set a password in `redisPassword`, a secret will be automatically created, the key name of which will be the value set here
   redisSecretKeyName: redis-password
   ## connections.redisPassword The password set for the Redis account
   ## If set to, it takes priority over the `connections.redisExistingSecret`
-  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  ## The value in this parameter overrides the value set in the `options` object in `local-production-linux.json` if you add custom configuration file
   redisPassword: ""
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
@@ -229,7 +213,7 @@ license:
 log:
   ## log.level Defines the type and severity of a logged event
   ## Possible values are `ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`, `MARK`, `OFF`
-  level: ALL
+  level: WARN
   ## log.type Defines the format of a logged event
   ## Possible values are `pattern`, `json`, `basic`, `coloured`, `messagePassThrough`, `dummy`
   type: pattern
@@ -343,11 +327,18 @@ documentserver:
   ## documentserver.replicas Number of Documentserver replicas to deploy
   ## If the `documentserver.autoscaling.enabled` parameter is enabled, it is ignored
   replicas: 3
-  ## Update strategy used to replace old Pods by new ones. Allowed values: `RollingUpdate` or `Recreate`
-  ## It is recommended to use the `RollingUpdate` type
-  ## docservice.updateStrategy.type Docservice deployment update strategy type
+  ## Update strategy used to replace old Pods by new ones
   updateStrategy:
+    ## documentserver.updateStrategy.type Documentserver deployment update strategy type
+    ## Allowed values: `RollingUpdate` or `Recreate`
+    ## It is recommended to use the `RollingUpdate` type
     type: RollingUpdate
+    # documentserver.updateStrategy.rollingUpdate Used only when `documentserver.updateStrategy.type=RollingUpdate`
+    rollingUpdate:
+      # documentserver.updateStrategy.rollingUpdate.maxUnavailable Maximum number of Documentserver Pods unavailable during the update process
+      maxUnavailable: 25%
+      # documentserver.updateStrategy.rollingUpdate.maxSurge Maximum number of Documentserver Pods created over the desired number of Pods
+      maxSurge: 25%
   ## documentserver.customPodAntiAffinity Prohibiting the scheduling of Documentserver Pods relative to other Pods containing the specified labels on the same node
   ## Example:
   ## customPodAntiAffinity:
@@ -611,7 +602,7 @@ documentserver:
     ## ref: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
     ## Example:
     ## accessLog: "main"
-    accessLog: "main"
+    accessLog: "off"
     ## documentserver.proxy.gzipProxied Defines the nginx config gzip_proxied directive
     ## ref: https://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_proxied
     gzipProxied: "off"
@@ -629,10 +620,10 @@ documentserver:
     secureLinkSecret: verysecretstring
     ## documentserver.proxy.infoAllowedIP Defines ip addresses for accessing the info page
     ## Example:
-    infoAllowedIP:
-    - 10.244.0.0/16
-    - 10.135.0.0/16
-    ## infoAllowedIP: []
+    ## infoAllowedIP:
+    ## - 10.244.0.79
+    ## - 192.168.1.0/24
+    infoAllowedIP: []
     ## documentserver.proxy.infoAllowedUser Defines user name for accessing the info page
     ## If not set to, Nginx Basic Authentication will not be applied to access the info page
     ## ref: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html

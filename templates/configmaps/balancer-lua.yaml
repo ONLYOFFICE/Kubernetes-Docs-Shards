@@ -1,3 +1,8 @@
+# All content from balancer.lua config 
+# was taken from the main Kubernetes repository and modified by ONLYOFFICE
+# for more information please check NOTICE by link below
+# https://github.com/ONLYOFFICE/Kubernetes-Docs-Shards/blob/master/NOTICE
+
 {{- if index .Values "ingress-nginx" "enabled" }}
 apiVersion: v1
 kind: ConfigMap

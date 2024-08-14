@@ -1,0 +1,402 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: documentserver
+  namespace: {{ include "ds.namespace" . | quote }}
+  labels:
+    app: documentserver
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  {{- if or .Values.commonAnnotations .Values.documentserver.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.documentserver.annotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.documentserver.autoscaling.enabled }}
+  replicas: {{ .Values.documentserver.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: documentserver
+      {{- if .Values.commonLabels }}
+      {{- include "ds.labels.commonLabels" . | trim | nindent 6 }}
+      {{- end }}
+  {{- if .Values.documentserver.updateStrategy }}
+  strategy: {{- include "ds.update.strategyType" .Values.documentserver.updateStrategy }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: documentserver
+        {{- if .Values.commonLabels }}
+        {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
+        {{- end }}
+      {{- if .Values.documentserver.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.documentserver.podAnnotations }}
+        {{ $key }}: {{ tpl $value $ }}
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "ds.serviceAccountName" . }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- if eq .Values.podAntiAffinity.type "soft" }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - documentserver
+              topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+            weight: {{ .Values.podAntiAffinity.weight }}
+          {{- else if eq .Values.podAntiAffinity.type "hard" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - documentserver
+            topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+          {{- end }}
+          {{- with .Values.documentserver.customPodAntiAffinity }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.documentserver.podAffinity }}
+        podAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.documentserver.nodeAffinity }}
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- if or .Values.nodeSelector .Values.documentserver.nodeSelector }}
+      nodeSelector: {{ toYaml (default .Values.nodeSelector .Values.documentserver.nodeSelector) | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.tolerations .Values.documentserver.tolerations }}
+      tolerations: {{ toYaml (default .Values.tolerations .Values.documentserver.tolerations) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.documentserver.terminationGracePeriodSeconds }}
+      initContainers:
+        - name: add-shardkey
+          image: {{ .Values.documentserver.initContainers.image.repository }}:{{ .Values.documentserver.initContainers.image.tag }}
+          imagePullPolicy: {{ .Values.documentserver.initContainers.image.pullPolicy }}
+          {{- if .Values.documentserver.initContainers.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.initContainers.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.documentserver.initContainers.resources | nindent 12 }}
+          env:
+          - name: REDIS_SERVER_DB_KEYS_NUM
+            value: {{ .Values.documentserver.keysRedisDBNum | quote }}
+          - name: REDIS_SERVER_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.secretName" . }}
+                key: {{ .Values.connections.redisSecretKeyName }}
+          - name: DEFAULT_SHARD_KEY
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: SHARD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SHARD_PORT
+            value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+          envFrom:
+          - configMapRef:
+              name: documentserver
+          command: ['python', '/scripts/add_shardkey.py']
+          volumeMounts:
+          - name: add-shardkey
+            mountPath: /scripts/add_shardkey.py
+            subPath: add_shardkey.py
+      {{- with .Values.documentserver.initContainers.custom }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: proxy
+          image: {{ .Values.documentserver.proxy.image.repository }}:{{ .Values.documentserver.proxy.image.tag }}
+          imagePullPolicy: {{ .Values.documentserver.proxy.image.pullPolicy }}
+          {{- if .Values.documentserver.proxy.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.proxy.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+          ports:
+            - containerPort: {{ .Values.documentserver.proxy.containerPorts.http }}
+          {{- if .Values.documentserver.proxy.startupProbe.enabled }}
+          startupProbe: {{- omit .Values.documentserver.proxy.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.documentserver.proxy.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.documentserver.proxy.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.documentserver.proxy.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.documentserver.proxy.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.documentserver.proxy.resources | nindent 12 }}
+          {{- if or .Values.documentserver.proxy.infoAllowedIP .Values.documentserver.proxy.infoAllowedUser }}
+          env:
+          - name: DEFAULT_SHARD_KEY
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          {{- if .Values.documentserver.proxy.infoAllowedIP }}
+          - name: INFO_ALLOWED_IP
+            value: {{ join " " .Values.documentserver.proxy.infoAllowedIP }}
+          {{- end }}
+          {{- if .Values.documentserver.proxy.infoAllowedUser }}
+          - name: INFO_ALLOWED_USER
+            value: {{ .Values.documentserver.proxy.infoAllowedUser }}
+          - name: INFO_ALLOWED_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.info.secretName" . }}
+                key: {{ .Values.documentserver.proxy.infoAllowedSecretKeyName }}
+          {{- end }}
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: documentserver
+          volumeMounts:
+          - name: ds-files
+            mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
+          - name: ds-service-files
+            mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files
+          {{- if .Values.extraThemes.configMap }}
+          - name: custom-themes
+            mountPath: /var/www/{{ .Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ .Values.extraThemes.filename }}
+            subPath: {{ .Values.extraThemes.filename }}
+          {{- end }}
+          {{- if not .Values.documentserver.proxy.welcomePage.enabled }}
+          - name: ds-welcome-page
+            mountPath: /etc/nginx/includes/ds-example.conf
+            subPath: ds-example.conf
+          {{- end }}
+
+        - name: docservice
+          image: {{ .Values.documentserver.docservice.image.repository }}:{{ .Values.documentserver.docservice.image.tag }}
+          imagePullPolicy: {{ .Values.documentserver.docservice.image.pullPolicy }}
+          {{- if .Values.documentserver.docservice.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.docservice.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["python", "/var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py"]
+          ports:
+            - containerPort: {{ .Values.documentserver.docservice.containerPorts.http }}
+          {{- if .Values.documentserver.docservice.startupProbe.enabled }}
+          startupProbe: {{- omit .Values.documentserver.docservice.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.documentserver.docservice.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.documentserver.docservice.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.documentserver.docservice.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.documentserver.docservice.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{ toYaml .Values.documentserver.docservice.resources | nindent 12 }}
+          env:
+          - name: DEFAULT_SHARD_KEY
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: SHARD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SHARD_PORT
+            value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+          - name: REDIS_SERVER_DB_KEYS_NUM
+            value: {{ .Values.documentserver.keysRedisDBNum | quote }}
+          - name: REDIS_SERVER_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.secretName" . }}
+                key: {{ .Values.connections.redisSecretKeyName }}
+          envFrom:
+          - secretRef:
+              name: {{ template "ds.jwt.secretName" . }}
+          - configMapRef:
+              name: documentserver
+          volumeMounts:
+          - name: ds-files
+            mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
+          - name: ds-service-files
+            mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files
+          - name: config-file
+            mountPath: /etc/{{ .Values.product.name }}/documentserver/local.json
+            subPath: local.json
+          - name: ds-license
+            mountPath: /var/www/{{ .Values.product.name }}/Data
+            {{- if not .Values.license.existingClaim }}
+            readOnly: true
+            {{- end }}
+          {{- if .Values.extraConf.configMap }}
+          - name: custom-file
+            mountPath: /etc/{{ .Values.product.name }}/documentserver/{{ .Values.extraConf.filename }}
+            subPath: {{ .Values.extraConf.filename }}
+          {{- end }}
+          {{- if .Values.extraThemes.configMap }}
+          - name: custom-themes
+            mountPath: /var/www/{{ .Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ .Values.extraThemes.filename }}
+            subPath: {{ .Values.extraThemes.filename }}
+          {{- end }}
+          - name: remove-shardkey
+            mountPath: /var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py
+            subPath: remove_shardkey.py
+
+        {{- $context := . }}
+        {{- $converterCount := (toString .Values.documentserver.converter.count) }}
+        {{- range $i := until (atoi $converterCount) }}
+        - name: converter-{{ $i }}
+          image: {{ $context.Values.documentserver.converter.image.repository }}:{{ $context.Values.documentserver.converter.image.tag }}
+          imagePullPolicy: {{ $context.Values.documentserver.converter.image.pullPolicy }}
+          {{- if $context.Values.documentserver.converter.containerSecurityContext.enabled }}
+          securityContext: {{- omit $context.Values.documentserver.converter.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml $context.Values.documentserver.converter.resources | nindent 12 }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ $context.Values.documentserver.terminationGracePeriodSeconds }}"]
+          env:
+          - name: DEFAULT_SHARD_KEY
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: REDIS_SERVER_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.secretName" $context }}
+                key: {{ $context.Values.connections.redisSecretKeyName }}
+          envFrom:
+          - secretRef:
+              name: {{ template "ds.jwt.secretName" $context }}
+          - configMapRef:
+              name: documentserver
+          volumeMounts:
+          - name: ds-files
+            mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files/{{ $context.Values.documentserver.docservice.image.tag }}
+          - name: ds-service-files
+            mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files
+          - name: config-file
+            mountPath: /etc/{{ $context.Values.product.name }}/documentserver/local.json
+            subPath: local.json
+          - name: ds-license
+            mountPath: /var/www/{{ $context.Values.product.name }}/Data
+            {{- if not $context.Values.license.existingClaim }}
+            readOnly: true
+            {{- end }}
+          {{- if $context.Values.extraConf.configMap }}
+          - name: custom-file
+            mountPath: /etc/{{ $context.Values.product.name }}/documentserver/{{ $context.Values.extraConf.filename }}
+            subPath: {{ $context.Values.extraConf.filename }}
+          {{- end }}
+          {{- if $context.Values.extraThemes.configMap }}
+          - name: custom-themes
+            mountPath: /var/www/{{ $context.Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ $context.Values.extraThemes.filename }}
+            subPath: {{ $context.Values.extraThemes.filename }}
+          {{- end }}
+        {{- end }}
+
+        - name: postgresql
+          image: {{ .Values.documentserver.postgresql.image.repository }}:{{ .Values.documentserver.postgresql.image.tag }}
+          imagePullPolicy: {{ .Values.documentserver.postgresql.image.pullPolicy }}
+          {{- if .Values.documentserver.postgresql.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.postgresql.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.documentserver.postgresql.resources | nindent 12 }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+          ports:
+            - containerPort: {{ .Values.documentserver.postgresql.containerPorts.tcp }}
+          env:
+          - name: POSTGRES_DB
+            valueFrom:
+              configMapKeyRef:
+                name: documentserver
+                key: DB_NAME
+          - name: POSTGRES_USER
+            valueFrom:
+              configMapKeyRef:
+                name: documentserver
+                key: DB_USER
+          - name: POSTGRES_HOST_AUTH_METHOD
+            value: trust
+          volumeMounts:
+          - name: createdb
+            mountPath: /docker-entrypoint-initdb.d/createdb.sql
+            subPath: createdb.sql
+
+        - name: rabbitmq
+          image: {{ .Values.documentserver.rabbitmq.image.repository }}:{{ .Values.documentserver.rabbitmq.image.tag }}
+          imagePullPolicy: {{ .Values.documentserver.rabbitmq.image.pullPolicy }}
+          {{- if .Values.documentserver.rabbitmq.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.rabbitmq.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.documentserver.rabbitmq.resources | nindent 12 }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+          ports:
+            - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
+      volumes:
+        - name: ds-files
+          emptyDir: {}
+        - name: ds-service-files
+          persistentVolumeClaim:
+            claimName: {{ template "ds.pvc.name" . }}
+        - name: config-file
+          configMap:
+            name: local-config
+        - name: ds-license
+          {{- if .Values.license.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.license.existingClaim }}
+          {{- else }}
+          secret:
+            secretName: {{ template "ds.license.secretName" . }}
+          {{- end }}
+        {{- if .Values.extraConf.configMap }}
+        - name: custom-file
+          configMap:
+            name: {{ .Values.extraConf.configMap }}
+        {{- end }}
+        {{- if .Values.extraThemes.configMap }}
+        - name: custom-themes
+          configMap:
+            name: {{ .Values.extraThemes.configMap }}
+        {{- end }}
+        {{- if not .Values.documentserver.proxy.welcomePage.enabled }}
+        - name: ds-welcome-page
+          configMap:
+            name: ds-welcome-page
+        {{- end }}
+        - name: createdb
+          configMap:
+            name: createdb
+        - name: add-shardkey
+          configMap:
+            name: add-shardkey
+            defaultMode: 0755
+        - name: remove-shardkey
+          configMap:
+            name: remove-shardkey
+            defaultMode: 0755

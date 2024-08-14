@@ -1,0 +1,27 @@
+{{- if .Values.example.enabled }}
+kind: Service
+apiVersion: v1
+metadata:
+  name: example
+  namespace: {{ include "ds.namespace" . | quote }}
+  labels:
+    app: example
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ .Values.example.containerPorts.http }}
+    targetPort: {{ .Values.example.containerPorts.http }}
+  selector:
+    statefulset.kubernetes.io/pod-name: example-0
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  type: ClusterIP
+{{- end }}

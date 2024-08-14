@@ -1,0 +1,86 @@
+{{- if and .Values.grafana.enabled .Values.grafana.dashboard.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grafana-dashboard
+  namespace: {{ include "ds.grafana.namespace" . | quote }}
+  labels:
+    app.kubernetes.io/component: grafana-dashboard
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if or .Values.commonAnnotations .Values.grafanaDashboard.job.annotations }}
+    {{- $dictValue := default .Values.commonAnnotations .Values.grafanaDashboard.job.annotations }}
+    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: grafana-dashboard
+        {{- if .Values.commonLabels }}
+        {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
+        {{- end }}
+      {{- if .Values.grafanaDashboard.job.podAnnotations }}
+      annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.grafanaDashboard.job.podAnnotations "context" $ ) | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: dashboard-sa
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.grafanaDashboard.job.customPodAntiAffinity .Values.grafanaDashboard.job.podAffinity .Values.grafanaDashboard.job.nodeAffinity }}
+      affinity:
+        {{- with .Values.grafanaDashboard.job.customPodAntiAffinity }}
+        podAntiAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.grafanaDashboard.job.podAffinity }}
+        podAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.grafanaDashboard.job.nodeAffinity }}
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- if or .Values.nodeSelector .Values.grafanaDashboard.job.nodeSelector }}
+      nodeSelector: {{ toYaml (default .Values.nodeSelector .Values.grafanaDashboard.job.nodeSelector) | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.tolerations .Values.grafanaDashboard.job.tolerations }}
+      tolerations: {{ toYaml (default .Values.tolerations .Values.grafanaDashboard.job.tolerations) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+      {{- end }}
+      volumes:
+      - name: grafana-dashboard
+        configMap:
+          name: grafana-dashboard
+          defaultMode: 0755
+      containers:
+      - name: grafana-dashboard
+        image: {{ .Values.grafanaDashboard.job.image.repository }}:{{ .Values.grafanaDashboard.job.image.tag }}
+        imagePullPolicy: {{ .Values.grafanaDashboard.job.image.pullPolicy }}
+        {{- if .Values.grafanaDashboard.job.containerSecurityContext.enabled }}
+        securityContext: {{- omit .Values.grafanaDashboard.job.containerSecurityContext "enabled" | toYaml | nindent 10 }}
+        {{- end }}
+        resources: {{- toYaml .Values.grafanaDashboard.job.resources | nindent 10 }}
+        command: ["/bin/sh", "-c"]
+        {{- if .Values.webProxy.enabled }}
+        args: ["http_proxy={{ .Values.webProxy.http }} https_proxy={{ .Values.webProxy.https }} no_proxy={{ .Values.webProxy.noProxy }} /scripts/get_dashboard.sh"]
+        {{- else }}
+        args: ["/scripts/get_dashboard.sh"]
+        {{- end }}
+        volumeMounts:
+        - name: grafana-dashboard
+          mountPath: /scripts/get_dashboard.sh
+          subPath: get_dashboard.sh
+      restartPolicy: Never
+{{- end }}

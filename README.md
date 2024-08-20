@@ -774,7 +774,7 @@ $ kubectl apply -f ./ingressConfigMaps.yaml
 **The third step**, you need to update your nginx-ingress controller deployment with new parameters.That will add volumes with the necessary configmaps that you just created. Follow the commands:
 
 ```bash
-$ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Docs-Shards/sources/ingress_values.yaml
+$ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/ingress_values.yaml
 ```
 
 **Now**, when your nginx-ingress controller if configure, you can deploy ONLYOFFICE Docs with command:

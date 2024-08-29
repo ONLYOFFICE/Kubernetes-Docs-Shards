@@ -25,6 +25,8 @@ data:
         local redis = require "resty.redis"
         local red = redis:new()
         local cjson = require("cjson.safe")
+        local configuration = require("configuration")
+        local request_uri = ngx.var.request_uri
 
         local function redis_del(key)
           local ok, err = red:del(string.format("%s", key))
@@ -90,7 +92,6 @@ data:
         end
 
         local function check_endpoint(endpoint)
-           local configuration = require("configuration")
            local docs_upstream = ngx.var.proxy_upstream_name
            local service_port = ngx.var.service_port
            local backends_data = configuration.get_backends_data()
@@ -135,25 +136,40 @@ data:
               return WOPIkey
            end
         end
-
-        local API_ARG = get_api_arg()
-
-        if API_ARG then
-           local API_KEY = handle_api_key(API_ARG)
+        
+        local function init_redis_connection()
            red:set_timeouts(1000, 1000, 1000) -- 1 sec
            local ok, err = red:connect({{ .Values.connections.redisHost | quote }}, {{ .Values.connections.redisPort }})
            if not ok then
                 ngx.say("1: failed to connect: ",err)
                 return
            end
-           
+
            {{- if eq .Values.connections.redisNoPass false }}
            local res, err = red:auth({{ include "ds.redis.pass" . | quote }})
            if not res then
                ngx.say("failed to authenticate: ", err)
                return
            end
-           {{- end }}
+           {{- end }}         
+        end
+
+        -- return random endpoint from redis by requested version
+        local function get_static_endpoint(ver)
+           local data = red:scan(0, "count", 10000, "match", string.format('*-%s', ver))
+           local static_endpoints = data[2]
+           local new_endpoint = tostring((static_endpoints[math.random(1, #static_endpoints)]))
+           local static_endpoint = new_endpoint:gsub("%-[%d%.]+%-%d+$", "")
+           return static_endpoint
+        end
+     
+        local API_ARG = get_api_arg()
+
+        if API_ARG then
+           local API_KEY = handle_api_key(API_ARG)
+            
+           -- init redis connection and then select the db index
+           init_redis_connection()
 
            {{- if ne .Values.documentserver.keysRedisDBNum "0" }}
            red:select({{ .Values.documentserver.keysRedisDBNum }})
@@ -208,25 +224,27 @@ data:
                 end
              end
            end
-        end
-        print(ngx.var.custom_endpoint)
         red:close()
-       end
+        end
+        
+        -- >>>>>>>>>>>>>> STATIC_REQUESTS
+        if not API_ARG then
+           init_redis_connection()
+           red:select({{ .Values.documentserver.balancingRedisIndex }})
+
+           local requested_version = request_uri:match("/(%d+%.%d+%.%d+%-%d+)/")
+           print(requested_version)
+           if requested_version then
+              local static_endpoint = get_static_endpoint(requested_version)
+              ngx.var.custom_endpoint = static_endpoint
+           end
+        end
+        -- <<<<<<<<<<<<<< STATIC_REQUESTS
+
+      end
      }
      
      if ($service_name = {{ default "documentserver" .Values.service.existing }}) {
-         set $docs_shardkey $arg_shardkey;
-     }
-
-     if ($service_name = {{ default "documentserver" .Values.service.existing }}) {
-         set $docs_wopisrc $arg_WOPISrc;
-     }
-
-     if ($docs_shardkey) {
-         proxy_pass http://$custom_endpoint;
-     }
-     
-     if ($docs_wopisrc) {
          proxy_pass http://$custom_endpoint;
      }
 {{- end }}

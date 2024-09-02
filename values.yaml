@@ -7,6 +7,11 @@ ingress-nginx:
   controller:
     replicaCount: 2
     allowSnippetAnnotations: true
+    config:
+      http-snippet: |
+        proxy_cache_path /nfs-vol/test
+        levels=1:2 keys_zone=test_cache:75m max_size=4g inactive=1d
+        use_temp_path=off;
     extraVolumeMounts:
     - name: custom-balancer
       mountPath: /etc/nginx/custom_balancer.conf
@@ -14,7 +19,12 @@ ingress-nginx:
     - name: balancer-lua
       mountPath: /etc/nginx/lua/balancer.lua
       subPath: balancer.lua
+    - name: file-share
+      mountPath: /nfs-vol/test
     extraVolumes:
+    - name: file-share
+      persistentVolumeClaim:
+        claimName: nginx-ingress-pvc
     - name: custom-balancer
       configMap:
         name: balancer-snippet
@@ -1035,6 +1045,12 @@ ingress:
   ## Example:
   ## path: "/ds"
   path: "/"
+  ## ingress.cache Specifies the parameters for configuring static content caching
+  cache:
+    ## ingress.cache.storageClass PVC Storage Class for ONLYOFFICE Kubernetes-Docs-Shards static data volume
+    storageClass: "nfs"
+    ## ingress.cache.storageSize PVC Storage Request for ONLYOFFICE Kubernetes-Docs-Shards static data volume
+    storageSize: 5Gi
 
 ## Grafana parameters
 ## See more details about installing Grafana here:

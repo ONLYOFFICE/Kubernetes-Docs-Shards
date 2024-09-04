@@ -135,7 +135,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+                command: ["/bin/sh", "-c", "/scripts/pre_stop.sh"]
           ports:
             - containerPort: {{ .Values.documentserver.proxy.containerPorts.http }}
           {{- if .Values.documentserver.proxy.startupProbe.enabled }}
@@ -176,6 +176,11 @@ spec:
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
           - name: ds-service-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files
+          - name: pre-stop-scripts
+            mountPath: /scripts/pre_stop.sh
+            subPath: pre_stop.sh
+          - name: pre-stop-status
+            mountPath: /scripts/results
           {{- if .Values.extraThemes.configMap }}
           - name: custom-themes
             mountPath: /var/www/{{ .Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ .Values.extraThemes.filename }}
@@ -220,6 +225,8 @@ spec:
                 fieldPath: status.podIP
           - name: SHARD_PORT
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+          - name: TERMINATION_GRACE_PERIOD
+            value: {{ .Values.documentserver.terminationGracePeriodSeconds | quote }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
           - name: REDIS_SERVER_PWD
@@ -245,6 +252,8 @@ spec:
             {{- if not .Values.license.existingClaim }}
             readOnly: true
             {{- end }}
+          - name: pre-stop-status
+            mountPath: /scripts/results
           {{- if .Values.extraConf.configMap }}
           - name: custom-file
             mountPath: /etc/{{ .Values.product.name }}/documentserver/{{ .Values.extraConf.filename }}
@@ -272,7 +281,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep {{ $context.Values.documentserver.terminationGracePeriodSeconds }}"]
+                command: ["/bin/sh", "-c", "/scripts/pre_stop.sh"]
           env:
           - name: DEFAULT_SHARD_KEY
             valueFrom:
@@ -301,6 +310,11 @@ spec:
             {{- if not $context.Values.license.existingClaim }}
             readOnly: true
             {{- end }}
+          - name: pre-stop-scripts
+            mountPath: /scripts/pre_stop.sh
+            subPath: pre_stop.sh
+          - name: pre-stop-status
+            mountPath: /scripts/results
           {{- if $context.Values.extraConf.configMap }}
           - name: custom-file
             mountPath: /etc/{{ $context.Values.product.name }}/documentserver/{{ $context.Values.extraConf.filename }}
@@ -323,7 +337,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+                command: ["/bin/sh", "-c", "/scripts/pre_stop.sh"]
           ports:
             - containerPort: {{ .Values.documentserver.postgresql.containerPorts.tcp }}
           env:
@@ -343,6 +357,11 @@ spec:
           - name: createdb
             mountPath: /docker-entrypoint-initdb.d/createdb.sql
             subPath: createdb.sql
+          - name: pre-stop-scripts
+            mountPath: /scripts/pre_stop.sh
+            subPath: pre_stop.sh
+          - name: pre-stop-status
+            mountPath: /scripts/results
 
         - name: rabbitmq
           image: {{ .Values.documentserver.rabbitmq.image.repository }}:{{ .Values.documentserver.rabbitmq.image.tag }}
@@ -354,11 +373,19 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep {{ .Values.documentserver.terminationGracePeriodSeconds }}"]
+                command: ["/bin/sh", "-c", "/scripts/pre_stop.sh"]
           ports:
             - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
+          volumeMounts:
+          - name: pre-stop-scripts
+            mountPath: /scripts/pre_stop.sh
+            subPath: pre_stop.sh
+          - name: pre-stop-status
+            mountPath: /scripts/results
       volumes:
         - name: ds-files
+          emptyDir: {}
+        - name: pre-stop-status
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:
@@ -399,4 +426,8 @@ spec:
         - name: remove-shardkey
           configMap:
             name: remove-shardkey
+            defaultMode: 0755
+        - name: pre-stop-scripts
+          configMap:
+            name: pre-stop
             defaultMode: 0755

@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import logging
+import time
 
 redisConnectorName = os.environ.get('REDIS_CONNECTOR_NAME')
 redisHost = os.environ.get('REDIS_SERVER_HOST')
@@ -21,6 +22,8 @@ shardKey = os.environ.get('DEFAULT_SHARD_KEY')
 epIP = os.environ.get('SHARD_IP')
 epPort = os.environ.get('SHARD_PORT')
 ipShard = epIP + ':' + epPort
+
+grace_period = int(os.environ.get('TERMINATION_GRACE_PERIOD'))
 
 total_result = {}
 
@@ -138,15 +141,43 @@ def clear_redis():
             clear_shard_key()
 
 
+def get_connect_count():
+    connect_count = ["/bin/bash", "-c", "curl http://localhost:8000/internal/connections/edit -s"]
+    connect_count_process = subprocess.Popen(connect_count, stdout=subprocess.PIPE)
+    connect_count_result = int(connect_count_process.communicate()[0])
+    if connect_count_result == 0:
+        return True
+    else:
+        return False
+
+
 def shutdown_shard():
     shutdown_cmd = ["/bin/bash", "-c", "curl http://localhost:8000/internal/cluster/inactive -X PUT -s"]
     process = subprocess.Popen(shutdown_cmd, stdout=subprocess.PIPE)
     shutdown_result = process.communicate()[0].decode('utf-8')
     if shutdown_result == "true":
         clear_redis()
+        build_status=open('/scripts/results/status.txt', 'w')
+        build_status.write('Completed')
+        build_status.close()
     else:
         logger_test_ds.error('The {} shard could not be disabled'.format(shardKey))
         sys.exit(1)
+
+
+def prepare_for_shutdown_shard():
+    grace_time = grace_period - 300
+    while True:
+        if get_connect_count() is True:
+            shutdown_shard()
+            break
+        elif get_connect_count() is False:
+            if grace_time < 300:
+                shutdown_shard()
+                break
+            else:
+                grace_time -= 1
+                time.sleep(1)
 
 
 def total_status():
@@ -157,5 +188,5 @@ def total_status():
 
 init_logger('test')
 logger_test_ds = logging.getLogger('test.ds')
-shutdown_shard()
+prepare_for_shutdown_shard()
 total_status()

@@ -309,7 +309,7 @@ requestFilteringAgent:
 ##
 documentserver:
   ## documentserver.terminationGracePeriodSeconds The time to terminate gracefully during which the Pod will have the Terminating status
-  terminationGracePeriodSeconds: 60
+  terminationGracePeriodSeconds: 10800
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
   ## documentserver.KeysExpireTime The time in seconds after which the key will be deleted from the balancing database. 172800 mean 48 hours

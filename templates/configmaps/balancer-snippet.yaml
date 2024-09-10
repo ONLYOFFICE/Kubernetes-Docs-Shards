@@ -177,15 +177,13 @@ data:
            local new_endpoint = tostring((static_endpoints[math.random(1, #static_endpoints)]))
            local random_endpoint = new_endpoint:gsub("%-.+$", "")
            -- return to default db if api_arg in request
-           if API_ARG then
-               red:select({{ .Values.documentserver.keysRedisDBNum }})
-           end
+           red:select({{ .Values.documentserver.keysRedisDBNum }})
            return random_endpoint
         end
      
         local API_ARG = get_api_arg()
 
-        if API_ARG and requested_version then
+        if API_ARG then
            local API_KEY = handle_api_key(API_ARG)
             
            -- init redis connection and then select the db index

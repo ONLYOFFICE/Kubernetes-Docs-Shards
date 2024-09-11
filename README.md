@@ -141,6 +141,7 @@ Some overridden values ​​for the ingress-nginx/Kubernetes subchart can be fo
 | `ingress-nginx.controller.replicaCount`                     | Number of deployed controller replicas                                                                                                                                         | `2`                                                                                       |
 | `ingress-nginx.namespaceOverride`                           | Override the ingress-nginx deployment namespace                                                                                                                                | `default`                                                                                 |
 | `ingress-nginx.controller.allowSnippetAnnotations`          | This configuration defines if Ingress Controller should allow users to set their own *-snippet annotations, otherwise this is forbidden / dropped when users add those annotations. Global snippets in ConfigMap are still respected | `true`                              |
+| `ingress-nginx.controller.config.http-snippet`              | This configuration define parameters for http nginx configuration for enable caching                                                                                           | `[]`                                                                                      |
 | `ingress-nginx.service.annotations`                         | Annotations to be added to the external controller service. See controller.service.internal.annotations for annotations to be added to the internal controller service.        | `{}`                                                                                      |
 | `ingress-nginx.controller.extraVolumeMounts`                | Additional volumeMounts to the controller main container. Note: These parameters are used to add configuration to allow custom balancing. For more information please check values.yaml  | `[]`                                                                            |
 | `ingress-nginx.controller.extraVolumes`                     | Additional volumes to the controller pod. Note: These parameters are used to add configuration to allow custom balancing. For more information please check values.yaml        | `[]`                                                                                      |
@@ -324,7 +325,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `persistence.dsServiceFiles.annotations`                    | Defines annotations that will be additionally added to "ds-files" PVC. If set to, it takes priority over the `commonAnnotations`                                               | `{}`                                                                                      |
 | `persistence.dsServiceFiles.storageClass`                   | PVC Storage Class for ONLYOFFICE Docs data volume                                                                                                                              | `nfs`                                                                                     |
 | `persistence.dsServiceFiles.size`                           | PVC Storage Request for ONLYOFFICE Docs volume                                                                                                                                 | `8Gi`                                                                                     |
-| `persistence.dsBalancerCache.existingClaim`                 | Name of an existing PVC for nginx cache to use. If not specified, a PVC named "nginx-ingress-pvc" will be created                                                              | `""`                                                                                      |
+| `persistence.dsBalancerCache.existingClaim`                 | Name of an existing PVC for nginx cache to use. If not specified, a PVC named "nginx-ingress-pvc" will be created. If specified, set `ingress-nginx.controller.extraVolumes.persistentVolumeClaim.ClaimName`   | `""`                                                      |
 | `persistence.dsBalancerCache.annotations`                   | Defines annotations that will be additionally added to "nginx-ingress-pvc" PVC. If set to, it takes priority over the `commonAnnotations`                                      | `{}`                                                                                      |
 | `persistence.dsBalancerCache.storageClass`                  | PVC Storage Class for ONLYOFFICE Docs nginx cache volume                                                                                                                       | `nfs`                                                                                     |
 | `persistence.dsBalancerCache.size`                          | PVC Storage Request for ONLYOFFICE Docs nginx cache volume                                                                                                                     | `5Gi`                                                                                     |
@@ -775,7 +776,31 @@ helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConf
 $ kubectl apply -f ./ingressConfigMaps.yaml
 ```
 
-**The third step**, you need to update your nginx-ingress controller deployment with new parameters.That will add volumes with the necessary configmaps that you just created. Follow the commands:
+**The thirt step**, Create PVC. Make new simple file with content presented below. PVC will be used for store ONLYOFFICE Docs static cache. Specify the same namespace where the controller is deployed:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-ingress-pvc
+  namespace: <controller-namespace>
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+Apply it with command:
+
+```bash
+$ kubectl apply -f ./<your-pvc-file-name>.yaml
+```
+
+**The four step**, you need to update your nginx-ingress controller deployment with new parameters.That will add volumes with the necessary configmaps that you just created. Follow the commands:
 
 ```bash
 $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/ingress_values.yaml

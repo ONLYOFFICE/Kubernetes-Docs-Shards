@@ -776,7 +776,7 @@ helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConf
 $ kubectl apply -f ./ingressConfigMaps.yaml
 ```
 
-**The thirt step**, Create PVC. Make new simple file with content presented below. PVC will be used for store ONLYOFFICE Docs static cache. Specify the same namespace where the controller is deployed:
+**The third step**, Create PVC. Make new simple file with content presented below. PVC will be used for store ONLYOFFICE Docs static cache. Specify the same namespace where the controller is deployed:
 
 ```yaml
 apiVersion: v1

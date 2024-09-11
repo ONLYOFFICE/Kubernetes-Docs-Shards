@@ -1,3 +1,4 @@
+{{- if eq (include "cache.pvc.create" .) "true" }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -7,15 +8,16 @@ metadata:
   labels:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }}
-  {{- if or .Values.commonAnnotations .Values.persistence.annotations }}
-  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.annotations }}
+  {{- if or .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  storageClassName: {{ .Values.ingress.cache.storageClass }}
+  storageClassName: {{ .Values.persistence.dsBalancerCache.storageClass }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.ingress.cache.storageSize }}
+      storage: {{ .Values.persistence.dsBalancerCache.size }}
+{{- end }}

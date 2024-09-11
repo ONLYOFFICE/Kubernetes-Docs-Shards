@@ -148,17 +148,31 @@ serviceAccount:
   automountServiceAccountToken: true
 ## Persistence parameters for forgotten and error files
 persistence:
-  ## persistence.existingClaim Name of an existing PVC to use
-  ## If not specified, a PVC named "ds-service-files" will be created
-  existingClaim: ""
-  ## persistence.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
-  ## If set to, it takes priority over the `commonAnnotations`
-  ## You can also use `tpl` as the value for the key
-  annotations: {}
-  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data volume
-  storageClass: "nfs"
-  ## persistence.size PVC Storage Request for Onlyoffice Docs volume
-  size: 8Gi
+  ## persistence.dsServiceFiles define parameters for setup ds-service-file pvc
+  dsServiceFiles:
+    ## persistence.existingClaim Name of an existing PVC to use
+    ## If not specified, a PVC named "ds-service-files" will be created
+    existingClaim: ""
+    ## persistence.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+    storageClass: "nfs"
+    ## persistence.size PVC Storage Request for Onlyoffice Docs volume
+    size: 8Gi
+  dsBalancerCache:
+    ## persistence.dsServiceFiles.existingClaim Name of an existing PVC to use
+    ## If not specified, a PVC named "ds-service-files" will be created
+    existingClaim: ""
+    ## persistence.dsServiceFiles.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## persistence.dsServiceFiles.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+    storageClass: "nfs"
+    ## persistence.dsServiceFiles.size PVC Storage Request for Onlyoffice Docs volume
+    size: 5Gi
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:
@@ -1045,12 +1059,6 @@ ingress:
   ## Example:
   ## path: "/ds"
   path: "/"
-  ## ingress.cache Specifies the parameters for configuring static content caching
-  cache:
-    ## ingress.cache.storageClass PVC Storage Class for ONLYOFFICE Kubernetes-Docs-Shards static data volume
-    storageClass: "nfs"
-    ## ingress.cache.storageSize PVC Storage Request for ONLYOFFICE Kubernetes-Docs-Shards static data volume
-    storageSize: 5Gi
 
 ## Grafana parameters
 ## See more details about installing Grafana here:

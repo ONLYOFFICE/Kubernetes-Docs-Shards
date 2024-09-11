@@ -80,21 +80,30 @@ Return info auth password
 Get the PVC name
 */}}
 {{- define "ds.pvc.name" -}}
-{{- if .Values.persistence.existingClaim -}}
-    {{- printf "%s" (tpl .Values.persistence.existingClaim $) -}}
+{{- if .Values.persistence.dsServiceFiles.existingClaim -}}
+    {{- printf "%s" (tpl .Values.persistence.dsServiceFiles.existingClaim $) -}}
 {{- else }}
     {{- printf "ds-service-files" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return true if a pvc object should be created
+Return true if a pvc object for ds-service-files should be created
 */}}
 {{- define "ds.pvc.create" -}}
-{{- if empty .Values.persistence.existingClaim }}
+{{- if empty .Values.persistence.dsServiceFiles.existingClaim }}
     {{- true -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return true if a pvc object for nginx cache should be created
+*/}}
+{{- define "cache.pvc.create" -}}
+{{- if empty .Values.persistence.dsBalancerCache.existingClaim }}
+     {{- true -}}
+ {{- end -}}
+ {{- end -}}
 
 {{/*
 Get the license name

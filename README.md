@@ -321,10 +321,10 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `serviceAccount.name`                                       | Name of the ServiceAccount to be used. If not set and `serviceAccount.create` is `true` the name will be taken from `.Release.Name` or `serviceAccount.create` is `false` the name will be "default" | `""`                                                                |
 | `serviceAccount.annotations`                                | Map of annotations to add to the ServiceAccount. If set to, it takes priority over the `commonAnnotations`                                                                     | `{}`                                                                                      |
 | `serviceAccount.automountServiceAccountToken`               | Enable auto mount of ServiceAccountToken on the serviceAccount created. Used only if `serviceAccount.create` is `true`                                                         | `true`                                                                                    |
-| `persistence.dsServiceFiles.existingClaim`                  | Name of an existing PVC to use. If not specified, a PVC named "ds-files" will be created                                                                                       | `""`                                                                                      |
-| `persistence.dsServiceFiles.annotations`                    | Defines annotations that will be additionally added to "ds-files" PVC. If set to, it takes priority over the `commonAnnotations`                                               | `{}`                                                                                      |
-| `persistence.dsServiceFiles.storageClass`                   | PVC Storage Class for ONLYOFFICE Docs data volume                                                                                                                              | `nfs`                                                                                     |
-| `persistence.dsServiceFiles.size`                           | PVC Storage Request for ONLYOFFICE Docs volume                                                                                                                                 | `8Gi`                                                                                     |
+| `persistence.existingClaim`                                 | Name of an existing PVC to use. If not specified, a PVC named "ds-files" will be created                                                                                       | `""`                                                                                      |
+| `persistence.annotations`                                   | Defines annotations that will be additionally added to "ds-files" PVC. If set to, it takes priority over the `commonAnnotations`                                               | `{}`                                                                                      |
+| `persistence.storageClass`                                  | PVC Storage Class for ONLYOFFICE Docs data volume                                                                                                                       | `nfs`                                                                                     |
+| `persistence.size`                                          | PVC Storage Request for ONLYOFFICE Docs volume                                                                                                                          | `8Gi`                                                                                     |
 | `persistence.dsBalancerCache.existingClaim`                 | Name of an existing PVC for nginx cache to use. If not specified, a PVC named "nginx-ingress-pvc" will be created. If specified, set `ingress-nginx.controller.extraVolumes.persistentVolumeClaim.ClaimName`   | `""`                                                      |
 | `persistence.dsBalancerCache.annotations`                   | Defines annotations that will be additionally added to "nginx-ingress-pvc" PVC. If set to, it takes priority over the `commonAnnotations`                                      | `{}`                                                                                      |
 | `persistence.dsBalancerCache.storageClass`                  | PVC Storage Class for ONLYOFFICE Docs nginx cache volume                                                                                                                       | `nfs`                                                                                     |
@@ -767,7 +767,7 @@ If you want to deploy ONLYOFFICE Docs in cluster where already exist nginx-ingre
 > All available Redis connections parameters present [here](#4-parameters) with the `connections.` prefix
 
 ```bash
-helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --dry-run=server > ./ingressConfigMaps.yaml 
+helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --show-only templates/pvc/ingress-cache-pvc.yaml --dry-run=server > ./ingressConfigMaps.yaml 
 ```
 
 **The second step**, apply configMaps that you create with command below:
@@ -776,31 +776,7 @@ helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConf
 $ kubectl apply -f ./ingressConfigMaps.yaml
 ```
 
-**The third step**, Create PVC. Make new simple file with content presented below. PVC will be used for store ONLYOFFICE Docs static cache. Specify the same namespace where the controller is deployed:
-
-```yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: nginx-ingress-pvc
-  namespace: <controller-namespace>
-spec:
-  storageClassName: nfs
-  accessModes:
-    - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 5Gi
-```
-
-Apply it with command:
-
-```bash
-$ kubectl apply -f ./<your-pvc-file-name>.yaml
-```
-
-**The four step**, you need to update your nginx-ingress controller deployment with new parameters.That will add volumes with the necessary configmaps that you just created. Follow the commands:
+**The third step**, you need to update your nginx-ingress controller deployment with new parameters. That will add volumes with the necessary configmaps that you just created. Follow the commands:
 
 ```bash
 $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/ingress_values.yaml

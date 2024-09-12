@@ -1,9 +1,9 @@
-{{- if eq (include "cache.pvc.create" .) "true" }}
+{{- if and (eq (include "cache.pvc.create" .) "true") (index .Values "ingress-nginx" "enabled")  }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nginx-ingress-pvc
-  namespace: {{ include "ds.namespace" . | quote }}
+  name: nginx-cache-pvc
+  namespace: {{ .Values.documentserver.ingressCustomConfigMapsNamespace }}
   {{- if .Values.commonLabels }}
   labels:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
@@ -13,7 +13,7 @@ metadata:
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  storageClassName: {{ .Values.persistence.dsBalancerCache.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem

@@ -24,7 +24,7 @@ ingress-nginx:
     extraVolumes:
     - name: file-share
       persistentVolumeClaim:
-        claimName: nginx-ingress-pvc
+        claimName: nginx-cache-pvc
     - name: custom-balancer
       configMap:
         name: balancer-snippet
@@ -146,32 +146,30 @@ serviceAccount:
   ## Used only if `serviceAccount.create` is `true`
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting
   automountServiceAccountToken: true
-## Persistence parameters for forgotten and error files
+## Persistence parameters for forgotten and error files. Also configure pvc for static cache
 persistence:
-  ## persistence.dsServiceFiles define parameters for setup ds-service-file pvc
-  dsServiceFiles:
-    ## persistence.dsServiceFiles.existingClaim Name of an existing PVC to use
-    ## If not specified, a PVC named "ds-service-files" will be created
-    existingClaim: ""
-    ## persistence.dsServiceFiles.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
-    ## If set to, it takes priority over the `commonAnnotations`
-    ## You can also use `tpl` as the value for the key
-    annotations: {}
-    ## persistence.dsServiceFiles.storageClass PVC Storage Class for Onlyoffice Docs service data volume
-    storageClass: "nfs"
-    ## persistence.dsServiceFiles.size PVC Storage Request for Onlyoffice Docs volume
-    size: 8Gi
+  ## persistence.dsServiceFiles.existingClaim Name of an existing PVC to use
+  ## If not specified, a PVC named "ds-service-files" will be created
+  existingClaim: ""
+  ## persistence.dsServiceFiles.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## persistence.dsServiceFiles.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+  storageClass: "nfs"
+  ## persistence.dsServiceFiles.size PVC Storage Request for Onlyoffice Docs volume
+  size: 8Gi
   dsBalancerCache:
-    ## persistence.dsServiceFiles.existingClaim Name of an existing PVC to use
-    ## If not specified, a PVC named "ds-service-files" will be created
+    ## persistence.dsBalancerCache.existingClaim Name of an existing PVC for cache to use
+    ## If not specified, a PVC named "nginx-cache-pvc" will be created
     existingClaim: ""
-    ## persistence.dsServiceFiles.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
+    ## persistence.dsBalancerCache.annotations Defines annotations that will be additionally added to "nginx-cache-pvc" PVC
     ## If set to, it takes priority over the `commonAnnotations`
     ## You can also use `tpl` as the value for the key
     annotations: {}
-    ## persistence.dsServiceFiles.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+    ## persistence.dsBalancerCache.storageClass PVC Storage Class for Onlyoffice Docs static cache volume
     storageClass: "nfs"
-    ## persistence.dsServiceFiles.size PVC Storage Request for Onlyoffice Docs volume
+    ## persistence.dsBalancerCache.size PVC Storage Request for Onlyoffice Docs static cache volume
     size: 5Gi
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/

@@ -8,16 +8,16 @@ metadata:
   labels:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }}
-  {{- if or .Values.commonAnnotations .Values.persistence.dsServiceFiles.annotations }}
-  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.dsServiceFiles.annotations }}
+  {{- if or .Values.commonAnnotations .Values.persistence.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.annotations }}
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  storageClassName: {{ .Values.persistence.dsServiceFiles.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
   accessModes:
     - ReadWriteMany
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.persistence.dsServiceFiles.size }}
+      storage: {{ .Values.persistence.size }}
 {{- end }}

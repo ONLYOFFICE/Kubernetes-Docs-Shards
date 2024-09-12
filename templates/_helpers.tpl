@@ -80,8 +80,8 @@ Return info auth password
 Get the PVC name
 */}}
 {{- define "ds.pvc.name" -}}
-{{- if .Values.persistence.dsServiceFiles.existingClaim -}}
-    {{- printf "%s" (tpl .Values.persistence.dsServiceFiles.existingClaim $) -}}
+{{- if .Values.persistence.existingClaim -}}
+    {{- printf "%s" (tpl .Values.persistence.existingClaim $) -}}
 {{- else }}
     {{- printf "ds-service-files" -}}
 {{- end -}}
@@ -91,7 +91,7 @@ Get the PVC name
 Return true if a pvc object for ds-service-files should be created
 */}}
 {{- define "ds.pvc.create" -}}
-{{- if empty .Values.persistence.dsServiceFiles.existingClaim }}
+{{- if empty .Values.persistence.existingClaim }}
     {{- true -}}
 {{- end -}}
 {{- end -}}

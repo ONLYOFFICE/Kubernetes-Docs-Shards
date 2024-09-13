@@ -167,8 +167,6 @@ persistence:
     ## If set to, it takes priority over the `commonAnnotations`
     ## You can also use `tpl` as the value for the key
     annotations: {}
-    ## persistence.dsBalancerCache.storageClass PVC Storage Class for Onlyoffice Docs static cache volume
-    storageClass: "nfs"
     ## persistence.dsBalancerCache.size PVC Storage Request for Onlyoffice Docs static cache volume
     size: 5Gi
 ## Configure a Security Context for a Pod

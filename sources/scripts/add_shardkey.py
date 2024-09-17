@@ -8,6 +8,7 @@ redisPort = os.environ.get('REDIS_SERVER_PORT')
 redisUser = os.environ.get('REDIS_SERVER_USER')
 redisPassword = os.environ.get('REDIS_SERVER_PWD')
 redisDBNum = os.environ.get('REDIS_SERVER_DB_KEYS_NUM')
+redisDBNumDSVersion = os.environ.get('REDIS_SERVER_DB_DS_VERSION')
 redisConnectTimeout = 15
 if os.environ.get('REDIS_CLUSTER_NODES'):
     redisClusterNodes = list(os.environ.get('REDIS_CLUSTER_NODES').split(" "))
@@ -19,7 +20,9 @@ if redisConnectorName == 'ioredis':
 shardKey = os.environ.get('DEFAULT_SHARD_KEY')
 epIP = os.environ.get('SHARD_IP')
 epPort = os.environ.get('SHARD_PORT')
+dsVersion = os.environ.get('APP_VERSION') + '-' + os.environ.get('DS_VERSION_HASH')
 ipShard = epIP + ':' + epPort
+shardDSVersion = ipShard + '-' + dsVersion
 
 total_result = {}
 
@@ -109,12 +112,13 @@ def add_redis_key():
         rc.set(shardKey, ipShard)
         rc.append(ipShard, f' {shardKey}')
         test_key = rc.get(shardKey).decode('utf-8')
-        logger_test_ds.info(f'Shard Key Endpoint: {shardKey} = {test_key}')
+        rc.select(redisDBNumDSVersion)
+        rc.set(shardDSVersion, '0')
     except Exception as msg_check_redis:
         logger_test_ds.error(f'Error when trying to write a ShardKey to Redis... {msg_check_redis}\n')
         total_result['CheckRedis'] = 'Failed'
     else:
-        logger_test_ds.info('The ShardKey was successfully recorded to Redis\n')
+        logger_test_ds.info(f'ShardKey {shardKey} = {test_key} was successfully recorded to Redis\n')
         rc.close()
 
 

@@ -99,6 +99,8 @@ spec:
           env:
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
+          - name: REDIS_SERVER_DB_DS_VERSION
+            value: {{ .Values.documentserver.dsVersionHashRedisDBNum | quote }}
           - name: REDIS_SERVER_PWD
             valueFrom:
               secretKeyRef:
@@ -114,6 +116,8 @@ spec:
                 fieldPath: status.podIP
           - name: SHARD_PORT
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+          - name: APP_VERSION
+            value: {{ .Chart.AppVersion | quote }}
           envFrom:
           - configMapRef:
               name: documentserver

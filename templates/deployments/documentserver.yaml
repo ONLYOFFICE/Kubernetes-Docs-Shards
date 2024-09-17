@@ -226,11 +226,15 @@ spec:
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
+          - name: REDIS_SERVER_DB_DS_VERSION
+            value: {{ .Values.documentserver.dsVersionHashRedisDBNum | quote }}
           - name: REDIS_SERVER_PWD
             valueFrom:
               secretKeyRef:
                 name: {{ template "ds.redis.secretName" . }}
                 key: {{ .Values.connections.redisSecretKeyName }}
+          - name: APP_VERSION
+            value: {{ .Chart.AppVersion | quote }}
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" . }}

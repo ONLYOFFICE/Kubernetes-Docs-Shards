@@ -9,6 +9,7 @@ redisPort = os.environ.get('REDIS_SERVER_PORT')
 redisUser = os.environ.get('REDIS_SERVER_USER')
 redisPassword = os.environ.get('REDIS_SERVER_PWD')
 redisDBNum = os.environ.get('REDIS_SERVER_DB_KEYS_NUM')
+redisDBNumDSVersion = os.environ.get('REDIS_SERVER_DB_DS_VERSION')
 redisConnectTimeout = 15
 if os.environ.get('REDIS_CLUSTER_NODES'):
     redisClusterNodes = list(os.environ.get('REDIS_CLUSTER_NODES').split(" "))

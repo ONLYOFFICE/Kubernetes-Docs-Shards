@@ -88,13 +88,22 @@ Get the PVC name
 {{- end -}}
 
 {{/*
-Return true if a pvc object should be created
+Return true if a pvc object for ds-service-files should be created
 */}}
 {{- define "ds.pvc.create" -}}
 {{- if empty .Values.persistence.existingClaim }}
     {{- true -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return true if a pvc object for nginx cache should be created
+*/}}
+{{- define "cache.pvc.create" -}}
+{{- if empty .Values.persistence.dsBalancerCache.existingClaim }}
+     {{- true -}}
+ {{- end -}}
+ {{- end -}}
 
 {{/*
 Get the license name

@@ -1,0 +1,23 @@
+{{- if and (eq (include "cache.pvc.create" .) "true") (index .Values "ingress-nginx" "enabled")  }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-cache-pvc
+  namespace: {{ .Values.documentserver.ingressCustomConfigMapsNamespace }}
+  {{- if .Values.commonLabels }}
+  labels:
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  storageClassName: {{ .Values.persistence.storageClass }}
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: {{ .Values.persistence.dsBalancerCache.size }}
+{{- end }}

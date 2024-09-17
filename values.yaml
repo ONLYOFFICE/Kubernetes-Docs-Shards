@@ -7,6 +7,11 @@ ingress-nginx:
   controller:
     replicaCount: 2
     allowSnippetAnnotations: true
+    config:
+      http-snippet: |
+        proxy_cache_path /nfs-vol/test
+        levels=1:2 keys_zone=test_cache:75m max_size=4g inactive=1d
+        use_temp_path=off;
     extraVolumeMounts:
     - name: custom-balancer
       mountPath: /etc/nginx/custom_balancer.conf
@@ -14,7 +19,12 @@ ingress-nginx:
     - name: balancer-lua
       mountPath: /etc/nginx/lua/balancer.lua
       subPath: balancer.lua
+    - name: file-share
+      mountPath: /nfs-vol/test
     extraVolumes:
+    - name: file-share
+      persistentVolumeClaim:
+        claimName: nginx-cache-pvc
     - name: custom-balancer
       configMap:
         name: balancer-snippet
@@ -136,7 +146,7 @@ serviceAccount:
   ## Used only if `serviceAccount.create` is `true`
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting
   automountServiceAccountToken: true
-## Persistence parameters for forgotten and error files
+## Persistence parameters for forgotten and error files. Also configure pvc for static cache
 persistence:
   ## persistence.existingClaim Name of an existing PVC to use
   ## If not specified, a PVC named "ds-service-files" will be created
@@ -149,6 +159,16 @@ persistence:
   storageClass: "nfs"
   ## persistence.size PVC Storage Request for Onlyoffice Docs volume
   size: 8Gi
+  dsBalancerCache:
+    ## persistence.dsBalancerCache.existingClaim Name of an existing PVC for cache to use
+    ## If not specified, a PVC named "nginx-cache-pvc" will be created
+    existingClaim: ""
+    ## persistence.dsBalancerCache.annotations Defines annotations that will be additionally added to "nginx-cache-pvc" PVC
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## persistence.dsBalancerCache.size PVC Storage Request for Onlyoffice Docs static cache volume
+    size: 5Gi
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:

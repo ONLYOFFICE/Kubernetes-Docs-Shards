@@ -100,10 +100,18 @@ Return true if a pvc object for ds-service-files should be created
 Return true if a pvc object for nginx cache should be created
 */}}
 {{- define "cache.pvc.create" -}}
-{{- if empty .Values.persistence.dsBalancerCache.existingClaim }}
-     {{- true -}}
- {{- end -}}
- {{- end -}}
+  {{- if empty .Values.persistence.dsBalancerCache.existingClaim }}
+    {{- $found := false }}
+    {{- range (index .Values "ingress-nginx" "controller" "extraVolumes") }}
+      {{- if hasKey . "persistentVolumeClaim" }}
+        {{- $found = true }}
+      {{- end }}
+    {{- end }}
+    {{- if $found }}
+      {{- true }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 
 {{/*
 Get the license name

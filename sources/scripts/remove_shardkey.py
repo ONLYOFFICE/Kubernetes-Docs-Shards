@@ -27,6 +27,7 @@ ipShard = epIP + ':' + epPort
 shardDSVersion = ipShard + '-' + dsVersion
 
 grace_period = int(os.environ.get('TERMINATION_GRACE_PERIOD'))
+grace_time = int(os.environ.get('TERMINATION_GRACE_TIME'))
 
 total_result = {}
 
@@ -147,41 +148,53 @@ def clear_redis():
 
 
 def get_connect_count():
-    connect_count = ["/bin/bash", "-c", "curl http://localhost:8000/internal/connections/edit -s"]
-    connect_count_process = subprocess.Popen(connect_count, stdout=subprocess.PIPE)
-    connect_count_result = int(connect_count_process.communicate()[0])
-    if connect_count_result == 0:
-        return True
-    else:
+    try:
+        connect_count = ["/bin/bash", "-c", "curl http://localhost:8000/internal/connections/edit -s"]
+        connect_count_process = subprocess.Popen(connect_count, stdout=subprocess.PIPE)
+        connect_count_result = int(connect_count_process.communicate()[0])
+        total_result['GetConnectCount'] = 'Success'
+        if connect_count_result == 0:
+            return True
+        else:
+            return False
+    except Exception as msg_get_connect_count:
+        logger_test_ds.error(f'Failed when trying to get the number of connections... {msg_get_connect_count}\n')
+        total_result['GetConnectCount'] = 'Failed'
         return False
 
 
 def shutdown_shard():
-    shutdown_cmd = ["/bin/bash", "-c", "curl http://localhost:8000/internal/cluster/inactive -X PUT -s"]
-    process = subprocess.Popen(shutdown_cmd, stdout=subprocess.PIPE)
-    shutdown_result = process.communicate()[0].decode('utf-8')
-    if shutdown_result == "true":
-        clear_redis()
-        build_status=open('/scripts/results/status.txt', 'w')
-        build_status.write('Completed')
-        build_status.close()
+    try:
+        shutdown_cmd = ["/bin/bash", "-c", "curl http://localhost:8000/internal/cluster/inactive -X PUT -s"]
+        process = subprocess.Popen(shutdown_cmd, stdout=subprocess.PIPE)
+        shutdown_result = process.communicate()[0].decode('utf-8')
+    except Exception as msg_url:
+        logger_test_ds.error(f'Failed to check the availability of the DocumentServer... {msg_url}\n')
+        total_result['ShutdownDS'] = 'Failed'
     else:
-        logger_test_ds.error('The {} shard could not be disabled'.format(shardKey))
-        sys.exit(1)
+        if shutdown_result == "true":
+            clear_redis()
+            build_status = open('/scripts/results/status.txt', 'w')
+            build_status.write('Completed')
+            build_status.close()
+        else:
+            logger_test_ds.error('The {} shard could not be disabled'.format(shardKey))
+            sys.exit(1)
 
 
 def prepare_for_shutdown_shard():
-    grace_time = grace_period - 300
+    current_grace_period = grace_period
+    current_grace_time = grace_time
     while True:
         if get_connect_count() is True:
             shutdown_shard()
             break
-        elif get_connect_count() is False:
-            if grace_time < 300:
+        else:
+            if current_grace_period < current_grace_time:
                 shutdown_shard()
                 break
             else:
-                grace_time -= 1
+                current_grace_period -= 1
                 time.sleep(1)
 
 

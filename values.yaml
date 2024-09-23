@@ -330,6 +330,9 @@ requestFilteringAgent:
 documentserver:
   ## documentserver.terminationGracePeriodSeconds The time to terminate gracefully during which the Pod will have the Terminating status
   terminationGracePeriodSeconds: 10800
+  ## documentserver.terminationGraceTimeSeconds The time to terminate gracefully in seconds, which remains for turning off the shard and assembling documents open on it until the termination grace period is fully completed
+  ## Cannot be less than `documentserver.terminationGracePeriodSeconds`
+  terminationGraceTimeSeconds: 600
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
   ## documentserver.dsVersionHashRedisDBNum The number of the database for storing documentserver shards ip adresses

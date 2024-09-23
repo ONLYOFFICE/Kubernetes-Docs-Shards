@@ -332,6 +332,8 @@ documentserver:
   terminationGracePeriodSeconds: 10800
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
+  ## documentserver.dsVersionHashRedisDBNum The number of the database for storing documentserver shards ip adresses
+  dsVersionHashRedisDBNum: "2"
   ## documentserver.KeysExpireTime The time in seconds after which the key will be deleted from the balancing database. 172800 mean 48 hours
   keysExpireTime: 172800
   ## documentserver.ingressCustomConfigMapsNamespace define where custom controller configmaps will be deployed

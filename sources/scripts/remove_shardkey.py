@@ -43,14 +43,14 @@ def init_logger(name):
     logger.info('Running a script to shutdown the Shard and clear the keys belonging to it from Redis\n')
 
 
-def get_redis_status():
+def get_redis_status(redis_db):
     import redis
     global rc
     try:
         rc = redis.Redis(
             host=redisHost,
             port=redisPort,
-            db=redisDBNum,
+            db=redis_db,
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
@@ -87,7 +87,7 @@ def get_redis_cluster_status():
         return rc.ping()
 
 
-def get_redis_sentinel_status():
+def get_redis_sentinel_status(redis_db):
     import redis
     from redis import Sentinel
     global rc
@@ -97,7 +97,7 @@ def get_redis_sentinel_status():
         rc = redis.Redis(
             host=master_host,
             port=master_port,
-            db=redisDBNum,
+            db=redis_db,
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
@@ -122,28 +122,30 @@ def clear_shard_key():
                 pipe.delete(key)
             pipe.execute()
             rc.delete(ipShard)
-            rc.select(redisDBNumDSVersion)
+            rc.close()
+            get_redis_status(redisDBNumDSVersion)
             rc.delete(shardDSVersion)
+            rc.close()
         except Exception as msg_check_redis:
             logger_test_ds.error('Error when trying to delete keys belonging to the {sk} shard from Redis... {em}\n'.format(sk=shardKey, em=msg_check_redis))
             total_result['CheckRedis'] = 'Failed'
         else:
             logger_test_ds.info('Keys belonging to {} have been successfully deleted from Redis\n'.format(shardKey))
-            rc.close()
     else:
         logger_test_ds.info('Endpoint shard {} was not found in Redis\n'.format(shardKey))
+        rc.close()
 
 
 def clear_redis():
     logger_test_ds.info('Checking Redis availability...')
     if redisConnectorName == 'redis' and not os.environ.get('REDIS_CLUSTER_NODES'):
-        if get_redis_status() is True:
+        if get_redis_status(redisDBNum) is True:
             clear_shard_key()
     elif redisConnectorName == 'redis' and os.environ.get('REDIS_CLUSTER_NODES'):
         if get_redis_cluster_status() is True:
             clear_shard_key()
     elif redisConnectorName == 'ioredis':
-        if get_redis_sentinel_status() is True:
+        if get_redis_sentinel_status(redisDBNum) is True:
             clear_shard_key()
 
 
@@ -158,7 +160,7 @@ def get_connect_count():
         else:
             return False
     except Exception as msg_get_connect_count:
-        logger_test_ds.error(f'Failed when trying to get the number of connections... {msg_get_connect_count}\n')
+        logger_test_ds.error('Failed when trying to get the number of connections... {}\n'.format(msg_get_connect_count))
         total_result['GetConnectCount'] = 'Failed'
         return False
 
@@ -169,7 +171,7 @@ def shutdown_shard():
         process = subprocess.Popen(shutdown_cmd, stdout=subprocess.PIPE)
         shutdown_result = process.communicate()[0].decode('utf-8')
     except Exception as msg_url:
-        logger_test_ds.error(f'Failed to check the availability of the DocumentServer... {msg_url}\n')
+        logger_test_ds.error('Failed to check the availability of the DocumentServer... {}\n'.format(msg_url))
         total_result['ShutdownDS'] = 'Failed'
     else:
         if shutdown_result == "true":

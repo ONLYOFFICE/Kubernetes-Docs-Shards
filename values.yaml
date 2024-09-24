@@ -10,7 +10,7 @@ ingress-nginx:
     config:
       http-snippet: |
         proxy_cache_path /nfs-vol/test
-        levels=1:2 keys_zone=test_cache:75m max_size=4g inactive=1d
+        levels=1:2 keys_zone=docs_cache:75m max_size=4g inactive=1d
         use_temp_path=off;
     extraVolumeMounts:
     - name: custom-balancer

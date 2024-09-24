@@ -9,7 +9,10 @@ metadata:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }} 
   annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "on"
     nginx.ingress.kubernetes.io/configuration-snippet: |
+        proxy_cache docs_cache;
+        add_header X-Cache-Status $upstream_cache_status;
         set $custom_endpoint '';
         include /etc/nginx/custom_balancer.conf;
     {{- if or .Values.commonAnnotations .Values.ingress.annotations }}

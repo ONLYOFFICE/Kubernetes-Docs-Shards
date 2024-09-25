@@ -809,7 +809,7 @@ $ helm install documentserver onlyoffice/docs-shards \
           --set ingress-nginx.controller.extraVolumeMounts[1].mountPath=/etc/nginx/lua/balancer.lua \
           --set ingress-nginx.controller.extraVolumeMounts[1].subPath=balancer.lua \
           --set ingress-nginx.controller.extraVolumeMounts[2].name=file-share \
-          --set ingress-nginx.controller.extraVolumeMounts[2].mountPath=/nfs-vol/test
+          --set ingress-nginx.controller.extraVolumeMounts[2].mountPath=/var/tmp
 ```
 
 ## Using Grafana to visualize metrics (optional)

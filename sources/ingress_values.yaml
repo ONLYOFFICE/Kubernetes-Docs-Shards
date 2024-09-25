@@ -2,7 +2,7 @@ controller:
   allowSnippetAnnotations: true
   config:
     http-snippet: |
-      proxy_cache_path /nfs-vol/test
+      proxy_cache_path /var/tmp
       levels=1:2 keys_zone=test_cache:75m max_size=4g inactive=1d
       use_temp_path=off;
   extraVolumeMounts:
@@ -13,7 +13,7 @@ controller:
     mountPath: /etc/nginx/lua/balancer.lua
     subPath: balancer.lua
   - name: file-share
-    mountPath: /nfs-vol/test
+    mountPath: /var/tmp
   extraVolumes:
   - name: file-share
     persistentVolumeClaim:

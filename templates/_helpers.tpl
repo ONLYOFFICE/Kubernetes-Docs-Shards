@@ -100,7 +100,7 @@ Return true if a pvc object for ds-service-files should be created
 Return true if a pvc object for nginx cache should be created
 */}}
 {{- define "cache.pvc.create" -}}
-{{- if empty .Values.persistence.dsBalancerCache.existingClaim }}
+{{- if empty .Values.persistence.dsRequestsCache.existingClaim }}
      {{- true -}}
  {{- end -}}
  {{- end -}}

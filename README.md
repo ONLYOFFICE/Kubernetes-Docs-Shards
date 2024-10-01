@@ -325,9 +325,10 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `persistence.annotations`                                   | Defines annotations that will be additionally added to "ds-files" PVC. If set to, it takes priority over the `commonAnnotations`                                               | `{}`                                                                                      |
 | `persistence.storageClass`                                  | PVC Storage Class for ONLYOFFICE Docs data volume                                                                                                                       | `nfs`                                                                                     |
 | `persistence.size`                                          | PVC Storage Request for ONLYOFFICE Docs volume                                                                                                                          | `8Gi`                                                                                     |
-| `persistence.dsBalancerCache.existingClaim`                 | Name of an existing PVC for nginx cache to use. If not specified, a PVC named "nginx-cache-pvc" will be created. If specified, set `ingress-nginx.controller.extraVolumes.persistentVolumeClaim.ClaimName`   | `""`                                                      |
-| `persistence.dsBalancerCache.annotations`                   | Defines annotations that will be additionally added to "nginx-cache-pvc" PVC. If set to, it takes priority over the `commonAnnotations`                                      | `{}`                                                                                      |
-| `persistence.dsBalancerCache.size`                          | PVC Storage Request for ONLYOFFICE Docs nginx cache volume                                                                                                                     | `5Gi`                                                                                     |
+| `persistence.dsRequestsCache.existingClaim`                 | Name of an existing PVC for nginx caching static requests to use. If not specified, a PVC named "nginx-cache-pvc" will be created. If specified, set `ingress-nginx.controller.extraVolumes.persistentVolumeClaim.ClaimName`   | `""`                                        |
+| `persistence.dsRequestsCache.annotations`                   | Defines annotations that will be additionally added to "nginx-cache-pvc" PVC. If set to, it takes priority over the `commonAnnotations`                                      | `{}`                                                                                      |
+| `persistence.dsRequestsCache.size`                          | PVC Storage Request for ONLYOFFICE Docs nginx caching static requests volume                                                                                                     | `5Gi`                                                                                     |
+| `persistence.dsRequestsCache.namespace`                     | PVC Storage namespace. Should be the same where your ingress controller is deployed.                                                                                           | `default`                                                                                 |
 | `podSecurityContext.enabled`                                | Enable security context for the pods. If set to true, `podSecurityContext` is enabled for all resources describing the podTemplate.                                            | `false`                                                                                   |
 | `podSecurityContext.fsGroup`                                | Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Pod                                                           | `101`                                                                                     |
 | `podAntiAffinity.type`                                      | Types of Pod antiaffinity. Allowed values: `soft` or `hard`                                                                                                                    | `soft`                                                                                    |
@@ -372,7 +373,6 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.terminationGraceTimeSeconds`                | The time to terminate gracefully in seconds, which remains for turning off the shard and assembling documents open on it until the termination grace period is fully completed. Cannot be less than `documentserver.terminationGracePeriodSeconds` | `600`                 |
 | `documentserver.keysRedisDBNum`                             | The number of the database for storing the balancing results                                                                                                                   | `1`                                                                                       |
 | `documentserver.KeysExpireTime`                             | The time in seconds after which the key will be deleted from the balancing database. by default 172800 mean 48 hours                                                           | `172800`                                                                                  |
-| `documentserver.ingressCustomConfigMapsNamespace`           | Define where custom controller configmaps will be deployed                                                                                                                     | `default`                                                                                 |
 | `documentserver.annotations`                                | Defines annotations that will be additionally added to Documentserver Deployment                                                                                               | `{}`                                                                                      |
 | `documentserver.podAnnotations`                             | Map of annotations to add to the Documentserver deployment pods                                                                                                                | `rollme: "{{ randAlphaNum 5 | quote }}"`                                                  |
 | `documentserver.replicas`                                   | Number of Documentserver replicas to deploy. If the `documentserver.autoscaling.enabled` parameter is enabled, it is ignored.                                                  | `3`                                                                                       |
@@ -758,25 +758,21 @@ You can further limit the access to the `info` page using Nginx [Basic Authentic
 
 If you want to deploy ONLYOFFICE Docs in cluster where already exist nginx-ingress controller, please follow the step below.
 
-**First of all** is to render two configMaps templates with `helm template` command, and apply them. This configMaps are needed for normal functioning of balancing requests between Docs shards.
+**First of all** is to render PVC template with `helm template` command, and apply it. This PVC are needed for normal functioning of caching static requests.
 
-**Note:** These config maps must be located in the same namespace as your deployment nginx-ingress controller. To ensure that the generated config maps will be deployed in the same namespace as your nginx-ingress controller, please set the parameter `documentserver.ingressCustomConfigMapsNamespace` if needed.
-
-**Note:** When creating configMaps manually, check and change if necessary the parameters for connecting to Redis. 
-
-> All available Redis connections parameters present [here](#4-parameters) with the `connections.` prefix
+**Note:** This PVC must be located in the same namespace as your deployment nginx-ingress controller. To ensure that the generated PVC will be deployed in the same namespace as your nginx-ingress controller, please set the parameter `documentserver.cachePvcNamespace` if needed.
 
 ```bash
-helm template docs onlyoffice/docs-shards --set documentserver.ingressCustomConfigMapsNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/configmaps/balancer-snippet.yaml --show-only templates/configmaps/balancer-lua.yaml --show-only templates/pvc/ingress-cache-pvc.yaml --dry-run=server > ./ingressConfigMaps.yaml 
+helm template docs onlyoffice/docs-shards --set documentserver.cachePvcNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/pvc/ingress-cache-pvc.yaml --dry-run=server > ./CachePVC.yaml 
 ```
 
-**The second step**, apply configMaps that you create with command below:
+**The second step**, apply PVC that you create with command below:
 
 ```bash
-$ kubectl apply -f ./ingressConfigMaps.yaml
+$ kubectl apply -f ./CachePVC.yaml
 ```
 
-**The third step**, you need to update your nginx-ingress controller deployment with new parameters. That will add volumes with the necessary configmaps that you just created. Follow the commands:
+**The third step**, you need to update your nginx-ingress controller deployment with new PVC parameters. That will add new volume where static cache will be stored. Follow the commands:
 
 ```bash
 $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/ingress_values.yaml

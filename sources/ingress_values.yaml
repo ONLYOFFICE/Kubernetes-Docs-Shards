@@ -3,27 +3,15 @@ controller:
   config:
     http-snippet: |
       proxy_cache_path /var/tmp
-      levels=1:2 keys_zone=test_cache:75m max_size=4g inactive=1d
+      levels=1:2 keys_zone=docs_cache:75m max_size=4g inactive=1d
       use_temp_path=off;
   extraVolumeMounts:
-  - name: custom-balancer
-    mountPath: /etc/nginx/custom_balancer.conf
-    subPath: custom_balancer.conf
-  - name: balancer-lua
-    mountPath: /etc/nginx/lua/balancer.lua
-    subPath: balancer.lua
   - name: file-share
     mountPath: /var/tmp
   extraVolumes:
   - name: file-share
     persistentVolumeClaim:
       claimName: nginx-cache-pvc
-  - name: custom-balancer
-    configMap:
-      name: balancer-snippet
-  - name: balancer-lua
-    configMap:
-      name: balancer-lua
   publishService:
     enabled: true
   replicaCount: 2

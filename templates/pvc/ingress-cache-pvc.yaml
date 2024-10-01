@@ -3,13 +3,13 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nginx-cache-pvc
-  namespace: {{ .Values.documentserver.ingressCustomConfigMapsNamespace }}
+  namespace: {{ .Values.persistence.dsRequestsCache.namespace }}
   {{- if .Values.commonLabels }}
   labels:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }}
-  {{- if or .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
-  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.dsBalancerCache.annotations }}
+  {{- if or .Values.commonAnnotations .Values.persistence.dsRequestsCache.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.persistence.dsRequestsCache.annotations }}
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
@@ -19,5 +19,5 @@ spec:
   volumeMode: Filesystem
   resources:
     requests:
-      storage: {{ .Values.persistence.dsBalancerCache.size }}
+      storage: {{ .Values.persistence.dsRequestsCache.size }}
 {{- end }}

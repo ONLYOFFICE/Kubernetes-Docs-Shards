@@ -41,7 +41,7 @@ ONLYOFFICE Docs for Kubernetes
   * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
   * [11. Deploy ONLYOFFICE Docs with your own dependency (optional)](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
   * [11.1 Use your own nginx-ingress controller](#111-use-your-own-nginx-ingress-controller)
-  * [12. Caching configuration](#12-caching-configuration)
+  * [12. Request caching configuration](#12-request-caching-configuration)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -788,9 +788,9 @@ $ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.gi
 $ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false
 ```
 
-### 12. Caching configuration
+### 12. Request caching configuration
 
-By default ONLYOFFICE Docs-Shards use PVC with `nfs` storage class, that provide general caching for all ingress-nginx controller replicas.
+By default ONLYOFFICE Docs-Shards use PVC with `nfs` storage class, that provide general requests caching for all ingress-nginx controller replicas.
 
 It is also possible to use a local cache for each replica using emptyDir. You can deploy ONLYOFFICE Docs-Shards with local cache for each nginx replicas with following command:
 
@@ -798,18 +798,8 @@ It is also possible to use a local cache for each replica using emptyDir. You ca
 $ helm install documentserver onlyoffice/docs-shards \
           --set ingress-nginx.controller.extraVolumes[0].name=file-share \
           --set ingress-nginx.controller.extraVolumes[0].emptyDir.sizeLimit=5Gi \
-          --set ingress-nginx.controller.extraVolumes[1].name=custom-balancer \
-          --set ingress-nginx.controller.extraVolumes[1].configMap.name=balancer-snippet \
-          --set ingress-nginx.controller.extraVolumes[2].name=balancer-lua \
-          --set ingress-nginx.controller.extraVolumes[2].configMap.name=balancer-lua \
-          --set ingress-nginx.controller.extraVolumeMounts[0].name=custom-balancer \
-          --set ingress-nginx.controller.extraVolumeMounts[0].mountPath=/etc/nginx/custom_balancer.conf \
-          --set ingress-nginx.controller.extraVolumeMounts[0].subPath=custom_balancer.conf \
-          --set ingress-nginx.controller.extraVolumeMounts[1].name=balancer-lua \
-          --set ingress-nginx.controller.extraVolumeMounts[1].mountPath=/etc/nginx/lua/balancer.lua \
-          --set ingress-nginx.controller.extraVolumeMounts[1].subPath=balancer.lua \
-          --set ingress-nginx.controller.extraVolumeMounts[2].name=file-share \
-          --set ingress-nginx.controller.extraVolumeMounts[2].mountPath=/var/tmp
+          --set ingress-nginx.controller.extraVolumeMounts[0].name=file-share \
+          --set ingress-nginx.controller.extraVolumeMounts[0].mountPath=/var/tmp
 ```
 
 ## Using Grafana to visualize metrics (optional)

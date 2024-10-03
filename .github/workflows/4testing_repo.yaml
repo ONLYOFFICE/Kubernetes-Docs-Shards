@@ -14,7 +14,7 @@ jobs:
       - name: Set chart version
         run: |
           wget https://download.onlyoffice.com/charts/4testing/index.yaml -P /tmp
-          LATEST_VERSION=$(awk '/docs-shards:/{f=1};f{print}' /tmp/index.yaml | awk '/version:/ {print $2;}' | head -1)
+          LATEST_VERSION=$(awk '/docs-shards:/{f=1};f{print}' /tmp/index.yaml | awk '/^    version:/ {print $2;}' | head -1)
           NEW_VERSION=$(awk '/version:/ {print $2;}' Chart.yaml | head -1)
           if [[ "$LATEST_VERSION" == *"$NEW_VERSION"* ]]; then
             RC=${LATEST_VERSION: -1}

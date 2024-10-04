@@ -8,7 +8,6 @@ redisPort = os.environ.get('REDIS_SERVER_PORT')
 redisUser = os.environ.get('REDIS_SERVER_USER')
 redisPassword = os.environ.get('REDIS_SERVER_PWD')
 redisDBNum = os.environ.get('REDIS_SERVER_DB_KEYS_NUM')
-redisDBNumDSVersion = os.environ.get('REDIS_SERVER_DB_DS_VERSION')
 redisConnectTimeout = 15
 if os.environ.get('REDIS_CLUSTER_NODES'):
     redisClusterNodes = list(os.environ.get('REDIS_CLUSTER_NODES').split(" "))
@@ -20,9 +19,7 @@ if redisConnectorName == 'ioredis':
 shardKey = os.environ.get('DEFAULT_SHARD_KEY')
 epIP = os.environ.get('SHARD_IP')
 epPort = os.environ.get('SHARD_PORT')
-dsVersion = os.environ.get('APP_VERSION') + '-' + os.environ.get('DS_VERSION_HASH')
 ipShard = epIP + ':' + epPort
-shardDSVersion = ipShard + '-' + dsVersion
 
 total_result = {}
 
@@ -53,10 +50,10 @@ def get_redis_status():
         )
         rc.ping()
     except Exception as msg_redis:
-        logger_test_ds.error(f'Failed to check the availability of the Redis Standalone... {msg_redis}\n')
+        logger_endpoints_ds.error(f'Failed to check the availability of the Redis Standalone... {msg_redis}\n')
         total_result['CheckRedis'] = 'Failed'
     else:
-        logger_test_ds.info('Successful connection to Redis Standalone')
+        logger_endpoints_ds.info('Successful connection to Redis Standalone')
         return rc.ping()
 
 
@@ -75,10 +72,10 @@ def get_redis_cluster_status():
         )
         rc.ping()
     except Exception as msg_redis:
-        logger_test_ds.error(f'Failed to check the availability of the Redis Cluster... {msg_redis}\n')
+        logger_endpoints_ds.error(f'Failed to check the availability of the Redis Cluster... {msg_redis}\n')
         total_result['CheckRedis'] = 'Failed'
     else:
-        logger_test_ds.info('Successful connection to Redis Cluster')
+        logger_endpoints_ds.info('Successful connection to Redis Cluster')
         return rc.ping()
 
 
@@ -100,10 +97,10 @@ def get_redis_sentinel_status():
         )
         rc.ping()
     except Exception as msg_redis:
-        logger_test_ds.error(f'Failed to check the availability of the Redis Sentinel... {msg_redis}\n')
+        logger_endpoints_ds.error(f'Failed to check the availability of the Redis Sentinel... {msg_redis}\n')
         total_result['CheckRedis'] = 'Failed'
     else:
-        logger_test_ds.info('Successful connection to Redis Sentinel')
+        logger_endpoints_ds.info('Successful connection to Redis Sentinel')
         return rc.ping()
 
 
@@ -112,18 +109,16 @@ def add_redis_key():
         rc.set(shardKey, ipShard)
         rc.append(ipShard, f' {shardKey}')
         test_key = rc.get(shardKey).decode('utf-8')
-        rc.select(redisDBNumDSVersion)
-        rc.set(shardDSVersion, '0')
     except Exception as msg_check_redis:
-        logger_test_ds.error(f'Error when trying to write a ShardKey to Redis... {msg_check_redis}\n')
+        logger_endpoints_ds.error(f'Error when trying to write a ShardKey to Redis... {msg_check_redis}\n')
         total_result['CheckRedis'] = 'Failed'
     else:
-        logger_test_ds.info(f'ShardKey {shardKey} = {test_key} was successfully recorded to Redis\n')
+        logger_endpoints_ds.info(f'ShardKey {shardKey} = {test_key} was successfully recorded to Redis\n')
         rc.close()
 
 
 def init_redis():
-    logger_test_ds.info('Checking Redis availability...')
+    logger_endpoints_ds.info('Checking Redis availability...')
     if redisConnectorName == 'redis' and not os.environ.get('REDIS_CLUSTER_NODES'):
         if get_redis_status() is True:
             add_redis_key()
@@ -137,11 +132,11 @@ def init_redis():
 
 def total_status():
     if 'Failed' in total_result.values():
-        logger_test_ds.error('Recording of "ShardKey" in Redis failed')
+        logger_endpoints_ds.error('Recording of "ShardKey" in Redis failed')
         sys.exit(1)
 
 
-init_logger('test')
-logger_test_ds = logging.getLogger('test.ds')
+init_logger('endpoints')
+logger_endpoints_ds = logging.getLogger('endpoints.ds')
 init_redis()
 total_status()

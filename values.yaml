@@ -1022,6 +1022,10 @@ example:
     ## Must be the same as the `key` name in `example.extraConf.ConfigMap`
     filename: local.json
 
+## customBalancer.enabled
+customBalancer:
+  enabled: true
+
 ## Onlyoffice Docs ingress parameters
 ##
 ingress:

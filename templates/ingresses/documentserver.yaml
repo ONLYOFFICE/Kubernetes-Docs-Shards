@@ -161,18 +161,46 @@ metadata:
            {{- end }}
         end
 
+        local function api_js_exist()
+          if string.match(request_uri, "api%.js$") then
+            print("DEBUG: api.js requested")
+            return true
+          else
+            return false
+          end
+        end
+
         -- return random endpoint from redis by requested version
-        local function get_random_endpoint(ver)
+        local function get_random_endpoint(ver, api_key)
            red:select({{ .Values.documentserver.dsVersionHashRedisDBNum }})
            local data
-           if ver then
-              data = red:scan(0, "count", 10000, "match", string.format('*-%s', ver))
+           local random_endpoint
+           local endpoint_exist = false
+           if api_key or api_js_exist() then
+             repeat
+               if ver then
+                 data = red:scan(0, "count", 10000, "match", string.format('*-%s', ver))
+               else
+                 data = red:scan(0, "count", 10000)
+               end
+               local static_endpoints = data[2]
+               local new_endpoint = tostring((static_endpoints[math.random(1, #static_endpoints)]))
+               random_endpoint = new_endpoint:gsub("%-.+$", "")
+               endpoint_exist = check_endpoint(random_endpoint)
+               print(string.format("New endpoint %s status: %s", random_endpoint, endpoint_exist))
+               ngx.sleep(0.5)
+             until endpoint_exist
            else
-              data = red:scan(0, "count", 10000)
+             if ver then
+               data = red:scan(0, "count", 10000, "match", string.format('*-%s', ver))
+             else
+               data = red:scan(0, "count", 10000)
+             end
+             local static_endpoints = data[2]
+             local new_endpoint = tostring((static_endpoints[math.random(1, #static_endpoints)]))
+             random_endpoint = new_endpoint:gsub("%-.+$", "")
            end
-           local static_endpoints = data[2]
-           local new_endpoint = tostring((static_endpoints[math.random(1, #static_endpoints)]))
-           local random_endpoint = new_endpoint:gsub("%-.+$", "")
+           print(string.format("random_endpoint: %s", random_endpoint))
            -- return to default db if api_arg in request
            red:select({{ .Values.documentserver.keysRedisDBNum }})
            return random_endpoint
@@ -193,7 +221,7 @@ metadata:
            local exist_endpoint = tostring(redis_get(API_KEY))
            print(exist_endpoint)
            if exist_endpoint == 'userdata: NULL' then
-             local new_custom_endpoint = get_random_endpoint(requested_version)
+             local new_custom_endpoint = get_random_endpoint(requested_version, API_KEY)
              if redis_set(API_KEY, new_custom_endpoint) then
                 redis_set_ipkey(API_KEY, new_custom_endpoint)
                 redis_expire(API_KEY, {{ .Values.documentserver.keysExpireTime }})

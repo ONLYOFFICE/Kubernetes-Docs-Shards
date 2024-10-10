@@ -188,7 +188,9 @@ metadata:
                random_endpoint = new_endpoint:gsub("%-.+$", "")
                endpoint_exist = check_endpoint(random_endpoint)
                print(string.format("New endpoint %s status: %s", random_endpoint, endpoint_exist))
-               ngx.sleep(0.5)
+               if not endpoint_exist then
+                 ngx.sleep(1)
+               end
              until endpoint_exist
            else
              if ver then

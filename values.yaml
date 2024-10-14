@@ -80,24 +80,6 @@ connections:
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
   redisNoPass: false
-## customBalancer settings. After 8.2.0 is used as default balancer instead of ingress-nginx
-customBalancer:
-  ## If parameter set to false, you should set .Values.ingress-nginx to `true`. Note, that Docs-Shards do not work correctly if you do not deploy any balancer
-  enabled: true
-  ## Enable or disable autoscaling for balancer replicas
-  autoscaling:
-    enabled: false
-  image:
-    repository: docker.onlyoffice.com/balancer
-    tag: 1.0.0-rc7
-    pullPolicy: IfNotPresent
-  replicas: 1
-  containerPorts:
-    http: 80
-  service:
-    existing: ""
-    type: ClusterIP
-    port: "80"
 ## Web Proxy parameters
 ## Used if your network has a web proxy
 ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
@@ -1040,9 +1022,39 @@ example:
     ## Must be the same as the `key` name in `example.extraConf.ConfigMap`
     filename: local.json
 
-## customBalancer.enabled
+## customBalancer settings. After 8.2.0 is used as default balancer instead of ingress-nginx
 customBalancer:
+  ## If parameter set to false, you should set .Values.ingress-nginx to `true`. Note, that Docs-Shards do not work correctly if you do not deploy any balancer
   enabled: true
+  ## customBalancer.workerConnections
+  workerConnections: 16384
+  ## customBalancer.workerProcesses
+  workerProcesses: 1
+  ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
+  autoscaling:
+    enabled: false
+  ## customBalancer.image
+  image:
+    ## customBalancer.image.repository
+    repository: docker.onlyoffice.com/balancer
+    ## customBalancer.image.tag
+    tag: 1.0.0-rc7
+    ## customBalancer.image.pullPolicy
+    pullPolicy: IfNotPresent
+  ## customBalancer.replicas
+  replicas: 1
+  ## customBalancer.containerPorts
+  containerPorts:
+    ## customBalancer.containerPorts.http
+    http: 80
+  ## customBalancer.service
+  service:
+    ## customBalancer.service.existing
+    existing: ""
+    ## customBalancer.service.type
+    type: ClusterIP
+    ## customBalancer.service.port
+    port: "80"
 
 ## Onlyoffice Docs ingress parameters
 ##

@@ -149,18 +149,41 @@ Return true if a secret object should be created for jwt
 Get the service name for ds
 */}}
 {{- define "ds.svc.name" -}}
-{{- if .Values.service.existing -}}
-    {{- printf "%s" (tpl .Values.service.existing $) -}}
+{{- if and .Values.customBalancer.enabled (not (empty .Values.customBalancer.service.existing )) }}
+    {{- printf "%s" (tpl .Values.customBalancer.service.existing $) -}}
+{{- else if and .Values.customBalancer.enabled (empty .Values.customBalancer.service.existing ) }}
+    {{- printf "balancer" -}}
 {{- else }}
     {{- printf "documentserver" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return true if a service object should be created for ds
+Get the service port for ds
+*/}}
+{{- define "ds.svc.port" -}}
+{{- if .Values.customBalancer.enabled -}}
+    {{- printf "%s" .Values.customBalancer.service.port -}}
+{{- else -}}
+    {{- printf "%s" .Values.service.port -}}
+{{- end -}}
+{{- end -}}
+
+
+{{/*
+Return true if a documentserver service object should be created for ds
 */}}
 {{- define "ds.svc.create" -}}
 {{- if empty .Values.service.existing }}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return true if a balancer service object should be created for ds
+*/}}
+{{- define "balancer.svc.create" -}}
+{{- if and ( .Values.customBalancer.enabled) (empty .Values.customBalancer.service.existing) }}
     {{- true -}}
 {{- end -}}
 {{- end -}}

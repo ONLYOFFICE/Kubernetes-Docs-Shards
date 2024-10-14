@@ -2,7 +2,7 @@
 
 ## ingress-nginx.enabled parameter for manage ingress controller subchart condition
 ingress-nginx:
-  enabled: true
+  enabled: false
   namespaceOverride: default
   controller:
     replicaCount: 2
@@ -80,6 +80,24 @@ connections:
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
   redisNoPass: false
+## customBalancer settings. After 8.2.0 is used as default balancer instead of ingress-nginx
+customBalancer:
+  ## If parameter set to false, you should set .Values.ingress-nginx to `true`. Note, that Docs-Shards do not work correctly if you do not deploy any balancer
+  enabled: true
+  ## Enable or disable autoscaling for balancer replicas
+  autoscaling:
+    enabled: false
+  image:
+    repository: docker.onlyoffice.com/balancer
+    tag: 1.0.0-rc7
+    pullPolicy: IfNotPresent
+  replicas: 1
+  containerPorts:
+    http: 80
+  service:
+    existing: ""
+    type: ClusterIP
+    port: "80"
 ## Web Proxy parameters
 ## Used if your network has a web proxy
 ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
@@ -199,7 +217,7 @@ service:
   ## service.type ONLYOFFICE Docs service type
   type: ClusterIP
   ## service.port ONLYOFFICE Docs service port
-  port: 8888
+  port: "8888"
   ## service.sessionAffinity Session Affinity for ONLYOFFICE Docs service
   ## If not set, `None` will be set as the default value
   ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity

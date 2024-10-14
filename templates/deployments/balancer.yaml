@@ -1,0 +1,63 @@
+{{- if .Values.customBalancer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: balancer
+  namespace: {{ include "ds.namespace" . | quote }}
+  labels:
+    app: balancer
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.customBalancer.autoscaling.enabled }}
+  replicas: {{ .Values.customBalancer.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: balancer
+      {{- if .Values.commonLabels }}
+      {{- include "ds.labels.commonLabels" . | trim | nindent 6 }}
+      {{- end }}
+  {{- if .Values.customBalancer.updateStrategy }}
+  strategy: {{- include "ds.update.strategyType" .Values.customBalancer.updateStrategy }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: balancer
+        {{- if .Values.commonLabels }}
+        {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
+        {{- end }}
+      {{- if .Values.customBalancer.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.customBalancer.podAnnotations }}
+        {{ $key }}: {{ tpl $value $ }}
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: ds-balancer-sa
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+      {{- end }}
+      containers:
+        - name: balancer
+          image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}
+          imagePullPolicy: {{ .Values.customBalancer.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.customBalancer.containerPorts.http }}
+          env:
+          - name: DS_EP_NAME
+            value: "documentserver"
+          envFrom:
+          - configMapRef:
+              name: balancer-lua-config
+          volumeMounts:
+          - name: balancer-lua-config
+            mountPath: /etc/nginx/mnt_config
+      volumes:
+        - name: balancer-lua-config
+          configMap:
+            name: balancer-lua-config
+{{- end }}

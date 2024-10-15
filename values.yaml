@@ -1036,9 +1036,9 @@ customBalancer:
   ## customBalancer.image
   image:
     ## customBalancer.image.repository
-    repository: docker.onlyoffice.com/balancer
+    repository: onlyoffice/docs-balancer
     ## customBalancer.image.tag
-    tag: 1.0.0-rc7
+    tag: 1.0.0
     ## customBalancer.image.pullPolicy
     pullPolicy: IfNotPresent
   ## customBalancer.replicas

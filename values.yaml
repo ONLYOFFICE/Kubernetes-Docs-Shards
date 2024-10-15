@@ -189,9 +189,6 @@ tolerations: []
 imagePullSecrets: ""
 ## Onlyoffice Docs service parameters
 service:
-  ## service.existing The name of an existing service for ONLYOFFICE Docs. If not set, a service named `documentserver` will be created
-  ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs/blob/master/templates/services/documentserver.yaml
-  existing: ""
   ## service.annotations Map of annotations to add to the ONLYOFFICE Docs service
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -1026,35 +1023,135 @@ example:
 customBalancer:
   ## If parameter set to false, you should set .Values.ingress-nginx to `true`. Note, that Docs-Shards do not work correctly if you do not deploy any balancer
   enabled: true
-  ## customBalancer.workerConnections
+  ## customBalancer.workerConnections set worker connections count for balancer container
   workerConnections: 16384
-  ## customBalancer.workerProcesses
+  ## customBalancer.workerProcesses set worker processes count for balancer container
   workerProcesses: 1
+  ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## customBalancer.terminationGracePeriodSeconds The time to terminate gracefully during which the balancer Pod will have the Terminating status
+  terminationGracePeriodSeconds: 30
   ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
   autoscaling:
     enabled: false
+    ## customBalancer.autoscaling.annotations Defines annotations that will be additionally added to balancer deployment HPA
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## customBalancer.autoscaling.minReplicas balancer deployment autoscaling minimum number of replicas
+    minReplicas: 2
+    ## customBalancer.autoscaling.maxReplicas balancer deployment autoscaling maximum number of replicas
+    maxReplicas: 4
+    targetCPU:
+      ## customBalancer.autoscaling.targetCPU.enabled Enable autoscaling of balancer deployment by CPU usage percentage
+      enabled: true
+      ## customBalancer.autoscaling.targetCPU.utilizationPercentage balancer deployment autoscaling target CPU percentage
+      utilizationPercentage: 70
+    targetMemory:
+      ## customBalancer.autoscaling.targetMemory.enabled Enable autoscaling of balancer deployment by memory usage percentage
+      enabled: false
+      ## customBalancer.autoscaling.targetMemory.utilizationPercentage balancer deployment autoscaling target memory percentage
+      utilizationPercentage: 70
+  ## customBalancer.customPodAntiAffinity Prohibiting the scheduling of balancer Pods relative to other Pods containing the specified labels on the same node
+  ## Example:
+  ## customPodAntiAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - example
+  ##     topologyKey: kubernetes.io/hostname
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for balancer Pods scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes balancer Pods can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## Example:
+  ## podAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - store
+  ##     topologyKey: topology.kubernetes.io/zone
+  ##
+  podAffinity: {}
+  ## Node affinity rules for balancer Pods scheduling by nodes
+  ## Node affinity allow you to constrain which nodes balancer Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ## Example:
+  ## nodeAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     preference:
+  ##       matchExpressions:
+  ##       - key: kubernetes.io/name
+  ##         operator: In
+  ##         values:
+  ##         - name1
+  ##         - name2
+  ##
+  nodeAffinity: {}
+  ## customBalancer.nodeSelector Node labels for balancer Pods assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## customBalancer.tolerations Tolerations for balancer Pods assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
   ## customBalancer.image
   image:
-    ## customBalancer.image.repository
+    ## customBalancer.image.repository specify balancer image repository
     repository: onlyoffice/docs-balancer
-    ## customBalancer.image.tag
+    ## customBalancer.image.tag specify balancer image tag
     tag: 1.0.0
-    ## customBalancer.image.pullPolicy
+    ## customBalancer.image.pullPolicy balancer image pull policy
     pullPolicy: IfNotPresent
-  ## customBalancer.replicas
+  ## customBalancer.replicas Number of balancer replicas to deploy
+  ## If the `customBalancer.autoscaling.enabled` parameter is enabled, it is ignored
   replicas: 3
-  ## customBalancer.containerPorts
+  ## customBalancer.containerPorts balancer container port
   containerPorts:
-    ## customBalancer.containerPorts.http
     http: 80
   ## customBalancer.service
   service:
-    ## customBalancer.service.existing
+    ## customBalancer.service.existing The name of an existing service for balancer. If not set, a service named `docs-balancer` will be created
     existing: ""
-    ## customBalancer.service.type
+    ## customBalancer.service.type balancer service type
     type: ClusterIP
-    ## customBalancer.service.port
+    ## customBalancer.service.port balancer service port
     port: "80"
+    ## customBalancer.service.sessionAffinity Session Affinity for ONLYOFFICE Docs balancer service
+    ## If not set, `None` will be set as the default value
+    ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
+    sessionAffinity: ""
+    ## customBalancer.service.sessionAffinityConfig Configuration for ONLYOFFICE Docs balancer service Session Affinity
+    ## Used if the `customBalancer.service.sessionAffinity` is set
+    ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-stickiness-timeout
+    ## Example:
+    ## sessionAffinityConfig:
+    ##   clientIP:
+    ##     timeoutSeconds: 900
+    sessionAffinityConfig: {}
+    ## customBalancer.updateStrategy used to replace old Pods by new ones
+  updateStrategy:
+    ## customBalancer.updateStrategy.type balancer deployment update strategy type
+    ## Allowed values: `RollingUpdate` or `Recreate`
+    ## It is recommended to use the `RollingUpdate` type
+    type: RollingUpdate
+    # customBalancer.updateStrategy.rollingUpdate Used only when `customBalancer.updateStrategy.type=RollingUpdate`
+    rollingUpdate:
+      # customBalancer.updateStrategy.rollingUpdate.maxUnavailable Maximum number of Balancer Pods unavailable during the update process
+      maxUnavailable: 25%
+      # customBalancer.updateStrategy.rollingUpdate.maxSurge Maximum number of Balancer Pods created over the desired number of Pods
+      maxSurge: 25%
+  ## customBalancer.podAnnotations
+  podAnnotations:
+    rollme: "{{ randAlphaNum 5 | quote }}"
 
 ## Onlyoffice Docs ingress parameters
 ##

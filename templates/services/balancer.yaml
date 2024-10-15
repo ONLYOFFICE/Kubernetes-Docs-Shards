@@ -2,14 +2,14 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: balancer
+  name: docs-balancer
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }}
-  {{- if or .Values.commonAnnotations .Values.service.annotations }}
-  {{- $dictValue := default .Values.commonAnnotations .Values.service.annotations }}
+  {{- if or .Values.commonAnnotations .Values.customBalancer.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.customBalancer.annotations }}
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
@@ -24,4 +24,13 @@ spec:
       port: {{ .Values.customBalancer.service.port }}
       targetPort: {{ .Values.customBalancer.containerPorts.http }}
   type: {{ .Values.customBalancer.service.type }}
+  {{- if .Values.customBalancer.sessionAffinity }}
+  sessionAffinity: {{ .Values.customBalancer.service.sessionAffinity }}
+  {{- if .Values.customBalancer.service.sessionAffinityConfig }}
+  {{- with .Values.customBalancer.service.sessionAffinityConfig }}
+  sessionAffinityConfig:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
 {{- end }}

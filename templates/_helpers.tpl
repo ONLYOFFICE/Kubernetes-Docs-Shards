@@ -152,7 +152,7 @@ Get the service name for ds
 {{- if and .Values.customBalancer.enabled (not (empty .Values.customBalancer.service.existing )) }}
     {{- printf "%s" (tpl .Values.customBalancer.service.existing $) -}}
 {{- else if and .Values.customBalancer.enabled (empty .Values.customBalancer.service.existing ) }}
-    {{- printf "balancer" -}}
+    {{- printf "docs-balancer" -}}
 {{- else }}
     {{- printf "documentserver" -}}
 {{- end -}}
@@ -166,16 +166,6 @@ Get the service port for ds
     {{- printf "%s" .Values.customBalancer.service.port -}}
 {{- else -}}
     {{- printf "%s" .Values.service.port -}}
-{{- end -}}
-{{- end -}}
-
-
-{{/*
-Return true if a documentserver service object should be created for ds
-*/}}
-{{- define "ds.svc.create" -}}
-{{- if empty .Values.service.existing }}
-    {{- true -}}
 {{- end -}}
 {{- end -}}
 

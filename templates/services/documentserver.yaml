@@ -1,4 +1,3 @@
-{{- if eq (include "ds.svc.create" .) "true" }}
 kind: Service
 apiVersion: v1
 metadata:
@@ -33,4 +32,3 @@ spec:
   {{- end }}
   {{- end }}
   {{- end }}
-{{- end }}

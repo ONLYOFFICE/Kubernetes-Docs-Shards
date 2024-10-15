@@ -15,6 +15,7 @@ metadata:
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 data:
+  DS_EP_NAME: "documentserver"
   BALANCER_WORKER_CONNECTIONS: {{ .Values.customBalancer.workerConnections | quote }}
   BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
 {{ (tpl (.Files.Glob "sources/scripts/balancer-lua.conf").AsConfig . ) | indent 2 }}

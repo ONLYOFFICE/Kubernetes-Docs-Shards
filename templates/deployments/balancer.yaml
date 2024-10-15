@@ -47,9 +47,6 @@ spec:
           imagePullPolicy: {{ .Values.customBalancer.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
-          env:
-          - name: DS_EP_NAME
-            value: "documentserver"
           envFrom:
           - configMapRef:
               name: balancer-lua-config

@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: balancer-config
+  name: balancer-lua-config
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
@@ -15,7 +15,6 @@ metadata:
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 data:
-  DS_EP_NAME: "documentserver"
-  BALANCER_WORKER_CONNECTIONS: {{ .Values.customBalancer.workerConnections | quote }}
-  BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
+{{ (tpl (.Files.Glob "sources/scripts/balancer-lua.conf").AsConfig . ) | indent 2 }}
 {{- end }}
+

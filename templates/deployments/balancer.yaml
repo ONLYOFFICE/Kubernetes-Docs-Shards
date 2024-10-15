@@ -49,7 +49,7 @@ spec:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
           envFrom:
           - configMapRef:
-              name: balancer-lua-config
+              name: balancer-config
           volumeMounts:
           - name: balancer-lua-config
             mountPath: /etc/nginx/mnt_config

@@ -1027,10 +1027,6 @@ customBalancer:
   workerConnections: 16384
   ## customBalancer.workerProcesses set worker processes count for balancer container
   workerProcesses: 1
-  ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service
-  ## If set to, it takes priority over the `commonAnnotations`
-  ## You can also use `tpl` as the value for the key
-  annotations: {}
   ## customBalancer.terminationGracePeriodSeconds The time to terminate gracefully during which the balancer Pod will have the Terminating status
   terminationGracePeriodSeconds: 30
   ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
@@ -1117,8 +1113,12 @@ customBalancer:
   ## customBalancer.containerPorts balancer container port
   containerPorts:
     http: 80
-  ## customBalancer.service
+  ## customBalancer.service specify parameters for balancer service
   service:
+    ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
     ## customBalancer.service.existing The name of an existing service for balancer. If not set, a service named `docs-balancer` will be created
     existing: ""
     ## customBalancer.service.type balancer service type

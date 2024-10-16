@@ -1149,7 +1149,7 @@ customBalancer:
       maxUnavailable: 25%
       # customBalancer.updateStrategy.rollingUpdate.maxSurge Maximum number of Balancer Pods created over the desired number of Pods
       maxSurge: 25%
-  ## customBalancer.podAnnotations
+  ## customBalancer.podAnnotations Map of annotations to add to the Balancer deployment Pod
   podAnnotations:
     rollme: "{{ randAlphaNum 5 | quote }}"
 

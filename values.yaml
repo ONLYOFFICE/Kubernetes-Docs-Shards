@@ -1157,7 +1157,7 @@ customBalancer:
 ##
 ingress:
   ## ingress.enabled Enable the creation of an ingress for the ONLYOFFICE Docs
-  enabled: true
+  enabled: false
   ## ingress.annotations Map of annotations to add to the Ingress
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key

@@ -83,6 +83,7 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.customBalancer.terminationGracePeriodSeconds }}
       containers:
         - name: balancer
           image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}

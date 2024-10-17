@@ -1,17 +1,10 @@
 controller:
-  allowSnippetAnnotations: true
-  config:
-    http-snippet: |
-      proxy_cache_path /var/tmp
-      levels=1:2 keys_zone=docs_cache:75m max_size=4g inactive=1d
-      use_temp_path=off;
-  extraVolumeMounts:
-  - name: file-share
-    mountPath: /var/tmp
-  extraVolumes:
-  - name: file-share
-    persistentVolumeClaim:
-      claimName: nginx-cache-pvc
   publishService:
     enabled: true
   replicaCount: 2
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '10254'

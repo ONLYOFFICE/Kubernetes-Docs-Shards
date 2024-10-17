@@ -1,4 +1,3 @@
-{{- if .Values.customBalancer.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,5 +15,3 @@ metadata:
     {{- end }}
 data:
 {{ (tpl (.Files.Glob "sources/scripts/balancer-lua.conf").AsConfig . ) | indent 2 }}
-{{- end }}
-

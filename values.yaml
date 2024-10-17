@@ -1,27 +1,3 @@
-## Dependencies charts parameters
-
-## ingress-nginx.enabled parameter for manage ingress controller subchart condition
-ingress-nginx:
-  enabled: false
-  namespaceOverride: default
-  controller:
-    replicaCount: 2
-    allowSnippetAnnotations: true
-    config:
-      http-snippet: |
-        proxy_cache_path /var/tmp
-        levels=1:2 keys_zone=docs_cache:75m max_size=4g inactive=1d
-        use_temp_path=off;
-    extraVolumeMounts:
-    - name: file-share
-      mountPath: /var/tmp
-    extraVolumes:
-    - name: file-share
-      persistentVolumeClaim:
-        claimName: nginx-cache-pvc
-    service:
-      annotations: {}
-
 ## Default values for Onlyoffice Docs
 
 ## product.name Specifies name of the product
@@ -147,19 +123,6 @@ persistence:
   storageClass: "nfs"
   ## persistence.size PVC Storage Request for Onlyoffice Docs volume
   size: 8Gi
-  ## persistence.dsRequestsCache is define parameters for setting PVC storage for static requests cache
-  dsRequestsCache:
-    ## persistence.dsRequestsCache.existingClaim Name of an existing PVC for static requests cache to use
-    ## If not specified, a PVC named "nginx-cache-pvc" will be created
-    existingClaim: ""
-    ## persistence.dsRequestsCache.annotations Defines annotations that will be additionally added to "nginx-cache-pvc" PVC
-    ## If set to, it takes priority over the `commonAnnotations`
-    ## You can also use `tpl` as the value for the key
-    annotations: {}
-    ## persistence.dsRequestsCache.size PVC Storage Request for Onlyoffice Docs static requests cache volume
-    size: 5Gi
-    ## persistence.dsRequestsCache.namespace define PVC volume namespace. This namespace should be the same where your ingress-controller is deployed
-    namespace: default
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:
@@ -196,7 +159,7 @@ service:
   ## service.type ONLYOFFICE Docs service type
   type: ClusterIP
   ## service.port ONLYOFFICE Docs service port
-  port: "8888"
+  port: 8888
   ## service.sessionAffinity Session Affinity for ONLYOFFICE Docs service
   ## If not set, `None` will be set as the default value
   ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
@@ -323,8 +286,6 @@ documentserver:
   terminationGraceTimeSeconds: 600
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
-  ## documentserver.dsVersionHashRedisDBNum The number of the database for storing documentserver shards ip adresses
-  dsVersionHashRedisDBNum: "2"
   ## documentserver.KeysExpireTime The time in seconds after which the key will be deleted from the balancing database. 172800 mean 48 hours
   keysExpireTime: 172800
   ## documentserver.annotations Defines annotations that will be additionally added to Documentserver Deployment
@@ -1021,8 +982,6 @@ example:
 
 ## customBalancer settings. After 8.2.0 is used as default balancer instead of ingress-nginx
 customBalancer:
-  ## If parameter set to false, you should set .Values.ingress-nginx to `true`. Note, that Docs-Shards do not work correctly if you do not deploy any balancer
-  enabled: true
   ## customBalancer.workerConnections set worker connections count for balancer container
   workerConnections: 16384
   ## customBalancer.workerProcesses set worker processes count for balancer container

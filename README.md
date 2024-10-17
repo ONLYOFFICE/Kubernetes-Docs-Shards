@@ -7,20 +7,18 @@ ONLYOFFICE Docs for Kubernetes
   * [1. Add Helm repositories](#1-add-helm-repositories)
   * [2. Install Persistent Storage](#2-install-persistent-storage)
   * [3. Deploy Redis](#3-deploy-redis)
-  * [4. Configure dependent charts](#4-configure-dependent-charts)
-    + [4.1 Configure ingress-nginx/kubernetes subchart](#41-configure-ingress-nginxkubernetes-subchart)
-  * [5. Deploy StatsD exporter](#5-deploy-statsd-exporter)
-    + [5.1 Add Helm repositories](#51-add-helm-repositories)
-    + [5.2 Installing Prometheus](#52-installing-prometheus)
-    + [5.3 Installing StatsD exporter](#53-installing-statsd-exporter)
-  * [6. Make changes to Node-config configuration files](#6-make-changes-to-Node-config-configuration-files)
-    + [6.1 Create a ConfigMap containing a json file](#61-create-a-configmap-containing-a-json-file)
-    + [6.2 Specify parameters when installing ONLYOFFICE Docs](#62-specify-parameters-when-installing-onlyoffice-docs)
-  * [7. Add custom Fonts](#7-add-custom-fonts)
-  * [8. Add Plugins](#8-add-plugins)
-  * [9. Change interface themes](#9-change-interface-themes)
-    + [9.1 Create a ConfigMap containing a json file](#91-create-a-configmap-containing-a-json-file)
-    + [9.2 Specify parameters when installing ONLYOFFICE Docs](#92-specify-parameters-when-installing-onlyoffice-docs)
+  * [4. Deploy StatsD exporter](#4-deploy-statsd-exporter)
+    + [4.1 Add Helm repositories](#41-add-helm-repositories)
+    + [4.2 Installing Prometheus](#42-installing-prometheus)
+    + [4.3 Installing StatsD exporter](#43-installing-statsd-exporter)
+  * [5. Make changes to Node-config configuration files](#5-make-changes-to-Node-config-configuration-files)
+    + [5.1 Create a ConfigMap containing a json file](#51-create-a-configmap-containing-a-json-file)
+    + [5.2 Specify parameters when installing ONLYOFFICE Docs](#52-specify-parameters-when-installing-onlyoffice-docs)
+  * [6. Add custom Fonts](#6-add-custom-fonts)
+  * [7. Add Plugins](#7-add-plugins)
+  * [8. Change interface themes](#8-change-interface-themes)
+    + [8.1 Create a ConfigMap containing a json file](#81-create-a-configmap-containing-a-json-file)
+    + [8.2 Specify parameters when installing ONLYOFFICE Docs](#82-specify-parameters-when-installing-onlyoffice-docs)
 - [Deploy ONLYOFFICE Docs](#deploy-onlyoffice-docs)
   * [1. Deploy the ONLYOFFICE Docs license](#1-deploy-the-onlyoffice-docs-license)
     + [1.1 Create secret](#11-create-secret)
@@ -39,8 +37,6 @@ ONLYOFFICE Docs for Kubernetes
   * [8. Update ONLYOFFICE Docs license (optional)](#8-update-onlyoffice-docs-license-optional)
   * [9. ONLYOFFICE Docs installation test (optional)](#9-onlyoffice-docs-installation-test-optional)
   * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
-  * [11. Deploy ONLYOFFICE Docs with your own dependency (optional)](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
-  * [11.1 Use your own nginx-ingress controller](#111-use-your-own-nginx-ingress-controller)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -117,42 +113,11 @@ Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gath
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
-### 4. Configure dependent charts 
+### 4. Deploy StatsD exporter
 
-ONLYOFFICE Docs use ingress-nginx by kubernetes as dependencies chart. Bundle nginx-ingress+Redis is used to implement balancing in sharded mode. You can manage the configuration of dependent chart, or disable it to use your own nginx-ingress controller. 
+*This step is optional. You can skip step [#4](#4-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
 
-If you want to manage the configuration of ingress-nginx controller dependent chart, please check section [#4.1](#41-configure-ingress-nginxkubernetes-subchart)
-
-(Optional) Also, you can use your own ingress-nginx controller, for more information please refer to step [#11](#11-deploy-onlyoffice-docs-with-your-own-dependency-optional)
-
-#### 4.1 Configure ingress-nginx/kubernetes subchart
-
-ingress-nginx/kubernetes subchart is **enabled by default**
-
-Docs working in high scalability mode (more than 1 shard) only with enabled ingress-nginx controller by kubernetes.
-
-### Ingress-nginx subchart parameters
-
-Some overridden values ​​for the ingress-nginx/Kubernetes subchart can be found in the table below:
-
-| Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
-|-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `ingress-nginx.enabled`                                     | Define that to enable or disable ingress-nginx subchart during deployment                                                                                                      | `true`                                                                                    |
-| `ingress-nginx.controller.replicaCount`                     | Number of deployed controller replicas                                                                                                                                         | `2`                                                                                       |
-| `ingress-nginx.namespaceOverride`                           | Override the ingress-nginx deployment namespace                                                                                                                                | `default`                                                                                 |
-| `ingress-nginx.controller.allowSnippetAnnotations`          | This configuration defines if Ingress Controller should allow users to set their own *-snippet annotations, otherwise this is forbidden / dropped when users add those annotations. Global snippets in ConfigMap are still respected | `true`                              |
-| `ingress-nginx.controller.config.http-snippet`              | This configuration define parameters for http nginx configuration for enable caching                                                                                           | `[]`                                                                                      |
-| `ingress-nginx.service.annotations`                         | Annotations to be added to the external controller service. See controller.service.internal.annotations for annotations to be added to the internal controller service.        | `{}`                                                                                      |
-| `ingress-nginx.controller.extraVolumeMounts`                | Additional volumeMounts to the controller main container. Note: These parameters are used to add configuration to allow custom balancing. For more information please check values.yaml  | `[]`                                                                            |
-| `ingress-nginx.controller.extraVolumes`                     | Additional volumes to the controller pod. Note: These parameters are used to add configuration to allow custom balancing. For more information please check values.yaml        | `[]`                                                                                      |
-
-See more details about installing ingress-nginx via Helm [here](https://github.com/kubernetes/ingress-nginx/tree/main/charts/ingress-nginx).
-
-### 5. Deploy StatsD exporter
-
-*This step is optional. You can skip step [#5](#5-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
-
-#### 5.1 Add Helm repositories
+#### 4.1 Add Helm repositories
 
 ```bash
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -160,7 +125,7 @@ $ helm repo add kube-state-metrics https://kubernetes.github.io/kube-state-metri
 $ helm repo update
 ```
 
-#### 5.2 Installing Prometheus
+#### 4.2 Installing Prometheus
 
 To install Prometheus to your cluster, run the following command:
 
@@ -173,7 +138,7 @@ To change the scrape interval, specify the `server.global.scrape_interval` param
 
 See more details about installing Prometheus via Helm [here](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus).
 
-#### 5.3 Installing StatsD exporter
+#### 4.3 Installing StatsD exporter
 
 To install StatsD exporter to your cluster, run the following command:
 
@@ -188,11 +153,11 @@ See more details about installing Prometheus StatsD exporter via Helm [here](htt
 
 To allow the StatsD metrics in ONLYOFFICE Docs, follow step [5.2](#52-metrics-deployment-optional)
 
-### 6. Make changes to Node-config configuration files
+### 5. Make changes to Node-config configuration files
 
-*This step is optional. You can skip step [#6](#6-make-changes-to-node-config-configuration-files) entirely if you don't need to make changes to the configuration files*
+*This step is optional. You can skip step [#5](#5-make-changes-to-node-config-configuration-files) entirely if you don't need to make changes to the configuration files*
 
-#### 6.1 Create a ConfigMap containing a json file
+#### 5.1 Create a ConfigMap containing a json file
 
 In order to create a ConfigMap from a file that contains the `local-production-linux.json` structure, you need to run the following command:
 
@@ -203,33 +168,33 @@ $ kubectl create configmap custom-local-config \
 
 Note: Any name except `local-config` can be used instead of `custom-local-config`.
 
-#### 6.2 Specify parameters when installing ONLYOFFICE Docs
+#### 5.2 Specify parameters when installing ONLYOFFICE Docs
 
 When installing ONLYOFFICE Docs, specify the `extraConf.configMap=custom-local-config` and `extraConf.filename=local-production-linux.json` parameters
 
-Note: If you need to add a configuration file after the ONLYOFFICE Docs is already installed, you need to execute step [6.1](#61-create-a-configmap-containing-a-json-file) 
+Note: If you need to add a configuration file after the ONLYOFFICE Docs is already installed, you need to execute step [5.1](#51-create-a-configmap-containing-a-json-file) 
 and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraConf.configMap=custom-local-config --set extraConf.filename=local-production-linux.json` command or 
 `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
-### 7. Add custom Fonts
+### 6. Add custom Fonts
 
-*This step is optional. You can skip step [#7](#7-add-custom-fonts) entirely if you don't need to add your fonts*
+*This step is optional. You can skip step [#6](#6-add-custom-fonts) entirely if you don't need to add your fonts*
 
 In order to add fonts to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 8. Add Plugins
+### 7. Add Plugins
 
-*This step is optional. You can skip step [#8](#8-add-plugins) entirely if you don't need to add plugins*
+*This step is optional. You can skip step [#7](#7-add-plugins) entirely if you don't need to add plugins*
 
 In order to add plugins to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 9. Change interface themes
+### 8. Change interface themes
 
-*This step is optional. You can skip step [#9](#9-change-interface-themes) entirely if you don't need to change the interface themes*
+*This step is optional. You can skip step [#8](#8-change-interface-themes) entirely if you don't need to change the interface themes*
 
-#### 9.1 Create a ConfigMap containing a json file
+#### 8.1 Create a ConfigMap containing a json file
 
 To create a ConfigMap with a json file that contains the interface themes, you need to run the following command:
 
@@ -240,11 +205,11 @@ $ kubectl create configmap custom-themes \
 
 Note: Instead of `custom-themes` and `custom-themes.json` you can use any other names.
 
-#### 9.2 Specify parameters when installing ONLYOFFICE Docs
+#### 8.2 Specify parameters when installing ONLYOFFICE Docs
 
 When installing ONLYOFFICE Docs, specify the `extraThemes.configMap=custom-themes` and `extraThemes.filename=custom-themes.json` parameters.
 
-Note: If you need to add interface themes after the ONLYOFFICE Docs is already installed, you need to execute step [6.1](#61-create-a-configmap-containing-a-json-file)
+Note: If you need to add interface themes after the ONLYOFFICE Docs is already installed, you need to execute step [5.1](#51-create-a-configmap-containing-a-json-file)
 and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extraThemes.configMap=custom-themes --set extraThemes.filename=custom-themes.json` command or
 `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
@@ -274,13 +239,12 @@ Note: If you need to add license after the ONLYOFFICE Docs is already installed,
 
 ### 2. Deploy ONLYOFFICE Docs
 
-To deploy ONLYOFFICE Docs with the release name `documentserver`:
+To deploy ONLYOFFICE Docs with the release name `documentserver` and enabled built-in balancer:
 
 ```bash
 $ helm install documentserver onlyoffice/docs-shards
 ```
-
-The command deploys ONLYOFFICE Docs on the Kubernetes cluster in the default configuration. The [Parameters](#4-parameters) section lists the parameters that can be configured during installation. 
+The command deploys ONLYOFFICE Docs on the Kubernetes cluster in the default configuration. The [Parameters](#4-parameters) section lists the parameters that can be configured during installation.
 
 ### 3. Uninstall ONLYOFFICE Docs
 
@@ -508,11 +472,47 @@ List of parameters for broker inside the documentserver pod
 | `example.extraConf.configMap`                               | The name of the ConfigMap containing the json file that override the default values. See an example of creation [here](https://github.com/ONLYOFFICE/Kubernetes-Docs?tab=readme-ov-file#71-create-a-configmap-containing-a-json-file) | `""`                               |
 | `example.extraConf.filename`                                | The name of the json file that contains custom values. Must be the same as the `key` name in `example.extraConf.ConfigMap`                                                     | `local.json`                                                                              |
 
+### Balancer parameters
+
+| Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
+|-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `customBalancer.workerConnections`                          | Set worker connections count for balancer container                                                                                                                            | `16384`                                                                                   |
+| `customBalancer.workerProcesses`                            | Set worker processes count for balancer container                                                                                                                              | `1`                                                                                       |
+| `customBalancer.terminationGracePeriodSeconds`              | The time to terminate gracefully during which the balancer Pod will have the Terminating status                                                                                | `30`                                                                                      |
+| `customBalancer.autoscaling.enabled`                        | Enable or disable autoscaling for balancer replicas                                                                                                                            | `false`                                                                                   |
+| `customBalancer.autoscaling.annotations`                    | Defines annotations that will be additionally added to balancer deployment HPA                                                                                                 | `{}`                                                                                      |
+| `customBalancer.autoscaling.minReplicas`                    | Balancer deployment autoscaling minimum number of replicas                                                                                                                     | `2`                                                                                       |
+| `customBalancer.autoscaling.maxReplicas`                    | Balancer deployment autoscaling maximum number of replicas                                                                                                                     | `4`                                                                                       |
+| `customBalancer.autoscaling.targetCPU.enabled`              | Enable autoscaling of balancer deployment by CPU usage percentage                                                                                                              | `true`                                                                                    |
+| `customBalancer.autoscaling.targetCPU.utilizationPercentage`| Balancer deployment autoscaling target CPU percentage                                                                                                                          | `70`                                                                                      |
+| `customBalancer.autoscaling.targetMemory.enabled`           | Enable autoscaling of balancer deployment by memory usage percentage                                                                                                           | `false`                                                                                   |
+| `customBalancer.autoscaling.targetMemory.utilizationPercentage`| Balancer deployment autoscaling target memory percentage                                                                                                                    | `70`                                                                                      |
+| `customBalancer.customPodAntiAffinity`                      | Prohibiting the scheduling of balancer Pods relative to other Pods containing the specified labels on the same node                                                            | `{}`                                                                                      |
+| `customBalancer.podAffinity`                                | Pod affinity rules for balancer Pods scheduling by nodes relative to other Pods                                                                                                | `{}`                                                                                      |
+| `сustomBalancer.nodeAffinity`                               | Node affinity rules for balancer Pods scheduling by nodes                                                                                                                      | `{}`                                                                                      |
+| `customBalancer.nodeSelector`                               | Node labels for balancer Pods assignment                                                                                                                                       | `{}`                                                                                      |
+| `customBalancer.tolerations`                                | Tolerations for balancer Pods assignment                                                                                                                                       | `[]`                                                                                      |
+| `customBalancer.image.repository`                           | Specify balancer image repository                                                                                                                                              | `onlyoffice/docs-balancer`                                                                |
+| `customBalancer.image.tag`                                  | Specify balancer image tag                                                                                                                                                     | `8.2.0`                                                                                   |
+| `customBalancer.image.pullPolicy`                           | Balancer image pull policy                                                                                                                                                     | `IfNotPresent`                                                                            |
+| `customBalancer.replicas`                                   | Number of balancer replicas to deploy If the `customBalancer.autoscaling.enabled` parameter is enabled, it is ignored                                                          | `3`                                                                                       |
+| `customBalancer.containerPorts`                             | Balancer container port                                                                                                                                                        | `80`                                                                                      |
+| `customBalancer.service.annotations`                        | Map of annotations to add to the ONLYOFFICE Docs balancer service                                                                                                              | `{}`                                                                                      |
+| `customBalancer.service.existing`                           | The name of an existing service for balancer. If not set, a service named `docs-balancer` will be created                                                                      | `""`                                                                                      |
+| `customBalancer.service.type`                               | Balancer service type                                                                                                                                                          | 'ClusteIP`                                                                                |
+| `customBalancer.service.port`                               | Balancer service port                                                                                                                                                          | `80`                                                                                      |
+| `customBalancer.service.sessionAffinity`                    | Session Affinity for ONLYOFFICE Docs balancer service                                                                                                                          | `""`                                                                                      |
+| `customBalancer.service.sessionAffinityConfig`              | Configuration for ONLYOFFICE Docs balancer service Session Affinity                                                                                                            | `{}`                                                                                      |
+| `customBalancer.updateStrategy.type`                        | Balancer deployment update strategy type                                                                                                                                       | `RollingUpdate`                                                                           |
+| `customBalancer.updateStrategy.rollingUpdate.maxUnavailable`| Maximum number of Balancer Pods unavailable during the update process                                                                                                          | `25%`                                                                                     |
+| `customBalancer.updateStrategy.rollingUpdate.maxSurge`      | Maximum number of Balancer Pods created over the desired number of Pods                                                                                                        | `25%`                                                                                     |
+| `customBalancer.podAnnotations`                             | Map of annotations to add to the Balancer deployment Pod                                                                                                                       | `rollme: "{{ randAlphaNum 5 \| quote }}"`                                                 |
+
 ### Ingress parameters
 
 | Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
 |-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `ingress.enabled`                                           | Enable the creation of an ingress for the ONLYOFFICE Docs                                                                                                               | `true`                                                                                   |
+| `ingress.enabled`                                           | Enable the creation of an ingress for the ONLYOFFICE Docs                                                                                                               | `false`                                                                                   |
 | `ingress.annotations`                                       | Map of annotations to add to the Ingress. If set to, it takes priority over the `commonAnnotations`                                                                            | `nginx.ingress.kubernetes.io/proxy-body-size: 100m`                                       |
 | `ingress.ingressClassName`                                  | Used to reference the IngressClass that should be used to implement this Ingress                                                                                               | `nginx`                                                                                   |
 | `ingress.host`                                              | Ingress hostname for the ONLYOFFICE Docs ingress                                                                                                                        | `""`                                                                                      |
@@ -750,47 +750,13 @@ Generally the Pods / Nodes / Load Balancer addresses will actually be the client
 In this case the access to the info page will be available to everyone.
 You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `documentserver.proxy.infoAllowedUser` parameter value and by setting the password using `documentserver.proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `documentserver.proxy.infoAllowedExistingSecret` parameter.
 
-### 11. Deploy ONLYOFFICE Docs with your own dependency (optional)
-
-### 11.1 Use your own nginx-ingress controller
-
-**Note:** ONLYOFFICE Docs support **only** nginx-ingress controller [by the kubernetes](https://github.com/kubernetes/ingress-nginx). 
-
-If you want to deploy ONLYOFFICE Docs in cluster where already exist nginx-ingress controller, please follow the step below.
-
-**First of all** is to render PVC template with `helm template` command, and apply it. This PVC are needed for normal functioning of caching static requests.
-
-**Note:** This PVC must be located in the same namespace as your deployment nginx-ingress controller. To ensure that the generated PVC will be deployed in the same namespace as your nginx-ingress controller, please set the parameter `documentserver.cachePvcNamespace` if needed.
-
-```bash
-helm template docs onlyoffice/docs-shards --set documentserver.cachePvcNamespace=<YOUR_INGRESS_NAMESPACE> --show-only templates/pvc/ingress-cache-pvc.yaml --dry-run=server > ./CachePVC.yaml 
-```
-
-**The second step**, apply PVC that you create with command below:
-
-```bash
-$ kubectl apply -f ./CachePVC.yaml
-```
-
-**The third step**, you need to update your nginx-ingress controller deployment with new PVC parameters. That will add new volume where static cache will be stored. Follow the commands:
-
-```bash
-$ helm upgrade <INGRESS_RELEASE_NAME> ingress-nginx --repo https://kubernetes.github.io/ingress-nginx -n <INGRESS_NAMESPACE> -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/ingress_values.yaml
-```
-
-**Now**, when your nginx-ingress controller if configure, you can deploy ONLYOFFICE Docs with command:
-
-```bash
-$ helm install docs onlyoffice/docs-shards --set ingress-nginx.enabled=false
-```
-
 ## Using Grafana to visualize metrics (optional)
 
 *This step is optional. You can skip this section if you don't want to install Grafana*
 
 ### 1. Deploy Grafana
 
-Note: It is assumed that step [#6.2](#62-installing-prometheus) has already been completed.
+Note: It is assumed that step [#4.2](#42-installing-prometheus) has already been completed.
 
 #### 1.1 Deploy Grafana without installing ready-made dashboards
 
@@ -813,7 +779,7 @@ $ helm install grafana bitnami/grafana \
 To install ready-made Grafana dashboards, set the `grafana.enabled` and `grafana.dashboard.enabled` parameters to `true`.
 If ONLYOFFICE Docs is already installed you need to run the `helm upgrade documentserver onlyoffice/docs-shards --set grafana.enabled=true --set grafana.dashboard.enabled=true` command or `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the [values.yaml](values.yaml) file.
 As a result, ready-made dashboards in the `JSON` format will be downloaded from the Grafana [website](https://grafana.com/grafana/dashboards),
-the necessary edits will be made to them and configmap will be created from them. A dashboard will also be added to visualize metrics coming from the ONLYOFFICE Docs (it is assumed that step [#6](#6-deploy-statsd-exporter) has already been completed).
+the necessary edits will be made to them and configmap will be created from them. A dashboard will also be added to visualize metrics coming from the ONLYOFFICE Docs (it is assumed that step [#4](#4-deploy-statsd-exporter) has already been completed).
 
 #### 1.2.2 Installing Grafana
 

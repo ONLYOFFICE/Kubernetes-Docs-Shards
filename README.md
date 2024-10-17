@@ -244,7 +244,7 @@ Note: If you need to add license after the ONLYOFFICE Docs is already installed,
 
 ### 2. Deploy ONLYOFFICE Docs
 
-To deploy ONLYOFFICE Docs with the release name `documentserver` and enabled built-in balancer:
+To deploy ONLYOFFICE Docs with the release name `documentserver`:
 
 ```bash
 $ helm install documentserver onlyoffice/docs-shards
@@ -614,16 +614,16 @@ If you want to use Grafana to visualize metrics, set `grafana.enabled` to `true`
 $ helm install documentserver onlyoffice/docs-shards --set grafana.enabled=true --set grafana.ingress.enabled=true
 ```
 
-### 5.3 Expose ONLYOFFICE Docs Shards
+### 5.3 Expose ONLYOFFICE Docs
 
-#### 5.3.1 Expose ONLYOFFICE Docs Shards via Service (HTTP Only)
+#### 5.3.1 Expose ONLYOFFICE Docs via Service (HTTP Only)
 
-*You should skip step[#5.3.1](#531-expose-onlyoffice-docs-via-service-http-only) if you are going to expose ONLYOFFICE Docs Shards via HTTPS*
+*You should skip step[#5.3.1](#531-expose-onlyoffice-docs-via-service-http-only) if you are going to expose ONLYOFFICE Docs via HTTPS*
 
-This type of exposure has the least overheads of performance, it creates a loadbalancer to get access to ONLYOFFICE Docs Shards.
+This type of exposure has the least overheads of performance, it creates a loadbalancer to get access to ONLYOFFICE Docs.
 Use this type of exposure if you use external TLS termination, and don't have another WEB application in the k8s cluster.
 
-To expose ONLYOFFICE Docs Shards via service, set the `customBalancer.service.type` parameter to LoadBalancer:
+To expose ONLYOFFICE Docs via service, set the `customBalancer.service.type` parameter to LoadBalancer:
 
 ```bash
 $ helm install documentserver onlyoffice/docs-shards --set customBalancer.service.type=LoadBalancer,customBalancer.service.port=80
@@ -636,7 +636,7 @@ Run the following command to get the `documentserver` service IP:
 $ kubectl get service documentserver -o jsonpath="{.status.loadBalancer.ingress[*].ip}"
 ```
 
-After that, ONLYOFFICE Docs Shards will be available at `http://DOCUMENTSERVER-SERVICE-IP/`.
+After that, ONLYOFFICE Docs will be available at `http://DOCUMENTSERVER-SERVICE-IP/`.
 
 If the service IP is empty, try getting the `documentserver` service hostname:
 
@@ -644,10 +644,10 @@ If the service IP is empty, try getting the `documentserver` service hostname:
 $ kubectl get service documentserver -o jsonpath="{.status.loadBalancer.ingress[*].hostname}"
 ```
 
-In this case, ONLYOFFICE Docs Shards will be available at `http://DOCUMENTSERVER-SERVICE-HOSTNAME/`.
+In this case, ONLYOFFICE Docs will be available at `http://DOCUMENTSERVER-SERVICE-HOSTNAME/`.
 
 
-#### 5.3.2 Expose ONLYOFFICE Docs Shards via Ingress
+#### 5.3.2 Expose ONLYOFFICE Docs via Ingress
 
 #### 5.3.2.1 Installing the Kubernetes Nginx Ingress Controller
 
@@ -667,12 +667,12 @@ See more detail about installing Nginx Ingress via Helm [here](https://github.co
 
 #### 5.3.2.2 Expose ONLYOFFICE Docs Shards via HTTP
 
-*You should skip step[5.3.2.2](#5322-expose-onlyoffice-docs-via-http) if you are going to expose ONLYOFFICE Docs Shards via HTTPS*
+*You should skip step[5.3.2.2](#5322-expose-onlyoffice-docs-via-http) if you are going to expose ONLYOFFICE Docs via HTTPS*
 
-This type of exposure has more overheads of performance compared with exposure via service, it also creates a loadbalancer to get access to ONLYOFFICE Docs Shards. 
+This type of exposure has more overheads of performance compared with exposure via service, it also creates a loadbalancer to get access to ONLYOFFICE Docs. 
 Use this type if you use external TLS termination and when you have several WEB applications in the k8s cluster. You can use the one set of ingress instances and the one loadbalancer for those. It can optimize the entry point performance and reduce your cluster payments, cause providers can charge a fee for each loadbalancer.
 
-To expose ONLYOFFICE Docs Shards via ingress HTTP, set the `ingress.enabled` parameter to true:
+To expose ONLYOFFICE Docs via ingress HTTP, set the `ingress.enabled` parameter to true:
 
 ```bash
 $ helm install documentserver onlyoffice/docs-shards --set ingress.enabled=true

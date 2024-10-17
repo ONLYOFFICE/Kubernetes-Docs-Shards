@@ -121,11 +121,11 @@ commonAnnotations: {}
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 serviceAccount:
   ## serviceAccount.create Enable ServiceAccount creation
-  create: false
+  create: true
   ## serviceAccount.name Name of the ServiceAccount to be used
   ## If not set and `serviceAccount.create` is `true` the name will be taken from .Release.Name
   ## If not set and `serviceAccount.create` is `false` the name will be "default"
-  name: ""
+  name: "ds-docs-sa"
   ## serviceAccount.annotations Map of annotations to add to the ServiceAccount
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key

@@ -1,4 +1,3 @@
-{{- if .Values.customBalancer.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,6 +8,10 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
+  {{- if or .Values.commonAnnotations .Values.customBalancer.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.customBalancer.annotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not .Values.customBalancer.autoscaling.enabled }}
   replicas: {{ .Values.customBalancer.replicas }}
@@ -84,12 +87,17 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.customBalancer.terminationGracePeriodSeconds }}
       containers:
         - name: balancer
           image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}
           imagePullPolicy: {{ .Values.customBalancer.image.pullPolicy }}
+          {{- if .Values.customBalancer.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
+          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}
           envFrom:
           - configMapRef:
               name: balancer
@@ -100,4 +108,3 @@ spec:
         - name: balancer-lua-config
           configMap:
             name: balancer-lua-config
-{{- end }}

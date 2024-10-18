@@ -9,14 +9,6 @@ metadata:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }} 
   annotations:
-    {{- if (index .Values "ingress-nginx" "enabled")  }}
-    nginx.ingress.kubernetes.io/proxy-buffering: "on"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-     proxy_cache docs_cache;
-     add_header X-Cache-Status $upstream_cache_status;
-     set $custom_endpoint '';
-    {{ (tpl (.Files.Get "sources/scripts/balancer-lua.conf") . ) | indent 6 }}
-    {{- end }}
     {{- if or .Values.commonAnnotations .Values.ingress.annotations }}
     {{- $dictValue := default .Values.commonAnnotations .Values.ingress.annotations }}
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
@@ -49,5 +41,5 @@ spec:
           service:
             name: {{ template "ds.svc.name" . }}
             port:
-              number: {{ template "ds.svc.port" . }}
+              number: {{ .Values.customBalancer.service.port }}
 {{- end }}

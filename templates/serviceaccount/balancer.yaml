@@ -1,4 +1,3 @@
-{{- if .Values.customBalancer.enabled }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -15,4 +14,3 @@ metadata:
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 automountServiceAccountToken: true
-{{- end }}

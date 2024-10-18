@@ -1,4 +1,3 @@
-{{- if .Values.customBalancer.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -18,4 +17,3 @@ data:
   DS_EP_NAME: "documentserver"
   BALANCER_WORKER_CONNECTIONS: {{ .Values.customBalancer.workerConnections | quote }}
   BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
-{{- end }}

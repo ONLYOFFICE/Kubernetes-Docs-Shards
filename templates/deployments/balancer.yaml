@@ -97,7 +97,16 @@ spec:
           {{- end }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
-          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}
+          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}a
+          {{- if .Values.customBalancer.startupProbe.enabled }}
+          startupProbe: {{- omit .Values.customBalancer.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.customBalancer.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.customBalancer.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.customBalancer.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.customBalancer.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
           envFrom:
           - configMapRef:
               name: balancer

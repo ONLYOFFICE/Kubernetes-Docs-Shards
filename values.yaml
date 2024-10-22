@@ -1116,6 +1116,55 @@ customBalancer:
     ##       periodSeconds: 15
     ##     selectPolicy: Max
     behavior: {}
+  ## Probe used for the balancer container: startup, readiness and liveness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  ## The parameters below for startup probes are used only when `customBalancer.startupProbe.enabled=true`
+  startupProbe:
+    ## customBalancer.startupProbe.enabled Enable startupProbe for balancer container
+    enabled: true
+    httpGet:
+      ## customBalancer.startupProbe.httpGet.path Checking the path for startupProbe
+      path: /healthcheck
+      ## customBalancer.startupProbe.httpGet.port Checking the port for startupProbe
+      port: 80
+    ## customBalancer.startupProbe.failureThreshold Failure threshold for startupProbe
+    failureThreshold: 30
+    ## customBalancer.startupProbe.periodSeconds Period seconds for startupProbe
+    periodSeconds: 10
+  ## The parameters below for readiness probes are used only when `customBalancer.readinessProbe.enabled=true`
+  readinessProbe:
+    ## customBalancer.readinessProbe.enabled Enable readinessProbe for balacer container
+    enabled: true
+    ## customBalancer.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    failureThreshold: 2
+    httpGet:
+      ## customBalancer.readinessProbe.httpGet.path Checking the path for readinessProbe
+      path: /healthcheck
+      ## customBalancer.readinessProbe.httpGet.port Checking the port for readinessProbe
+      port: 80
+    ## customBalancer.readinessProbe.periodSeconds Period seconds for readinessProbe
+    periodSeconds: 10
+    ## customBalancer.readinessProbe.successThreshold Success threshold for readinessProbe
+    successThreshold: 1
+    ## customBalancer.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    timeoutSeconds: 3
+  ## The parameters below for liveness probes are used only when `customBalancer.livenessProbe.enabled=true`
+  livenessProbe:
+    ## customBalancer.livenessProbe.enabled Enable livenessProbe for balancer container
+    enabled: true
+    ## customBalancer.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    failureThreshold: 3
+    httpGet:
+      ## customBalancer.livenessProbe.httpGet.path Checking the path for livenessProbe
+      path: /healthcheck
+      ## customBalancer.livenessProbe.httpGet.port Checking the port for livenessProbe
+      port: 80
+    ## customBalancer.livenessProbe.periodSeconds Period seconds for livenessProbe
+    periodSeconds: 10
+    ## customBalancer.livenessProbe.successThreshold Success threshold for livenessProbe
+    successThreshold: 1
+    ## customBalancer.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    timeoutSeconds: 3
   ## balancer container resource requests and limits
   ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   ## customBalancer.resources.requests The requested resources for the balancer container

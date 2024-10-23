@@ -97,7 +97,7 @@ spec:
           {{- end }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
-          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}a
+          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}
           {{- if .Values.customBalancer.startupProbe.enabled }}
           startupProbe: {{- omit .Values.customBalancer.startupProbe "enabled" | toYaml | nindent 12 }}
           {{- end }}

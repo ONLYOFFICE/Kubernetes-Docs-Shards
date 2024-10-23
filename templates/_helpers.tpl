@@ -140,7 +140,7 @@ Return true if a secret object should be created for jwt
 Get the service name for ds
 */}}
 {{- define "ds.svc.name" -}}
-{{- if and not (empty .Values.customBalancer.service.existing) }}
+{{- if not (empty .Values.customBalancer.service.existing) }}
     {{- printf "%s" (tpl .Values.customBalancer.service.existing $) -}}
 {{- else if empty .Values.customBalancer.service.existing }}
     {{- printf "docs-balancer" -}}

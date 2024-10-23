@@ -10,7 +10,6 @@ redisPort = os.environ.get('REDIS_SERVER_PORT')
 redisUser = os.environ.get('REDIS_SERVER_USER')
 redisPassword = os.environ.get('REDIS_SERVER_PWD')
 redisDBNum = os.environ.get('REDIS_SERVER_DB_KEYS_NUM')
-redisDBNumDSVersion = os.environ.get('REDIS_SERVER_DB_DS_VERSION')
 redisConnectTimeout = 15
 if os.environ.get('REDIS_CLUSTER_NODES'):
     redisClusterNodes = list(os.environ.get('REDIS_CLUSTER_NODES').split(" "))
@@ -22,9 +21,7 @@ if redisConnectorName == 'ioredis':
 shardKey = os.environ.get('DEFAULT_SHARD_KEY')
 epIP = os.environ.get('SHARD_IP')
 epPort = os.environ.get('SHARD_PORT')
-dsVersion = os.environ.get('APP_VERSION') + '-' + os.environ.get('DS_VERSION_HASH')
 ipShard = epIP + ':' + epPort
-shardDSVersion = ipShard + '-' + dsVersion
 
 grace_period = int(os.environ.get('TERMINATION_GRACE_PERIOD'))
 grace_time = int(os.environ.get('TERMINATION_GRACE_TIME'))
@@ -43,14 +40,14 @@ def init_logger(name):
     logger.info('Running a script to shutdown the Shard and clear the keys belonging to it from Redis\n')
 
 
-def get_redis_status(redis_db):
+def get_redis_status():
     import redis
     global rc
     try:
         rc = redis.Redis(
             host=redisHost,
             port=redisPort,
-            db=redis_db,
+            db=redisDBNum,
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
@@ -87,7 +84,7 @@ def get_redis_cluster_status():
         return rc.ping()
 
 
-def get_redis_sentinel_status(redis_db):
+def get_redis_sentinel_status():
     import redis
     from redis import Sentinel
     global rc
@@ -97,7 +94,7 @@ def get_redis_sentinel_status(redis_db):
         rc = redis.Redis(
             host=master_host,
             port=master_port,
-            db=redis_db,
+            db=redisDBNum,
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
@@ -122,10 +119,6 @@ def clear_shard_key():
                 pipe.delete(key)
             pipe.execute()
             rc.delete(ipShard)
-            rc.close()
-            get_redis_status(redisDBNumDSVersion)
-            rc.delete(shardDSVersion)
-            rc.close()
         except Exception as msg_check_redis:
             logger_endpoints_ds.error('Error when trying to delete keys belonging to the {sk} shard from Redis... {em}\n'.format(sk=shardKey, em=msg_check_redis))
             total_result['CheckRedis'] = 'Failed'
@@ -139,13 +132,13 @@ def clear_shard_key():
 def clear_redis():
     logger_endpoints_ds.info('Checking Redis availability...')
     if redisConnectorName == 'redis' and not os.environ.get('REDIS_CLUSTER_NODES'):
-        if get_redis_status(redisDBNum) is True:
+        if get_redis_status() is True:
             clear_shard_key()
     elif redisConnectorName == 'redis' and os.environ.get('REDIS_CLUSTER_NODES'):
         if get_redis_cluster_status() is True:
             clear_shard_key()
     elif redisConnectorName == 'ioredis':
-        if get_redis_sentinel_status(redisDBNum) is True:
+        if get_redis_sentinel_status() is True:
             clear_shard_key()
 
 

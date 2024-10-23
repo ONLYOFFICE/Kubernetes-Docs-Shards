@@ -15,8 +15,5 @@ metadata:
     {{- end }}
 rules:
 - apiGroups: [""]
-  resources: ["endpoints"]
+  resources: ["endpoints", "pods"]
   verbs: ["get", "watch", "list"]
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get"]

@@ -115,7 +115,7 @@ spec:
           - name: SHARD_PORT
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
           - name: APP_VERSION
-            value: {{ .Chart.AppVersion | quote }}
+            value: {{ regexFind "[0-9.]+" .Values.documentserver.docservice.image.tag | quote }}
           envFrom:
           - configMapRef:
               name: documentserver
@@ -236,8 +236,6 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.secretName" . }}
                 key: {{ .Values.connections.redisSecretKeyName }}
-          - name: APP_VERSION
-            value: {{ .Chart.AppVersion | quote }}
           - name: TERMINATION_GRACE_TIME
             value: {{ .Values.documentserver.terminationGraceTimeSeconds | quote }}
           envFrom:

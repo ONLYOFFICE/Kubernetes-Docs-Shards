@@ -1124,7 +1124,7 @@ customBalancer:
     enabled: true
     httpGet:
       ## customBalancer.startupProbe.httpGet.path Checking the path for startupProbe
-      path: /healthcheck
+      path: /balancer-healthcheck
       ## customBalancer.startupProbe.httpGet.port Checking the port for startupProbe
       port: 80
     ## customBalancer.startupProbe.failureThreshold Failure threshold for startupProbe
@@ -1139,7 +1139,7 @@ customBalancer:
     failureThreshold: 2
     httpGet:
       ## customBalancer.readinessProbe.httpGet.path Checking the path for readinessProbe
-      path: /healthcheck
+      path: /balancer-healthcheck
       ## customBalancer.readinessProbe.httpGet.port Checking the port for readinessProbe
       port: 80
     ## customBalancer.readinessProbe.periodSeconds Period seconds for readinessProbe
@@ -1156,7 +1156,7 @@ customBalancer:
     failureThreshold: 3
     httpGet:
       ## customBalancer.livenessProbe.httpGet.path Checking the path for livenessProbe
-      path: /healthcheck
+      path: /balancer-healthcheck
       ## customBalancer.livenessProbe.httpGet.port Checking the port for livenessProbe
       port: 80
     ## customBalancer.livenessProbe.periodSeconds Period seconds for livenessProbe

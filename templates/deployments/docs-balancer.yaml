@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-balancer
+  namespace: {{ include "ds.namespace" . | quote }}
+  labels:
+    app: docs-balancer
+    {{- if .Values.commonLabels }}
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+    {{- end }}
+  {{- if or .Values.commonAnnotations .Values.customBalancer.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.customBalancer.annotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.customBalancer.autoscaling.enabled }}
+  replicas: {{ .Values.customBalancer.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: docs-balancer
+      {{- if .Values.commonLabels }}
+      {{- include "ds.labels.commonLabels" . | trim | nindent 6 }}
+      {{- end }}
+  {{- if .Values.customBalancer.updateStrategy }}
+  strategy: {{- include "ds.update.strategyType" .Values.customBalancer.updateStrategy }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: docs-balancer
+        {{- if .Values.commonLabels }}
+        {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
+        {{- end }}
+      {{- if .Values.customBalancer.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.customBalancer.podAnnotations }}
+        {{ $key }}: {{ tpl $value $ }}
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: ds-balancer-sa
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- if eq .Values.podAntiAffinity.type "soft" }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - docs-balancer
+              topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+            weight: {{ .Values.podAntiAffinity.weight }}
+          {{- else if eq .Values.podAntiAffinity.type "hard" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - docs-balancer
+            topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
+          {{- end }}
+          {{- with .Values.customBalancer.customPodAntiAffinity }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.customBalancer.podAffinity }}
+        podAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.customBalancer.nodeAffinity }}
+        nodeAffinity:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- if or .Values.nodeSelector .Values.customBalancer.nodeSelector }}
+      nodeSelector: {{ toYaml (default .Values.nodeSelector .Values.customBalancer.nodeSelector) | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.tolerations .Values.customBalancer.tolerations }}
+      tolerations: {{ toYaml (default .Values.tolerations .Values.customBalancer.tolerations) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.customBalancer.terminationGracePeriodSeconds }}
+      containers:
+        - name: docs-balancer
+          image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}
+          imagePullPolicy: {{ .Values.customBalancer.image.pullPolicy }}
+          {{- if .Values.customBalancer.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          ports:
+            - containerPort: {{ .Values.customBalancer.containerPorts.http }}
+          resources: {{ toYaml .Values.customBalancer.resources | nindent 12 }}
+          {{- if .Values.customBalancer.startupProbe.enabled }}
+          startupProbe: {{- omit .Values.customBalancer.startupProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.customBalancer.readinessProbe.enabled }}
+          readinessProbe: {{- omit .Values.customBalancer.readinessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.customBalancer.livenessProbe.enabled }}
+          livenessProbe: {{- omit .Values.customBalancer.livenessProbe "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          envFrom:
+          - configMapRef:
+              name: docs-balancer
+          volumeMounts:
+          - name: balancer-lua-config
+            mountPath: /etc/nginx/mnt_config
+      volumes:
+        - name: balancer-lua-config
+          configMap:
+            name: balancer-lua-config

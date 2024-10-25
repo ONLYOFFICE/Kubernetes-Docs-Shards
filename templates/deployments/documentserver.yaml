@@ -114,6 +114,8 @@ spec:
                 fieldPath: status.podIP
           - name: SHARD_PORT
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+          - name: APP_VERSION
+            value: {{ regexFind "[0-9.]+" .Values.documentserver.docservice.image.tag | quote }}
           envFrom:
           - configMapRef:
               name: documentserver
@@ -234,8 +236,6 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.secretName" . }}
                 key: {{ .Values.connections.redisSecretKeyName }}
-          - name: APP_VERSION
-            value: {{ .Chart.AppVersion | quote }}
           - name: TERMINATION_GRACE_TIME
             value: {{ .Values.documentserver.terminationGraceTimeSeconds | quote }}
           envFrom:
@@ -386,42 +386,6 @@ spec:
             subPath: pre_stop.sh
           - name: pre-stop-status
             mountPath: /scripts/results
-
-        - name: add-shardkey-dsversion
-          image: {{ .Values.documentserver.initContainers.image.repository }}:{{ .Values.documentserver.initContainers.image.tag }}
-          imagePullPolicy: {{ .Values.documentserver.initContainers.image.pullPolicy }}
-          {{- if .Values.documentserver.initContainers.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.documentserver.initContainers.containerSecurityContext "enabled" | toYaml | nindent 12 }}
-          {{- end }}
-          resources: {{- toYaml .Values.documentserver.initContainers.resources | nindent 12 }}
-          env:
-          - name: REDIS_SERVER_DB_DS_VERSION
-            value: {{ .Values.documentserver.dsVersionHashRedisDBNum | quote }}
-          - name: REDIS_SERVER_PWD
-            valueFrom:
-              secretKeyRef:
-                name: {{ template "ds.redis.secretName" . }}
-                key: {{ .Values.connections.redisSecretKeyName }}
-          - name: DEFAULT_SHARD_KEY
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: SHARD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: SHARD_PORT
-            value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
-          - name: APP_VERSION
-            value: {{ .Chart.AppVersion | quote }}
-          envFrom:
-          - configMapRef:
-              name: documentserver
-          command: ["dumb-init", "python", "/scripts/add_shardkey_dsversion.py"]
-          volumeMounts:
-          - name: add-shardkey-dsversion
-            mountPath: /scripts/add_shardkey_dsversion.py
-            subPath: add_shardkey_dsversion.py
       volumes:
         - name: ds-files
           emptyDir: {}
@@ -462,10 +426,6 @@ spec:
         - name: add-shardkey
           configMap:
             name: add-shardkey
-            defaultMode: 0755
-        - name: add-shardkey-dsversion
-          configMap:
-            name: add-shardkey-dsversion
             defaultMode: 0755
         - name: remove-shardkey
           configMap:

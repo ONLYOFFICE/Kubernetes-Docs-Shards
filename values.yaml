@@ -1,29 +1,3 @@
-## Dependencies charts parameters
-
-## ingress-nginx.enabled parameter for manage ingress controller subchart condition
-ingress-nginx:
-  enabled: true
-  namespaceOverride: default
-  controller:
-    replicaCount: 2
-    allowSnippetAnnotations: true
-    extraVolumeMounts:
-    - name: custom-balancer
-      mountPath: /etc/nginx/custom_balancer.conf
-      subPath: custom_balancer.conf
-    - name: balancer-lua
-      mountPath: /etc/nginx/lua/balancer.lua
-      subPath: balancer.lua
-    extraVolumes:
-    - name: custom-balancer
-      configMap:
-        name: balancer-snippet
-    - name: balancer-lua
-      configMap:
-        name: balancer-lua
-    service:
-      annotations: {}
-
 ## Default values for Onlyoffice Docs
 
 ## product.name Specifies name of the product
@@ -123,11 +97,12 @@ commonAnnotations: {}
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 serviceAccount:
   ## serviceAccount.create Enable ServiceAccount creation
-  create: false
+  ## If you want to use your ServiceAccount, then make sure that the role it is binding with has the verb `patch` for the resource `pods`
+  create: true
   ## serviceAccount.name Name of the ServiceAccount to be used
   ## If not set and `serviceAccount.create` is `true` the name will be taken from .Release.Name
   ## If not set and `serviceAccount.create` is `false` the name will be "default"
-  name: ""
+  name: "ds-docs-sa"
   ## serviceAccount.annotations Map of annotations to add to the ServiceAccount
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -136,7 +111,7 @@ serviceAccount:
   ## Used only if `serviceAccount.create` is `true`
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting
   automountServiceAccountToken: true
-## Persistence parameters for forgotten and error files
+## Persistence parameters for forgotten and error files. Also define parameters for PVC which is used as storage for caching static controller requests
 persistence:
   ## persistence.existingClaim Name of an existing PVC to use
   ## If not specified, a PVC named "ds-service-files" will be created
@@ -178,9 +153,6 @@ tolerations: []
 imagePullSecrets: ""
 ## Onlyoffice Docs service parameters
 service:
-  ## service.existing The name of an existing service for ONLYOFFICE Docs. If not set, a service named `documentserver` will be created
-  ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs/blob/master/templates/services/documentserver.yaml
-  existing: ""
   ## service.annotations Map of annotations to add to the ONLYOFFICE Docs service
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -309,14 +281,14 @@ requestFilteringAgent:
 ##
 documentserver:
   ## documentserver.terminationGracePeriodSeconds The time to terminate gracefully during which the Pod will have the Terminating status
-  terminationGracePeriodSeconds: 60
+  terminationGracePeriodSeconds: 10800
+  ## documentserver.terminationGraceTimeSeconds The time to terminate gracefully in seconds, which remains for turning off the shard and assembling documents open on it until the termination grace period is fully completed
+  ## Cannot be less than `documentserver.terminationGracePeriodSeconds`
+  terminationGraceTimeSeconds: 600
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
   ## documentserver.KeysExpireTime The time in seconds after which the key will be deleted from the balancing database. 172800 mean 48 hours
   keysExpireTime: 172800
-  ## documentserver.ingressCustomConfigMapsNamespace define where custom controller configmaps will be deployed
-  ## Should be the same ns where controller is deployed
-  ingressCustomConfigMapsNamespace: default
   ## documentserver.annotations Defines annotations that will be additionally added to Documentserver Deployment
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -457,7 +429,7 @@ documentserver:
       ## documentserver.initContainers.image.repository Documentserver add-shardkey initContainer image repository
       repository: onlyoffice/docs-utils
       ## documentserver.initContainers.image.tag Documentserver add-shardkey initContainer image tag
-      tag: 8.1.3-1
+      tag: 8.2.0-2
       ## documentserver.initContainers.image.pullPolicy Documentserver add-shardkey initContainer image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for Documentserver add-shardkey initContainer container in Pod
@@ -511,7 +483,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-docservice-de
       ## documentserver.docservice.image.tag docservice container image tag
-      tag: 8.1.3-1
+      tag: 8.2.0-2
       ## documentserver.docservice.image.pullPolicy docservice container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Docservice container
@@ -650,7 +622,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-proxy-de
       ## documentserver.proxy.image.tag proxy container image tag
-      tag: 8.1.3-1
+      tag: 8.2.0-2
       ## documentserver.proxy.image.pullPolicy proxy container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Proxy container
@@ -745,7 +717,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-converter-de
       ## documentserver.converter.image.tag converter container image tag
-      tag: 8.1.3-1
+      tag: 8.2.0-2
       ## documentserver.converter.image.pullPolicy converter container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Converter container
@@ -953,7 +925,7 @@ example:
     ## example.image.repository example container image name
     repository: onlyoffice/docs-example
     ## example.image.tag example container image tag
-    tag: 8.1.3-1
+    tag: 8.2.0-2
     ## example.image.pullPolicy example container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Example container
@@ -1009,11 +981,260 @@ example:
     ## Must be the same as the `key` name in `example.extraConf.ConfigMap`
     filename: local.json
 
+## customBalancer settings. After 8.2.0 is used as default balancer instead of ingress-nginx
+customBalancer:
+  ## customBalancer.workerConnections set worker connections count for balancer container
+  workerConnections: 16384
+  ## customBalancer.workerProcesses set worker processes count for balancer container
+  workerProcesses: 1
+  ## customBalancer.replicas Number of balancer replicas to deploy
+  ## If the `customBalancer.autoscaling.enabled` parameter is enabled, it is ignored
+  replicas: 3
+  ## customBalancer.updateStrategy used to replace old Pods by new ones
+  updateStrategy:
+    ## customBalancer.updateStrategy.type balancer deployment update strategy type
+    ## Allowed values: `RollingUpdate` or `Recreate`
+    ## It is recommended to use the `RollingUpdate` type
+    type: RollingUpdate
+    # customBalancer.updateStrategy.rollingUpdate Used only when `customBalancer.updateStrategy.type=RollingUpdate`
+    rollingUpdate:
+      # customBalancer.updateStrategy.rollingUpdate.maxUnavailable Maximum number of Balancer Pods unavailable during the update process
+      maxUnavailable: 25%
+      # customBalancer.updateStrategy.rollingUpdate.maxSurge Maximum number of Balancer Pods created over the desired number of Pods
+      maxSurge: 25%
+  ## customBalancer.terminationGracePeriodSeconds The time to terminate gracefully during which the balancer Pod will have the Terminating status
+  terminationGracePeriodSeconds: 30
+  ## customBalancer.annotations Defines annotations that will be additionally added to Balancer Deployment
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## customBalancer.podAnnotations Map of annotations to add to the Balancer deployment Pod
+  podAnnotations:
+    rollme: "{{ randAlphaNum 5 | quote }}"
+  ## customBalancer.customPodAntiAffinity Prohibiting the scheduling of balancer Pods relative to other Pods containing the specified labels on the same node
+  ## Example:
+  ## customPodAntiAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - example
+  ##     topologyKey: kubernetes.io/hostname
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for balancer Pods scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes balancer Pods can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## Example:
+  ## podAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - store
+  ##     topologyKey: topology.kubernetes.io/zone
+  ##
+  podAffinity: {}
+  ## Node affinity rules for balancer Pods scheduling by nodes
+  ## Node affinity allow you to constrain which nodes balancer Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ## Example:
+  ## nodeAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     preference:
+  ##       matchExpressions:
+  ##       - key: kubernetes.io/name
+  ##         operator: In
+  ##         values:
+  ##         - name1
+  ##         - name2
+  ##
+  nodeAffinity: {}
+  ## customBalancer.nodeSelector Node labels for balancer Pods assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## customBalancer.tolerations Tolerations for balancer Pods assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
+  ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
+  autoscaling:
+    enabled: false
+    ## customBalancer.autoscaling.annotations Defines annotations that will be additionally added to balancer deployment HPA
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## customBalancer.autoscaling.minReplicas balancer deployment autoscaling minimum number of replicas
+    minReplicas: 2
+    ## customBalancer.autoscaling.maxReplicas balancer deployment autoscaling maximum number of replicas
+    maxReplicas: 4
+    targetCPU:
+      ## customBalancer.autoscaling.targetCPU.enabled Enable autoscaling of balancer deployment by CPU usage percentage
+      enabled: true
+      ## customBalancer.autoscaling.targetCPU.utilizationPercentage balancer deployment autoscaling target CPU percentage
+      utilizationPercentage: 70
+    targetMemory:
+      ## customBalancer.autoscaling.targetMemory.enabled Enable autoscaling of balancer deployment by memory usage percentage
+      enabled: false
+      ## customBalancer.autoscaling.targetMemory.utilizationPercentage balancer deployment autoscaling target memory percentage
+      utilizationPercentage: 70
+    ## customBalancer.autoscaling.customMetricsType Custom, additional or external autoscaling metrics for the balancer deployment
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#autoscaling-on-multiple-metrics-and-custom-metrics
+    ## Example:
+    ## customMetricsType:
+    ##   - type: Object
+    ##     object:
+    ##       metric:
+    ##         name: requests-per-second
+    ##       describedObject:
+    ##         apiVersion: networking.k8s.io/v1
+    ##         kind: Ingress
+    ##         name: main-route
+    ##       target:
+    ##         type: Value
+    ##         value: 2k
+    customMetricsType: []
+    ## customBalancer.autoscaling.behavior Configuring Balancer deployment scaling behavior policies for the `scaleDown` and `scaleUp` fields
+    ## If not set the default values are used:
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#default-behavior
+    ## Example:
+    ## behavior:
+    ##   scaleDown:
+    ##     stabilizationWindowSeconds: 300
+    ##     policies:
+    ##     - type: Pods
+    ##       value: 4
+    ##       periodSeconds: 60
+    ##   scaleUp:
+    ##     stabilizationWindowSeconds: 0
+    ##     policies:
+    ##     - type: Percent
+    ##       value: 70
+    ##       periodSeconds: 15
+    ##     selectPolicy: Max
+    behavior: {}
+  ## Probe used for the balancer container: startup, readiness and liveness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  ## The parameters below for startup probes are used only when `customBalancer.startupProbe.enabled=true`
+  startupProbe:
+    ## customBalancer.startupProbe.enabled Enable startupProbe for balancer container
+    enabled: true
+    httpGet:
+      ## customBalancer.startupProbe.httpGet.path Checking the path for startupProbe
+      path: /balancer-healthcheck
+      ## customBalancer.startupProbe.httpGet.port Checking the port for startupProbe
+      port: 80
+    ## customBalancer.startupProbe.failureThreshold Failure threshold for startupProbe
+    failureThreshold: 30
+    ## customBalancer.startupProbe.periodSeconds Period seconds for startupProbe
+    periodSeconds: 10
+  ## The parameters below for readiness probes are used only when `customBalancer.readinessProbe.enabled=true`
+  readinessProbe:
+    ## customBalancer.readinessProbe.enabled Enable readinessProbe for balacer container
+    enabled: true
+    ## customBalancer.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    failureThreshold: 2
+    httpGet:
+      ## customBalancer.readinessProbe.httpGet.path Checking the path for readinessProbe
+      path: /balancer-healthcheck
+      ## customBalancer.readinessProbe.httpGet.port Checking the port for readinessProbe
+      port: 80
+    ## customBalancer.readinessProbe.periodSeconds Period seconds for readinessProbe
+    periodSeconds: 10
+    ## customBalancer.readinessProbe.successThreshold Success threshold for readinessProbe
+    successThreshold: 1
+    ## customBalancer.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    timeoutSeconds: 3
+  ## The parameters below for liveness probes are used only when `customBalancer.livenessProbe.enabled=true`
+  livenessProbe:
+    ## customBalancer.livenessProbe.enabled Enable livenessProbe for balancer container
+    enabled: true
+    ## customBalancer.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    failureThreshold: 3
+    httpGet:
+      ## customBalancer.livenessProbe.httpGet.path Checking the path for livenessProbe
+      path: /balancer-healthcheck
+      ## customBalancer.livenessProbe.httpGet.port Checking the port for livenessProbe
+      port: 80
+    ## customBalancer.livenessProbe.periodSeconds Period seconds for livenessProbe
+    periodSeconds: 10
+    ## customBalancer.livenessProbe.successThreshold Success threshold for livenessProbe
+    successThreshold: 1
+    ## customBalancer.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    timeoutSeconds: 3
+  ## balancer container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## customBalancer.resources.requests The requested resources for the balancer container
+  ## customBalancer.resources.limits The resources limits for the balancer container
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "4Gi"
+      cpu: "4000m"
+  ## Configure a Security Context for the Balancer container
+  containerSecurityContext:
+    ## customBalancer.containerSecurityContext.enabled Enable security context for the Balancer container
+    enabled: false
+    ## customBalancer.containerSecurityContext.runAsUser User ID for the Balancer container
+    runAsUser: 101
+    ## customBalancer.containerSecurityContext.runAsGroup Group ID for the Balancer container
+    runAsGroup: 101
+    ## customBalancer.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## customBalancer.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## customBalancer.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Balancer container
+    seccompProfile:
+      type: RuntimeDefault
+    ## customBalancer.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## customBalancer.image
+  image:
+    ## customBalancer.image.repository specify balancer image repository
+    repository: onlyoffice/docs-balancer
+    ## customBalancer.image.tag specify balancer image tag
+    tag: 8.2.0-2
+    ## customBalancer.image.pullPolicy balancer image pull policy
+    pullPolicy: IfNotPresent
+  ## customBalancer.containerPorts balancer container port
+  containerPorts:
+    http: 80
+  ## customBalancer.service specify parameters for balancer service
+  service:
+    ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## customBalancer.service.existing The name of an existing service for balancer. If not set, a service named `docs-balancer` will be created
+    existing: ""
+    ## customBalancer.service.type balancer service type
+    type: ClusterIP
+    ## customBalancer.service.port balancer service port
+    port: "80"
+    ## customBalancer.service.sessionAffinity Session Affinity for ONLYOFFICE Docs balancer service
+    ## If not set, `None` will be set as the default value
+    ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
+    sessionAffinity: ""
+    ## customBalancer.service.sessionAffinityConfig Configuration for ONLYOFFICE Docs balancer service Session Affinity
+    ## Used if the `customBalancer.service.sessionAffinity` is set
+    ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-stickiness-timeout
+    ## Example:
+    ## sessionAffinityConfig:
+    ##   clientIP:
+    ##     timeoutSeconds: 900
+    sessionAffinityConfig: {}
+
 ## Onlyoffice Docs ingress parameters
 ##
 ingress:
   ## ingress.enabled Enable the creation of an ingress for the ONLYOFFICE Docs
-  enabled: true
+  enabled: false
   ## ingress.annotations Map of annotations to add to the Ingress
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -1093,7 +1314,7 @@ grafanaDashboard:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
-      tag: 8.1.3-1
+      tag: 8.2.0-2
       ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Grafana Dashboard container
@@ -1159,7 +1380,7 @@ tests:
     ## tests.image.repository test container image name
     repository: onlyoffice/docs-utils
     ## tests.image.tag test container image tag
-    tag: 8.1.3-1
+    tag: 8.2.0-2
     ## tests.image.pullPolicy test container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Test container

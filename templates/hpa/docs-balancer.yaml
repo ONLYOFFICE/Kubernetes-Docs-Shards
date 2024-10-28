@@ -1,0 +1,46 @@
+{{- if .Values.customBalancer.autoscaling.enabled }}
+apiVersion: {{ .Capabilities.APIVersions.Has "autoscaling/v2" | ternary "autoscaling/v2" "autoscaling/v2beta2" }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: balancer-hpa
+  namespace: {{ include "ds.namespace" . | quote }}
+  {{- if .Values.commonLabels }}
+  labels:
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.commonAnnotations .Values.customBalancer.autoscaling.annotations }}
+  {{- $dictValue := default .Values.commonAnnotations .Values.customBalancer.autoscaling.annotations }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: docs-balancer
+  minReplicas: {{ .Values.customBalancer.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.customBalancer.autoscaling.maxReplicas }}
+  metrics:
+  {{- if .Values.customBalancer.autoscaling.targetCPU.enabled }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.customBalancer.autoscaling.targetCPU.utilizationPercentage }}
+  {{- end }}
+  {{- if .Values.customBalancer.autoscaling.targetMemory.enabled }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.customBalancer.autoscaling.targetMemory.utilizationPercentage }}
+  {{- end }}
+  {{- with .Values.customBalancer.autoscaling.customMetricsType }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.customBalancer.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

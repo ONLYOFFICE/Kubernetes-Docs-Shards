@@ -88,7 +88,7 @@ Get the PVC name
 {{- end -}}
 
 {{/*
-Return true if a pvc object should be created
+Return true if a pvc object for ds-service-files should be created
 */}}
 {{- define "ds.pvc.create" -}}
 {{- if empty .Values.persistence.existingClaim }}
@@ -140,18 +140,20 @@ Return true if a secret object should be created for jwt
 Get the service name for ds
 */}}
 {{- define "ds.svc.name" -}}
-{{- if .Values.service.existing -}}
-    {{- printf "%s" (tpl .Values.service.existing $) -}}
+{{- if not (empty .Values.customBalancer.service.existing) }}
+    {{- printf "%s" (tpl .Values.customBalancer.service.existing $) -}}
+{{- else if empty .Values.customBalancer.service.existing }}
+    {{- printf "docs-balancer" -}}
 {{- else }}
     {{- printf "documentserver" -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Return true if a service object should be created for ds
+Return true if a balancer service object should be created for ds
 */}}
-{{- define "ds.svc.create" -}}
-{{- if empty .Values.service.existing }}
+{{- define "balancer.svc.create" -}}
+{{- if empty .Values.customBalancer.service.existing }}
     {{- true -}}
 {{- end -}}
 {{- end -}}

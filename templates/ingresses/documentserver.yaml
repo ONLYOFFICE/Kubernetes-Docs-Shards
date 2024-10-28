@@ -9,9 +9,6 @@ metadata:
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
   {{- end }} 
   annotations:
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-        set $custom_endpoint '';
-        include /etc/nginx/custom_balancer.conf;
     {{- if or .Values.commonAnnotations .Values.ingress.annotations }}
     {{- $dictValue := default .Values.commonAnnotations .Values.ingress.annotations }}
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
@@ -44,5 +41,5 @@ spec:
           service:
             name: {{ template "ds.svc.name" . }}
             port:
-              number: {{ .Values.service.port }}
+              number: {{ .Values.customBalancer.service.port }}
 {{- end }}

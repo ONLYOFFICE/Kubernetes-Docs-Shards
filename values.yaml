@@ -429,7 +429,7 @@ documentserver:
       ## documentserver.initContainers.image.repository Documentserver add-shardkey initContainer image repository
       repository: onlyoffice/docs-utils
       ## documentserver.initContainers.image.tag Documentserver add-shardkey initContainer image tag
-      tag: 8.2.0-2
+      tag: 8.2.1-1
       ## documentserver.initContainers.image.pullPolicy Documentserver add-shardkey initContainer image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for Documentserver add-shardkey initContainer container in Pod
@@ -483,7 +483,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-docservice-de
       ## documentserver.docservice.image.tag docservice container image tag
-      tag: 8.2.0-2
+      tag: 8.2.1-1
       ## documentserver.docservice.image.pullPolicy docservice container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Docservice container
@@ -622,7 +622,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-proxy-de
       ## documentserver.proxy.image.tag proxy container image tag
-      tag: 8.2.0-2
+      tag: 8.2.1-1
       ## documentserver.proxy.image.pullPolicy proxy container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Proxy container
@@ -717,7 +717,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-converter-de
       ## documentserver.converter.image.tag converter container image tag
-      tag: 8.2.0-2
+      tag: 8.2.1-1
       ## documentserver.converter.image.pullPolicy converter container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Converter container
@@ -925,7 +925,7 @@ example:
     ## example.image.repository example container image name
     repository: onlyoffice/docs-example
     ## example.image.tag example container image tag
-    tag: 8.2.0-2
+    tag: 8.2.1-1
     ## example.image.pullPolicy example container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Example container
@@ -1199,7 +1199,7 @@ customBalancer:
     ## customBalancer.image.repository specify balancer image repository
     repository: onlyoffice/docs-balancer
     ## customBalancer.image.tag specify balancer image tag
-    tag: 8.2.0-2
+    tag: 8.2.1-1
     ## customBalancer.image.pullPolicy balancer image pull policy
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
@@ -1314,7 +1314,7 @@ grafanaDashboard:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
-      tag: 8.2.0-2
+      tag: 8.2.1-1
       ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Grafana Dashboard container
@@ -1380,7 +1380,7 @@ tests:
     ## tests.image.repository test container image name
     repository: onlyoffice/docs-utils
     ## tests.image.tag test container image tag
-    tag: 8.2.0-2
+    tag: 8.2.1-1
     ## tests.image.pullPolicy test container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Test container

@@ -159,6 +159,17 @@ Return true if a balancer service object should be created for ds
 {{- end -}}
 
 {{/*
+Return balancer shutdown timer
+*/}}
+{{- define "balancer.shutdown.timer" -}}
+{{- if le (int .Values.customBalancer.terminationGracePeriodSeconds) 60 -}}
+    {{- printf "70" -}}
+{{- else }}
+    {{- printf "%s" .Values.customBalancer.terminationGracePeriodSeconds -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Get the ds labels
 */}}
 {{- define "ds.labels.commonLabels" -}}

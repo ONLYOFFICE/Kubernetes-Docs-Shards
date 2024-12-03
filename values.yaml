@@ -1002,8 +1002,8 @@ customBalancer:
       maxUnavailable: 25%
       # customBalancer.updateStrategy.rollingUpdate.maxSurge Maximum number of Balancer Pods created over the desired number of Pods
       maxSurge: 25%
-  ## customBalancer.terminationGracePeriodSeconds The time to terminate gracefully during which the balancer Pod will have the Terminating status
-  terminationGracePeriodSeconds: 30
+  ## customBalancer.terminationGracePeriodSeconds The time to terminate gracefully during which the balancer Pod will have the Terminating status. Please set the value higher than `60`. If you set the value `60` or lower, the value will automatically be set to `70`
+  terminationGracePeriodSeconds: "300"
   ## customBalancer.annotations Defines annotations that will be additionally added to Balancer Deployment
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key

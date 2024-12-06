@@ -92,6 +92,10 @@ spec:
         - name: docs-balancer
           image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}
           imagePullPolicy: {{ .Values.customBalancer.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["python3", "/balancer-shutdown.py"]
           {{- if .Values.customBalancer.containerSecurityContext.enabled }}
           securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
           {{- end }}

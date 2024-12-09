@@ -884,7 +884,7 @@ You can further limit the access to the `info` page using Nginx [Basic Authentic
 
 ### 11. Deploy ONLYOFFICE Docs Shards via redis sentinel
 
-ONLYOFFICE Docs Shards Can work with Redis sentinel, to deploy in this mode please follow the instructions:
+ONLYOFFICE Docs Shards can work with Redis sentinel. To deploy in this mode, please follow the instructions below:
 
 #### 11.1 Deploy Redis sentinel
 

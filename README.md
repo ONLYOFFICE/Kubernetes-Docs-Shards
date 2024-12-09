@@ -912,7 +912,7 @@ $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisSentinelExistingSecret=redis \
                --set connections.redisSentinelSecretKeyName=redis-password \
                --set connections.redisSentinelNoPass=false \
-               --set connections.redisSentinelPassword=superpass
+               --set connections.redisSentinelPassword=STRONG_PASSWORD
 ```
 
 ## Using Grafana to visualize metrics (optional)

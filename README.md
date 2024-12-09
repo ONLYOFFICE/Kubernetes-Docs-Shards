@@ -42,7 +42,7 @@ ONLYOFFICE Docs for Kubernetes
   * [8. Update ONLYOFFICE Docs license (optional)](#8-update-onlyoffice-docs-license-optional)
   * [9. ONLYOFFICE Docs installation test (optional)](#9-onlyoffice-docs-installation-test-optional)
   * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
-  * [11. Deploy ONLYOFFICE Docs via Redis Sentinel](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel)
+  * [11. Deploy ONLYOFFICE Docs via Redis Sentinel (optional)](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional)
     + [11.1 Deploy Redis Sentinel](#111-deploy-redis-sentinel)
     + [11.2 Deploy ONLYOFFICE Docs](#112-deploy-onlyoffice-docs)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
@@ -882,7 +882,7 @@ Generally the Pods / Nodes / Load Balancer addresses will actually be the client
 In this case the access to the info page will be available to everyone.
 You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `documentserver.proxy.infoAllowedUser` parameter value and by setting the password using `documentserver.proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `documentserver.proxy.infoAllowedExistingSecret` parameter.
 
-### 11. Deploy ONLYOFFICE Docs Shards via redis sentinel
+### 11. Deploy ONLYOFFICE Docs Shards via redis sentinel (optional)
 
 ONLYOFFICE Docs Shards can work with Redis sentinel. To deploy in this mode, please follow the instructions below:
 

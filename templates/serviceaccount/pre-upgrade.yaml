@@ -1,0 +1,19 @@
+{{- if .Values.upgrade.job.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ds-clear-previous-versions-sa
+  namespace: {{ include "ds.namespace" . | quote }}
+  {{- if .Values.commonLabels }}
+  labels:
+    {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
+  {{- end }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- if .Values.commonAnnotations }}
+    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+    {{- end }}
+automountServiceAccountToken: true
+{{- end }}

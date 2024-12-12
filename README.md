@@ -121,6 +121,8 @@ Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gath
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
+If you want to use Redis Sentinel cluster instead of default standalone redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
+
 ### 4. Deploy StatsD exporter
 
 *This step is optional. You can skip step [#4](#4-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
@@ -282,7 +284,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local-production-linux.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
 | `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves                                                                                                 | `mymaster`                                                                                |
-| `connections.redisSentinelExistingSecret`                   | Name of existing secret to use for Redis Sentinel password                                                                                                                     | `""`                                                                                      |
+| `connections.redisSentinelExistingSecret`                   | Name of existing secret to use for Redis Sentinel password. If set to, it takes priority over the `connections.redisSentinelExistingSecret`                                    | `""`                                                                                      |
 | `connections.redisSentinelSecretKeyName`                    | The name of the key that contains the Redis Sentinel user password                                                                                                             | `sentinel-password`                                                                       |
 | `connections.redisSentinelPassword`                         | The password set for the Redis Sentinel account                                                                                                                                | `""`                                                                                      |
 | `connections.redisSentinelNoPass`                           | Defines whether to use a Redis Sentinel auth without a password                                                                                                                | `true`                                                                                    |
@@ -894,10 +896,13 @@ Deploy redis sentinel using the command:
 $ helm install redis bitnami/redis \
                --set architecture=replication \
                --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set sentinel.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set replica.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set master.persistence.size=1Gi \
+               --set replica.persistence.size=1Gi \
+               --set sentinel.persistence.size=1Gi \
                --set metrics.enabled=false \
                --set sentinel.enabled=true \
-               --set auth.password=STRONG_PASSWORD \
-               --set auth.sentinel=true
 ```
 
 #### 11.2 Deploy ONLYOFFICE Docs
@@ -912,7 +917,6 @@ $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisSentinelExistingSecret=redis \
                --set connections.redisSentinelSecretKeyName=redis-password \
                --set connections.redisSentinelNoPass=false \
-               --set connections.redisSentinelPassword=STRONG_PASSWORD
 ```
 
 ## Using Grafana to visualize metrics (optional)

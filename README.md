@@ -121,7 +121,7 @@ Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gath
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
-If you want to use Redis Sentinel cluster instead of default standalone redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
+If you want to use **Redis Sentinel** cluster instead of default standalone Redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
 
 ### 4. Deploy StatsD exporter
 

@@ -117,7 +117,13 @@ spec:
           volumeMounts:
           - name: balancer-lua-config
             mountPath: /etc/nginx/mnt_config
+          - name: balancer-healthcheck
+            mountPath: /scripts/balancer_probes.py
+            subPath: balancer_probes.py
       volumes:
         - name: balancer-lua-config
           configMap:
             name: balancer-lua-config
+        - name: balancer-healthcheck
+          configMap:
+            name: balancer-probes

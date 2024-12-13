@@ -1122,49 +1122,57 @@ customBalancer:
   startupProbe:
     ## customBalancer.startupProbe.enabled Enable startupProbe for balancer container
     enabled: true
-    httpGet:
-      ## customBalancer.startupProbe.httpGet.path Checking the path for startupProbe
-      path: /balancer-healthcheck
-      ## customBalancer.startupProbe.httpGet.port Checking the port for startupProbe
-      port: 80
+    # customBalancer.startupProbe.exec The startupProbe checking command
+    # The `balancer_probes.py` script will be executed, which is mapped during installation
+    # It checks that all the necessary processes are running and there is access to the k8s api
+    exec:
+      command:
+      - python3
+      - /scripts/balancer_probes.py
     ## customBalancer.startupProbe.failureThreshold Failure threshold for startupProbe
     failureThreshold: 30
     ## customBalancer.startupProbe.periodSeconds Period seconds for startupProbe
     periodSeconds: 10
+    ## customBalancer.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+    timeoutSeconds: 9
   ## The parameters below for readiness probes are used only when `customBalancer.readinessProbe.enabled=true`
   readinessProbe:
     ## customBalancer.readinessProbe.enabled Enable readinessProbe for balacer container
     enabled: true
     ## customBalancer.readinessProbe.failureThreshold Failure threshold for readinessProbe
-    failureThreshold: 2
-    httpGet:
-      ## customBalancer.readinessProbe.httpGet.path Checking the path for readinessProbe
-      path: /balancer-healthcheck
-      ## customBalancer.readinessProbe.httpGet.port Checking the port for readinessProbe
-      port: 80
+    failureThreshold: 1
+    # customBalancer.startupProbe.exec The startupProbe checking command
+    # The `balancer_probes.py` script will be executed, which is mapped during installation
+    # It checks that all the necessary processes are running and there is access to the k8s api
+    exec:
+      command:
+      - python3
+      - /scripts/balancer_probes.py
     ## customBalancer.readinessProbe.periodSeconds Period seconds for readinessProbe
-    periodSeconds: 10
+    periodSeconds: 60
     ## customBalancer.readinessProbe.successThreshold Success threshold for readinessProbe
     successThreshold: 1
     ## customBalancer.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
-    timeoutSeconds: 3
+    timeoutSeconds: 10
   ## The parameters below for liveness probes are used only when `customBalancer.livenessProbe.enabled=true`
   livenessProbe:
     ## customBalancer.livenessProbe.enabled Enable livenessProbe for balancer container
     enabled: true
     ## customBalancer.livenessProbe.failureThreshold Failure threshold for livenessProbe
-    failureThreshold: 3
-    httpGet:
-      ## customBalancer.livenessProbe.httpGet.path Checking the path for livenessProbe
-      path: /balancer-healthcheck
-      ## customBalancer.livenessProbe.httpGet.port Checking the port for livenessProbe
-      port: 80
+    failureThreshold: 2
+    # customBalancer.startupProbe.exec The startupProbe checking command
+    # The `balancer_probes.py` script will be executed, which is mapped during installation
+    # It checks that all the necessary processes are running and there is access to the k8s api
+    exec:
+      command:
+      - python3
+      - /scripts/balancer_probes.py
     ## customBalancer.livenessProbe.periodSeconds Period seconds for livenessProbe
-    periodSeconds: 10
+    periodSeconds: 60
     ## customBalancer.livenessProbe.successThreshold Success threshold for livenessProbe
     successThreshold: 1
     ## customBalancer.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
-    timeoutSeconds: 3
+    timeoutSeconds: 10
   ## balancer container resource requests and limits
   ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
   ## customBalancer.resources.requests The requested resources for the balancer container

@@ -361,6 +361,8 @@ spec:
           - name: createdb
             mountPath: /docker-entrypoint-initdb.d/createdb.sql
             subPath: createdb.sql
+          - name: postgresql-data
+            mountPath: /var/lib/postgresql/data
           - name: pre-stop-scripts
             mountPath: /scripts/pre_stop.sh
             subPath: pre_stop.sh
@@ -390,6 +392,8 @@ spec:
         - name: ds-files
           emptyDir: {}
         - name: pre-stop-status
+          emptyDir: {}
+        - name: postgresql-data
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:

@@ -383,6 +383,8 @@ spec:
           ports:
             - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
           volumeMounts:
+          - name: rabbitmq-data
+            mountPath: /var/lib/rabbitmq
           - name: pre-stop-scripts
             mountPath: /scripts/pre_stop.sh
             subPath: pre_stop.sh
@@ -394,6 +396,8 @@ spec:
         - name: pre-stop-status
           emptyDir: {}
         - name: postgresql-data
+          emptyDir: {}
+        - name: rabbitmq-data
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:

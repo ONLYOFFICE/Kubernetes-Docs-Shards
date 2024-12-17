@@ -66,6 +66,20 @@ Return true if a secret object should be created for Redis Sentinel
 {{- end -}}
 
 {{/*
+Get the Redis Sentinel password
+*/}}
+{{- define "ds.redis.sentinel.pass" -}}
+{{- $redisSecret := include "ds.redis.sentinel.secretName" . }}
+{{- $secretKey := (lookup "v1" "Secret" .Release.Namespace $redisSecret).data }}
+{{- $keyValue := (get $secretKey .Values.connections.redisSentinelSecretKeyName) | b64dec }}
+{{- if .Values.connections.redisSentinelPassword -}}
+    {{- printf "%s" .Values.connections.redisSentinelPassword -}}
+{{- else if $keyValue -}}
+    {{- printf "%s" $keyValue -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return Redis Sentinel password
 */}}
 {{- define "ds.redis.sentinel.password" -}}

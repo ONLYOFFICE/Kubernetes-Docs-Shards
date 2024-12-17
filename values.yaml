@@ -63,6 +63,8 @@ connections:
   ## connections.redisSentinelSecretKeyName The name of the key that contains the Redis Sentinel user password
   ## If you set a password in `redisSentinelPassword`, a secret will be automatically created, the key name of which will be the value set here
   redisSentinelSecretKeyName: sentinel-password
+  ## connections.redisSentinelUser The Redis sentinel user name
+  redisSentinelUser: default
   ## connections.redisSentinelPassword The password set for the Redis Sentinel account
   ## If set to, it takes priority over the `connections.redisSentinelExistingSecret`
   ## The value in this parameter overrides the value set in the `iooptions` object in `local.json` if you add custom configuration file

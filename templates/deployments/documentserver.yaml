@@ -114,6 +114,8 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.sentinel.secretName" . }}
                 key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          - name: REDIS_SENTINEL_USERNAME
+            value: {{ .Values.connections.redisSentinelUser }}
           {{- end }}
           - name: SHARD_IP
             valueFrom:
@@ -240,6 +242,8 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.sentinel.secretName" . }}
                 key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          - name: REDIS_SENTINEL_USERNAME
+            value: {{ .Values.connections.redisSentinelUser }}
           {{- end }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
@@ -316,6 +320,8 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.sentinel.secretName" $context }}
                 key: {{ $context.Values.connections.redisSentinelSecretKeyName }}
+          - name: REDIS_SENTINEL_USERNAME
+            value: {{ $context.Values.connections.redisSentinelUser }}
           {{- end }}
           envFrom:
           - secretRef:

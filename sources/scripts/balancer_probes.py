@@ -52,11 +52,13 @@ def get_pod_ds(pod_name):
 def list_pod_ds():
     try:
         pods = v1.list_namespaced_pod(namespace=ns, label_selector=label)
-        pod_name = pods.items[0].metadata.name
-        get_pod_ds(pod_name)
     except Exception as msg_get_ep:
         logger_probes_balancer.error(f'Error when trying to list "{ep_name}" pods... {msg_get_ep}')
         sys.exit(1)
+    else:
+        if pods.items:
+            pod_name = pods.items[0].metadata.name
+            get_pod_ds(pod_name)
 
 
 def get_ep_status():

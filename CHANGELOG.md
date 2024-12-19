@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+
+### New Features
+
+* Added `Probes` for the balancer
+
 ## 2.0.2
 
 ### Changes

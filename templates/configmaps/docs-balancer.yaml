@@ -19,4 +19,5 @@ data:
   BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
   DS_POD_LABEL: "app=documentserver"
   SHARD_PORT: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
+  DS_DEPLOYMENT_NAME: "documentserver"
   SHUTDOWN_TIMER: {{ include "balancer.shutdown.timer" . | quote }}

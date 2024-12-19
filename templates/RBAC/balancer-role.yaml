@@ -14,3 +14,7 @@ rules:
 - apiGroups: [""]
   resources: ["endpoints", "pods"]
   verbs: ["get", "watch", "list"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  resourceNames: ["documentserver"]
+  verbs: ["get"]

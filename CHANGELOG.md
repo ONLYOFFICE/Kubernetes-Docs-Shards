@@ -6,6 +6,10 @@
 
 * Added `Probes` for the balancer
 
+### Changes
+
+* Changed the scheme for balancing new requests to documentserver replicas when upgrading the version
+
 ## 2.0.2
 
 ### Changes

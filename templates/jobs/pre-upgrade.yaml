@@ -30,7 +30,7 @@ spec:
       annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.upgrade.job.podAnnotations "context" $ ) | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: ds-clear-previous-versions-sa
+      serviceAccountName: ds-balancer-sa
       {{- if .Values.upgrade.job.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.upgrade.job.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}

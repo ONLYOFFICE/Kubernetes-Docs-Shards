@@ -284,9 +284,9 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local-production-linux.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
 | `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves                                                                                                 | `mymaster`                                                                                |
-| `connections.redisSentinelExistingSecret`                   | Name of existing secret to use for Redis Sentinel password. If set to, it takes priority over the `connections.redisSentinelExistingSecret`                                    | `""`                                                                                      |
+| `connections.redisSentinelExistingSecret`                   | Name of existing secret to use for Redis Sentinel password.                                                                                                                    | `""`                                                                                      |
 | `connections.redisSentinelSecretKeyName`                    | The name of the key that contains the Redis Sentinel user password                                                                                                             | `sentinel-password`                                                                       |
-| `connections.redisSentinelPassword`                         | The password set for the Redis Sentinel account                                                                                                                                | `""`                                                                                      |
+| `connections.redisSentinelPassword`                         | The password set for the Redis Sentinel account. If set to, it takes priority over the `connections.redisSentinelExistingSecret`                                               | `""`                                                                                      |
 | `connections.redisSentinelUser`                             | The Redis sentinel user name                                                                                                                                                   | `default`                                                                                 |
 | `connections.redisSentinelNoPass`                           | Defines whether to use a Redis Sentinel auth without a password                                                                                                                | `true`                                                                                    |
 | `webProxy.enabled`                                          | Specify whether a Web proxy is used in your network to access the Pods of k8s cluster to the Internet                                                                          | `false`                                                                                   |
@@ -899,9 +899,9 @@ $ helm install redis bitnami/redis \
                --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
                --set sentinel.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
                --set replica.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
-               --set master.persistence.size=1Gi \
-               --set replica.persistence.size=1Gi \
-               --set sentinel.persistence.size=1Gi \
+               --set master.persistence.size=8Gi \
+               --set replica.persistence.size=8Gi \
+               --set sentinel.persistence.size=8Gi \
                --set metrics.enabled=false \
                --set sentinel.enabled=true \
 ```

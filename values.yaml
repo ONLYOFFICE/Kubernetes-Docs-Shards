@@ -39,9 +39,6 @@ connections:
   ## - 10.244.0.79:6379
   ## - 192.168.1.25:6379
   redisClusterNodes: []
-  ## connections.redisSentinelGroupName Name of a group of Redis instances composed of a master and one or more slaves
-  ## Used if `connections.redisConnectorName` is set to `ioredis`
-  redisSentinelGroupName: mymaster
   ## connections.redisExistingSecret Name of existing secret to use for Redis passwords
   ## Must contain the key specified in `connections.redisSecretKeyName`
   ## The password from this secret overrides the value for the password set in the `options` object in `local-production-linux.json` if you add custom configuration file
@@ -56,6 +53,25 @@ connections:
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
   redisNoPass: false
+  ## connections.redisSentinelGroupName Name of a group of Redis instances composed of a master and one or more slaves
+  ## Used if `connections.redisConnectorName` is set to `ioredis`
+  redisSentinelGroupName: mymaster
+  ## connections.redisSentinelExistingSecret Name of existing secret to use for Redis Sentinel password
+  ## Must contain the key specified in `connections.redisSentinelSecretKeyName`
+  ## The password from this secret overrides the value for the password set in the `iooptions` object in `local.json` if you add custom configuration file
+  redisSentinelExistingSecret: ""
+  ## connections.redisSentinelSecretKeyName The name of the key that contains the Redis Sentinel user password
+  ## If you set a password in `redisSentinelPassword`, a secret will be automatically created, the key name of which will be the value set here
+  redisSentinelSecretKeyName: sentinel-password
+  ## connections.redisSentinelUser The Redis sentinel user name
+  redisSentinelUser: default
+  ## connections.redisSentinelPassword The password set for the Redis Sentinel account
+  ## If set to, it takes priority over the `connections.redisSentinelExistingSecret`
+  ## The value in this parameter overrides the value set in the `iooptions` object in `local.json` if you add custom configuration file
+  redisSentinelPassword: ""
+  ## connections.redisSentinelNoPass Defines whether to use a Redis Sentinel auth without a password
+  ## If the connection to Redis Sentinel does not require a password, set the value to `true`
+  redisSentinelNoPass: true
 ## Web Proxy parameters
 ## Used if your network has a web proxy
 ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional

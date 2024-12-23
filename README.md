@@ -36,12 +36,15 @@ ONLYOFFICE Docs for Kubernetes
     + [5.3.2.2 Expose ONLYOFFICE Docs via HTTP](#5322-expose-onlyoffice-docs-via-http)
     + [5.3.2.3 Expose ONLYOFFICE Docs via HTTPS](#5323-expose-onlyoffice-docs-via-https)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
-      + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
-      + [6.2 Manual scaling](#62-manual-scaling)
+    + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
+    + [6.2 Manual scaling](#62-manual-scaling)
   * [7. Update ONLYOFFICE Docs](#7-update-onlyoffice-docs) 
   * [8. Update ONLYOFFICE Docs license (optional)](#8-update-onlyoffice-docs-license-optional)
   * [9. ONLYOFFICE Docs installation test (optional)](#9-onlyoffice-docs-installation-test-optional)
   * [10. Access to the info page (optional)](#10-access-to-the-info-page-optional)
+  * [11. Deploy ONLYOFFICE Docs via Redis Sentinel (optional)](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional)
+    + [11.1 Deploy Redis Sentinel](#111-deploy-redis-sentinel)
+    + [11.2 Deploy ONLYOFFICE Docs](#112-deploy-onlyoffice-docs)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -117,6 +120,8 @@ $ helm install redis bitnami/redis \
 Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus.
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
+
+If you want to use **Redis Sentinel** cluster instead of default standalone Redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
 
 ### 4. Deploy StatsD exporter
 
@@ -278,6 +283,12 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `connections.redisSecretKeyName`                            | The name of the key that contains the Redis user password                                                                                                                      | `redis-password`                                                                          |
 | `connections.redisExistingSecret`                           | Name of existing secret to use for Redis passwords. Must contain the key specified in `connections.redisSecretKeyName`. The password from this secret overrides password set in the `options` object in `local-production-linux.json` | `redis`                                             |
 | `connections.redisNoPass`                                   | Defines whether to use a Redis auth without a password. If the connection to Redis server does not require a password, set the value to `true`                                 | `false`                                                                                   |
+| `connections.redisSentinelGroupName`                        | Name of a group of Redis instances composed of a master and one or more slaves                                                                                                 | `mymaster`                                                                                |
+| `connections.redisSentinelExistingSecret`                   | Name of existing secret to use for Redis Sentinel password.                                                                                                                    | `""`                                                                                      |
+| `connections.redisSentinelSecretKeyName`                    | The name of the key that contains the Redis Sentinel user password                                                                                                             | `sentinel-password`                                                                       |
+| `connections.redisSentinelPassword`                         | The password set for the Redis Sentinel account. If set to, it takes priority over the `connections.redisSentinelExistingSecret`                                               | `""`                                                                                      |
+| `connections.redisSentinelUser`                             | The Redis sentinel user name                                                                                                                                                   | `default`                                                                                 |
+| `connections.redisSentinelNoPass`                           | Defines whether to use a Redis Sentinel auth without a password                                                                                                                | `true`                                                                                    |
 | `webProxy.enabled`                                          | Specify whether a Web proxy is used in your network to access the Pods of k8s cluster to the Internet                                                                          | `false`                                                                                   |
 | `webProxy.http`                                             | Web Proxy address for `HTTP` traffic                                                                                                                                           | `http://proxy.example.com`                                                                |
 | `webProxy.https`                                            | Web Proxy address for `HTTPS` traffic                                                                                                                                          | `https://proxy.example.com`                                                               |
@@ -894,6 +905,41 @@ Taking into consideration the specifics of Kubernetes net interaction it is poss
 Generally the Pods / Nodes / Load Balancer addresses will actually be the clients, so these addresses are to be used.
 In this case the access to the info page will be available to everyone.
 You can further limit the access to the `info` page using Nginx [Basic Authentication](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html) which you can turn on by setting `documentserver.proxy.infoAllowedUser` parameter value and by setting the password using `documentserver.proxy.infoAllowedPassword` parameter, alternatively you can use the existing secret with password by setting its name with `documentserver.proxy.infoAllowedExistingSecret` parameter.
+
+### 11. Deploy ONLYOFFICE Docs Shards via redis sentinel (optional)
+
+ONLYOFFICE Docs Shards can work with Redis sentinel. To deploy in this mode, please follow the instructions below:
+
+#### 11.1 Deploy Redis sentinel
+
+Deploy redis sentinel using the command:
+
+```bash
+$ helm install redis bitnami/redis \
+               --set architecture=replication \
+               --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set sentinel.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set replica.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+               --set master.persistence.size=8Gi \
+               --set replica.persistence.size=8Gi \
+               --set sentinel.persistence.size=8Gi \
+               --set metrics.enabled=false \
+               --set sentinel.enabled=true \
+```
+
+#### 11.2 Deploy ONLYOFFICE Docs
+
+Deploy ONLYOFFICE Docs Shards with enabled sentinel mode with command:
+
+```bash
+$ helm install documentserver onlyoffice/docs-shards \
+               --set connections.redisConnectorName=ioredis \
+               --set connections.redisHost=redis.default.svc.cluster.local \
+               --set connections.redisPort=26379 \
+               --set connections.redisSentinelExistingSecret=redis \
+               --set connections.redisSentinelSecretKeyName=redis-password \
+               --set connections.redisSentinelNoPass=false \
+```
 
 ## Using Grafana to visualize metrics (optional)
 

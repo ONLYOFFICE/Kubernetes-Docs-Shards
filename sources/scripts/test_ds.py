@@ -11,6 +11,8 @@ redisHost = os.environ.get('REDIS_SERVER_HOST')
 redisPort = os.environ.get('REDIS_SERVER_PORT')
 redisUser = os.environ.get('REDIS_SERVER_USER')
 redisPassword = os.environ.get('REDIS_SERVER_PWD')
+redisSentinelPassword = os.environ.get('REDIS_SENTINEL_PWD')
+redisSentinelUsername = os.environ.get('REDIS_SENTINEL_USERNAME')
 redisDBNum = os.environ.get('REDIS_SERVER_DB_NUM')
 redisConnectTimeout = 15
 if os.environ.get('REDIS_CLUSTER_NODES'):
@@ -83,7 +85,7 @@ def get_redis_sentinel_status():
     from redis import Sentinel
     global rc
     try:
-        sentinel = Sentinel([(redisHost, redisPort)], socket_timeout=redisConnectTimeout)
+        sentinel = Sentinel([(redisHost, redisPort)], socket_timeout=redisConnectTimeout, sentinel_kwargs={'password': redisSentinelPassword}, 'username': redisSentinelUsername})
         master_host, master_port = sentinel.discover_master(redisSentinelGroupName)
         rc = redis.Redis(
             host=master_host,

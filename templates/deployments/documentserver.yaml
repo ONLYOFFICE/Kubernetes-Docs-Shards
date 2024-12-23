@@ -108,6 +108,13 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- if eq .Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" . }}
+                key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           - name: SHARD_IP
             valueFrom:
               fieldRef:
@@ -227,6 +234,13 @@ spec:
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
           - name: TERMINATION_GRACE_PERIOD
             value: {{ .Values.documentserver.terminationGracePeriodSeconds | quote }}
+          {{- if eq .Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" . }}
+                key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
           - name: REDIS_SERVER_DB_DS_VERSION
@@ -296,6 +310,13 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.secretName" $context }}
                 key: {{ $context.Values.connections.redisSecretKeyName }}
+          {{- if eq $context.Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" $context }}
+                key: {{ $context.Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" $context }}

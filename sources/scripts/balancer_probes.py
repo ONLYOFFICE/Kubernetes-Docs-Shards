@@ -38,7 +38,6 @@ def init_logger(name):
     stdout.setFormatter(logging.Formatter(formatter))
     stdout.setLevel(logging.DEBUG)
     logger.addHandler(stdout)
-    logger.info('Running balancer probes\n')
 
 
 def get_pod_ds(pod_name):

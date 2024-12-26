@@ -80,6 +80,8 @@ spec:
             value: {{ .Values.product.name | quote }}
           - name: DS_DEPLOYMENT_NAME
             value: "documentserver"
+          - name: DS_EP_NAME
+            value: "documentserver"
           volumeMounts:
           - name: ds-service-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files

@@ -85,7 +85,7 @@ def get_redis_sentinel_status():
     from redis import Sentinel
     global rc
     try:
-        sentinel = Sentinel([(redisHost, redisPort)], socket_timeout=redisConnectTimeout, sentinel_kwargs={'password': redisSentinelPassword}, 'username': redisSentinelUsername})
+        sentinel = Sentinel([(redisHost, redisPort)], socket_timeout=redisConnectTimeout, sentinel_kwargs={'password': redisSentinelPassword, 'username': redisSentinelUsername})
         master_host, master_port = sentinel.discover_master(redisSentinelGroupName)
         rc = redis.Redis(
             host=master_host,

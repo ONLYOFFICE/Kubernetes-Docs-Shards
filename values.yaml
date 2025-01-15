@@ -1006,6 +1006,11 @@ customBalancer:
   ## customBalancer.replicas Number of balancer replicas to deploy
   ## If the `customBalancer.autoscaling.enabled` parameter is enabled, it is ignored
   replicas: 3
+  ## customBalancer.log set logging level for docs-balancer pod
+  log:
+    ## customBalancer.log.level set logging level for docs-balancer pod
+    ## `INFO` is a just default log level, set the value to `DEBUG` to see more messages in the balancer logs
+    level: INFO
   ## customBalancer.updateStrategy used to replace old Pods by new ones
   updateStrategy:
     ## customBalancer.updateStrategy.type balancer deployment update strategy type

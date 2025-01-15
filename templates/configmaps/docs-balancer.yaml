@@ -21,3 +21,4 @@ data:
   SHARD_PORT: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
   DS_DEPLOYMENT_NAME: "documentserver"
   SHUTDOWN_TIMER: {{ include "balancer.shutdown.timer" . | quote }}
+  LOG_LEVEL: {{ .Values.customBalancer.log.level | quote }}

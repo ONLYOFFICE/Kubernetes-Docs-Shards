@@ -72,6 +72,14 @@ connections:
   ## connections.redisSentinelNoPass Defines whether to use a Redis Sentinel auth without a password
   ## If the connection to Redis Sentinel does not require a password, set the value to `true`
   redisSentinelNoPass: true
+  ## connections.redisKeepaliveTimeout Set a ONLYOFFICE docs-balancer Redis timeout after which the connection will be closed.
+  ## Example:
+  ## redisKeepaliveTimeout: 30000
+  redisKeepaliveTimeout: ""
+  ## connections.redisKeepalivePoolSize Set ONLYOFFICE docs-balancer Redis active Connection Pool Size.
+  ## Example:
+  ## redisKeepalivePoolSize: 100
+  redisKeepalivePoolSize: ""
 ## Web Proxy parameters
 ## Used if your network has a web proxy
 ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional

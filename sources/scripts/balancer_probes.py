@@ -73,8 +73,9 @@ def get_ep_status():
 def get_running_processes():
     proc1 = 'ds-ep-observer.py'
     proc2 = 'ds-pod-observer.py'
-    proc3 = 'nginx: worker process'
-    proc4 = 'balancer-shutdown.py'
+    proc3 = 'balancer-cm-observer.py'
+    proc4 = 'nginx: worker process'
+    proc5 = 'balancer-shutdown.py'
     try:
         processes_list = ["/bin/bash", "-c", "ps aux"]
         processes = subprocess.Popen(processes_list, stdout=subprocess.PIPE)
@@ -83,10 +84,10 @@ def get_running_processes():
         logger_probes_balancer.error(f'Error when trying to list of running processes... {msg_get_processes}')
         sys.exit(1)
     else:
-        if proc4 in processes_result:
+        if proc5 in processes_result:
             sys.exit()
         else:
-            if proc1 in processes_result and proc2 in processes_result and proc3 in processes_result:
+            if proc1 in processes_result and proc2 in processes_result and proc3 in processes_result and proc4 in processes_result:
                 get_ep_status()
             else:
                 logger_probes_balancer.error('All necessary processes were not found in the list of running ones...')

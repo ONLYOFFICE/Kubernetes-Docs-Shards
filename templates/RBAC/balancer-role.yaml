@@ -12,7 +12,7 @@ metadata:
   {{- end }}
 rules:
 - apiGroups: [""]
-  resources: ["endpoints", "pods"]
+  resources: ["endpoints", "pods", "configmaps"]
   verbs: ["get", "watch", "list"]
 - apiGroups: ["apps"]
   resources: ["deployments"]

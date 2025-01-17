@@ -95,7 +95,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["python3", "/balancer-shutdown.py"]
+                command: ["python3", "/scripts/balancer-shutdown.py"]
           {{- if .Values.customBalancer.containerSecurityContext.enabled }}
           securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
           {{- end }}
@@ -115,15 +115,10 @@ spec:
           - configMapRef:
               name: docs-balancer
           volumeMounts:
-          - name: balancer-lua-config
-            mountPath: /etc/nginx/mnt_config
           - name: balancer-healthcheck
             mountPath: /scripts/balancer_probes.py
             subPath: balancer_probes.py
       volumes:
-        - name: balancer-lua-config
-          configMap:
-            name: balancer-lua-config
         - name: balancer-healthcheck
           configMap:
             name: balancer-probes

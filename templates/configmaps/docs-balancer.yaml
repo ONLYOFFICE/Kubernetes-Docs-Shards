@@ -17,6 +17,7 @@ data:
   DS_EP_NAME: "documentserver"
   BALANCER_WORKER_CONNECTIONS: {{ .Values.customBalancer.workerConnections | quote }}
   BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
+  BALANCER_WORKER_TIMEOUT: {{ .Values.documentserver.terminationGracePeriodSeconds | quote }}
   DS_POD_LABEL: "app=documentserver"
   SHARD_PORT: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
   DS_DEPLOYMENT_NAME: "documentserver"

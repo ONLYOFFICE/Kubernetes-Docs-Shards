@@ -264,6 +264,21 @@ To uninstall/delete the `documentserver` deployment:
 $ helm delete documentserver
 ```
 
+Executing the helm delete command launches hook, which stops ONLYOFFICE Docs in every replica of the Shards before completely deleting all chart components.
+The default hook execution time is 300s. The execution time can be changed using `--timeout [time]`, for example:
+
+```bash
+$ helm delete documentserver --timeout 30m
+```
+
+It is recommended to increase the `timeout` from the default 300 seconds so that documents opened for editing have time to correctly generate a version if a large number of documents are open or extensive changes have been made to the document.
+
+If you want to delete the ONLYOFFICE Docs without doing the hook, run the following command:
+
+```bash
+$ helm delete documentserver --no-hooks
+```
+
 The `helm delete` command removes all the Kubernetes components associated with the chart and deletes the release.
 
 ### 4. Parameters
@@ -608,6 +623,22 @@ List of parameters for broker inside the documentserver pod
 | `upgrade.job.containerSecurityContext.enabled`              | Enable security context for the pre-upgrade container                                                                                                                          | `false`                                                                                   |
 | `upgrade.job.resources.requests`                            | The requested resources for the job pre-upgrade container                                                                                                                      | `{}`                                                                                      |
 | `upgrade.job.resources.limits`                              | The resources limits for the job pre-upgrade container                                                                                                                         | `{}`                                                                                      |
+| `delete.job.enabled`                                        | Enable the execution of job pre-delete before deleting ONLYOFFICE Docs                                                                                                         | `true`                                                                                    |
+| `delete.job.annotations`                                    | Defines annotations that will be additionally added to pre-delete Job. If set to, it takes priority over the `commonAnnotations`                                               | `{}`                                                                                      |
+| `delete.job.podAnnotations`                                 | Map of annotations to add to the pre-delete Pod                                                                                                                                | `{}`                                                                                      |
+| `delete.job.podSecurityContext.enabled`                     | Enable security context for the pre-delete Job pod                                                                                                                             | `false`                                                                                   |
+| `delete.job.podSecurityContext.fsGroup`                     | Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the pre-delete Pod                                                | `101`                                                                                     |
+| `delete.job.customPodAntiAffinity`                          | Prohibiting the scheduling of pre-delete Job Pod relative to other Pods containing the specified labels on the same node                                                       | `{}`                                                                                      |
+| `delete.job.podAffinity`                                    | Defines [Pod affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity) rules for pre-delete Job Pod scheduling by nodes relative to other Pods | `{}`                                                       |
+| `delete.job.nodeAffinity`                                   | Defines [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity) rules for pre-delete Job Pod scheduling by nodes               | `{}`                                                                                      |
+| `delete.job.nodeSelector`                                   | Node labels for pre-delete Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                            | `{}`                                                                                      |
+| `delete.job.tolerations`                                    | Tolerations for pre-delete Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                             | `[]`                                                                                      |
+| `delete.job.image.repository`                               | Job by pre-delete image repository                                                                                                                                             | `onlyoffice/docs-utils`                                                                   |
+| `delete.job.image.tag`                                      | Job by pre-delete image tag                                                                                                                                                    | `8.2.2-1`                                                                                 |
+| `delete.job.image.pullPolicy`                               | Job by pre-delete image pull policy                                                                                                                                            | `IfNotPresent`                                                                            |
+| `delete.job.containerSecurityContext.enabled`               | Enable security context for the pre-delete container                                                                                                                           | `false`                                                                                   |
+| `delete.job.resources.requests`                             | The requested resources for the job pre-delete container                                                                                                                       | `{}`                                                                                      |
+| `delete.job.resources.limits`                               | The resources limits for the job pre-delete container                                                                                                                          | `{}`                                                                                      |
 | `grafanaDashboard.job.annotations`                          | Defines annotations that will be additionally added to Grafana Dashboard Job. If set to, it takes priority over the `commonAnnotations`                                        | `{}`                                                                                      |
 | `grafanaDashboard.job.podAnnotations`                       | Map of annotations to add to the Grafana Dashboard Pod                                                                                                                         | `{}`                                                                                      |
 | `grafanaDashboard.job.customPodAntiAffinity`                | Prohibiting the scheduling of Grafana Dashboard Job Pod relative to other Pods containing the specified labels on the same node                                                | `{}`                                                                                      |

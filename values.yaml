@@ -1393,6 +1393,80 @@ upgrade:
       ##   memory: "2Gi"
       ##   cpu: "1000m"
       limits: {}
+## Job by delete has a pre-delete hook and executes on an delete request before all of the release's resources have been deleted
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He stops ONLYOFFICE Docs in every replica of the shards
+delete:
+  job:
+    ## delete.job.enabled Enable the execution of job pre-delete before deleting ONLYOFFICE Docs
+    enabled: true
+    ## delete.job.annotations Defines annotations that will be additionally added to pre-delete Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## delete.job.podAnnotations Map of annotations to add to the pre-delete Pod
+    podAnnotations: {}
+    # Configure a Security Context for the delete Job Pod
+    podSecurityContext:
+      # delete.job.podSecurityContext.enabled Enable security context for the pre-delete Job pod
+      enabled: false
+      ## delete.job.podSecurityContext.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the pre-delete Pod
+      fsGroup: 101
+    ## delete.job.customPodAntiAffinity Prohibiting the scheduling of pre-delete Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for pre-delete Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes pre-delete Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for pre-delete Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes pre-delete Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## delete.job.nodeSelector Node labels for pre-delete Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## delete.job.tolerations Tolerations for pre-delete Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## delete.job.image.repository Job by pre-delete image repository
+      repository: onlyoffice/docs-utils
+      ## delete.job.image.tag Job by pre-delete image tag
+      tag: 8.2.2-1
+      ## delete.job.image.pullPolicy Job by pre-delete image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the pre-delete container
+    containerSecurityContext:
+      ## delete.job.containerSecurityContext.enabled Enable security context for the pre-delete container
+      enabled: false
+      ## delete.job.containerSecurityContext.runAsUser User ID for the pre-delete container
+      runAsUser: 101
+      ## delete.job.containerSecurityContext.runAsGroup Group ID for the pre-delete container
+      runAsGroup: 101
+      ## delete.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## delete.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## delete.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the pre-delete container
+      seccompProfile:
+        type: RuntimeDefault
+      ## delete.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job pre-delete container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## delete.job.resources.requests The requested resources for the job pre-delete container
+    ## delete.job.resources.limits The resources limits for the job pre-delete container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
 ## Job by Grafana Dashboard has post-install and post-upgrade hooks and executes after any resources are created in Kubernetes
 ## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
 ## He creates Config Maps containing Grafana dashboards

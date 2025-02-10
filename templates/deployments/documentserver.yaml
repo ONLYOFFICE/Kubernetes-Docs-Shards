@@ -176,6 +176,8 @@ spec:
                 key: {{ .Values.documentserver.proxy.infoAllowedSecretKeyName }}
           {{- end }}
           envFrom:
+          - secretRef:
+              name: link-secret
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -255,6 +257,26 @@ spec:
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" . }}
+          - secretRef:
+              name: link-secret
+          {{- if .Values.wopi.enabled }}
+          {{- if or .Values.wopi.keys.generation .Values.wopi.keys.newKeysExistingSecret }}
+          - secretRef:
+              {{- if .Values.wopi.keys.newKeysExistingSecret }}
+              name: {{ tpl .Values.wopi.keys.newKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys
+              {{- end }}
+          {{- end }}
+          {{- if or .Values.wopi.keys.generation .Values.wopi.keys.oldKeysExistingSecret }}
+          - secretRef:
+              {{- if .Values.wopi.keys.oldKeysExistingSecret }}
+              name: {{ tpl .Values.wopi.keys.oldKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys-old
+              {{- end }}
+          {{- end }}
+          {{- end }}
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -320,6 +342,26 @@ spec:
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" $context }}
+          - secretRef:
+              name: link-secret
+          {{- if $context.Values.wopi.enabled }}
+          {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.newKeysExistingSecret }}
+          - secretRef:
+              {{- if $context.Values.wopi.keys.newKeysExistingSecret }}
+              name: {{ tpl $context.Values.wopi.keys.newKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys
+              {{- end }}
+          {{- end }}
+          {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.oldKeysExistingSecret }}
+          - secretRef:
+              {{- if $context.Values.wopi.keys.oldKeysExistingSecret }}
+              name: {{ tpl $context.Values.wopi.keys.oldKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys-old
+              {{- end }}
+          {{- end }}
+          {{- end }}
           - configMapRef:
               name: documentserver
           volumeMounts:

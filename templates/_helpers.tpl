@@ -98,7 +98,7 @@ Get the info auth password secret
 {{- define "ds.info.secretName" -}}
 {{- if .Values.documentserver.proxy.infoAllowedExistingSecret -}}
     {{- printf "%s" (tpl .Values.documentserver.proxy.infoAllowedExistingSecret $) -}}
-{{- else if .Values.documentserver.proxy.infoAllowedPassword -}}
+{{- else if .Values.documentserver.proxy.infoAllowedUser -}}
     {{- printf "%s-info-auth" .Release.Name -}}
 {{- end -}}
 {{- end -}}
@@ -110,17 +110,6 @@ Return true if a secret object should be created for info auth
 {{- if and .Values.documentserver.proxy.infoAllowedUser (not .Values.documentserver.proxy.infoAllowedExistingSecret) -}}
     {{- true -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Return info auth password
-*/}}
-{{- define "ds.info.password" -}}
-{{- if not (empty .Values.documentserver.proxy.infoAllowedPassword) }}
-    {{- .Values.documentserver.proxy.infoAllowedPassword }}
-{{- else }}
-    {{- required "A info auth Password is required!" .Values.documentserver.proxy.infoAllowedPassword }}
-{{- end }}
 {{- end -}}
 
 {{/*
@@ -302,5 +291,26 @@ Get ds url for example
     {{- printf "%s/" (tpl .Values.ingress.path $) -}}
 {{- else }}
     {{- printf "%s" (tpl .Values.example.dsUrl $) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the Secret value
+*/}}
+{{- define "ds.secrets.lookup" -}}
+{{- $context := index . 0 -}}
+{{- $existValue := index . 1 -}}
+{{- $getSecretName := index . 2 -}}
+{{- $getSecretKey := index . 3 -}}
+{{- if not $existValue }}
+    {{- $secret_lookup := (lookup "v1" "Secret" $context.Release.Namespace $getSecretName).data }}
+    {{- $getSecretValue := (get $secret_lookup $getSecretKey) | b64dec }}
+    {{- if $getSecretValue -}}
+        {{- printf "%s" $getSecretValue -}}
+    {{- else -}}
+        {{- printf "%s" (randAlpha 16) -}}
+    {{- end -}}
+{{- else -}}
+    {{- printf "%s" $existValue -}}
 {{- end -}}
 {{- end -}}

@@ -232,20 +232,24 @@ and then run the `helm upgrade documentserver onlyoffice/docs-shards --set extra
 If you have a valid ONLYOFFICE Docs license, create a secret `license` from the file:
 
 ```
-$ kubectl create secret generic license --from-file=path/to/license.lic
+$ kubectl create secret generic [SECRET_LICENSE_NAME] --from-file=path/to/license.lic
 ```
+
+- Where `SECRET_LICENSE_NAME` is the name of a future secret with a license
 
 Note: The source license file name should be 'license.lic' because this name would be used as a field in the created secret.
 
+Note: If the installation is performed without creating a secret with the existing license file, an empty secret `license` will be automatically created. For information on how to update an existing secret with a license, see [here](#8-update-onlyoffice-docs-license-optional).
+
 #### 1.2. Specify parameters when installing ONLYOFFICE Docs
 
-When installing ONLYOFFICE Docs, specify the `license.existingSecret=license` parameter.
+When installing ONLYOFFICE Docs, specify the `license.existingSecret=[SECRET_LICENSE_NAME]` parameter.
 
 ```
-$ helm install documentserver onlyoffice/docs-shards --set license.existingSecret=license
+$ helm install documentserver onlyoffice/docs-shards --set license.existingSecret=[SECRET_LICENSE_NAME]
 ```
 
-Note: If you need to add license after the ONLYOFFICE Docs is already installed, you need to execute step [1.1](#11-create-secret) and then run the `helm upgrade documentserver onlyoffice/docs-shards --set license.existingSecret=license` command or `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
+Note: If you need to add license after the ONLYOFFICE Docs is already installed, you need to execute step [1.1](#11-create-secret) and then run the `helm upgrade documentserver onlyoffice/docs-shards --set license.existingSecret=[SECRET_LICENSE_NAME]` command or `helm upgrade documentserver -f ./values.yaml onlyoffice/docs-shards` if the parameters are specified in the `values.yaml` file.
 
 ### 2. Deploy ONLYOFFICE Docs
 
@@ -921,9 +925,12 @@ In order to update the license, you need to perform the following steps:
  - Place the license.lic file containing the new key in some directory
  - Run the following commands:
 ```bash
-$ kubectl delete secret license -n <NAMESPACE>
-$ kubectl create secret generic license --from-file=path/to/license.lic -n <NAMESPACE>
+$ kubectl delete secret [SECRET_LICENSE_NAME] -n <NAMESPACE>
+$ kubectl create secret generic [SECRET_LICENSE_NAME] --from-file=path/to/license.lic -n <NAMESPACE>
 ```
+
+ - Where `SECRET_LICENSE_NAME` is the name of an existing secret with a license
+
  - Restart `documentserver` pods. For example, using the following command:
 ```bash
 $ kubectl delete pod documentserver-*** -n <NAMESPACE>

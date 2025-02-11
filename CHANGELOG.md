@@ -4,11 +4,22 @@
 
 ### New Features
 
-* Added `Probes` for the balancer
+* Added the ability to connect to Redis Sentinel
+* Enabled the option to configure keepalive for Redis connections
+* Introduced a observer service in the Balancer that detects configuration changes and restarts the Nginx worker process accordingly
+* Implemented a `preStop` hook in the Balancer to ensure proper termination of processes when a container is stopped within a Pod
+* Added the ability to adjust the logging level in the Balancer
+* Added `Probes` for the Balancer
+* Introduced a `pre-upgrade` Job to clean up files and directories from previous DS versions
+* Implemented a patch for DS replicas (Shards) using the `pod-deletion-cost` annotation, which contains the number of active connections to each replica. This allows for a prioritized replicas termination sequence during upgrades
+* Added a `pre-delete` Job to gracefully disconnect a Shards before deleting the Helm release
+* Added the ability to automatically generate WOPI keys during installation or upgrades, or to use existing ones
 
 ### Changes
 
 * Changed the scheme for balancing new requests to documentserver replicas when upgrading the version
+* The values of the parameters `jwt.secret`, `proxy.secureLinkSecret`, and `proxy.infoAllowedPassword` have been replaced with empty values instead of default ones, with the option to either generate random values or use the provided value
+* Released ONLYOFFICE Docs [v8.3.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#830)
 
 ## 2.0.2
 

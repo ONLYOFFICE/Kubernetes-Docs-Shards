@@ -772,7 +772,7 @@ $ helm install documentserver onlyoffice/docs-shards --set customBalancer.servic
 Run the following command to get the `documentserver` service IP:
 
 ```bash
-$ kubectl get service documentserver -o jsonpath="{.status.loadBalancer.ingress[*].ip}"
+$ kubectl get service docs-balancer -o jsonpath="{.status.loadBalancer.ingress[*].ip}"
 ```
 
 After that, ONLYOFFICE Docs will be available at `http://DOCUMENTSERVER-SERVICE-IP/`.
@@ -780,7 +780,7 @@ After that, ONLYOFFICE Docs will be available at `http://DOCUMENTSERVER-SERVICE-
 If the service IP is empty, try getting the `documentserver` service hostname:
 
 ```bash
-$ kubectl get service documentserver -o jsonpath="{.status.loadBalancer.ingress[*].hostname}"
+$ kubectl get service docs-balancer -o jsonpath="{.status.loadBalancer.ingress[*].hostname}"
 ```
 
 In this case, ONLYOFFICE Docs will be available at `http://DOCUMENTSERVER-SERVICE-HOSTNAME/`.

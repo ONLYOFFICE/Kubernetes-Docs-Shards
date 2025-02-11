@@ -46,12 +46,59 @@ Return Redis password
 {{- end -}}
 
 {{/*
+Get the Redis Sentinel password secret
+*/}}
+{{- define "ds.redis.sentinel.secretName" -}}
+{{- if or .Values.connections.redisSentinelPassword .Values.connections.redisSentinelNoPass -}}
+    {{- printf "%s-redis-sentinel" .Release.Name -}}
+{{- else if .Values.connections.redisSentinelExistingSecret -}}
+    {{- printf "%s" (tpl .Values.connections.redisSentinelExistingSecret $) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return true if a secret object should be created for Redis Sentinel
+*/}}
+{{- define "ds.redis.sentinel.createSecret" -}}
+{{- if or .Values.connections.redisSentinelPassword .Values.connections.redisSentinelNoPass (not .Values.connections.redisSentinelExistingSecret) -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the Redis Sentinel password
+*/}}
+{{- define "ds.redis.sentinel.pass" -}}
+{{- $redisSecret := include "ds.redis.sentinel.secretName" . }}
+{{- $secretKey := (lookup "v1" "Secret" .Release.Namespace $redisSecret).data }}
+{{- $keyValue := (get $secretKey .Values.connections.redisSentinelSecretKeyName) | b64dec }}
+{{- if .Values.connections.redisSentinelPassword -}}
+    {{- printf "%s" .Values.connections.redisSentinelPassword -}}
+{{- else if $keyValue -}}
+    {{- printf "%s" $keyValue -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return Redis Sentinel password
+*/}}
+{{- define "ds.redis.sentinel.password" -}}
+{{- if not (empty .Values.connections.redisSentinelPassword) }}
+    {{- .Values.connections.redisSentinelPassword }}
+{{- else if .Values.connections.redisSentinelNoPass }}
+    {{- printf "" }}
+{{- else }}
+    {{- required "A Redis Sentinel Password is required!" .Values.connections.redisSentinelPassword }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Get the info auth password secret
 */}}
 {{- define "ds.info.secretName" -}}
 {{- if .Values.documentserver.proxy.infoAllowedExistingSecret -}}
     {{- printf "%s" (tpl .Values.documentserver.proxy.infoAllowedExistingSecret $) -}}
-{{- else if .Values.documentserver.proxy.infoAllowedPassword -}}
+{{- else if .Values.documentserver.proxy.infoAllowedUser -}}
     {{- printf "%s-info-auth" .Release.Name -}}
 {{- end -}}
 {{- end -}}
@@ -63,17 +110,6 @@ Return true if a secret object should be created for info auth
 {{- if and .Values.documentserver.proxy.infoAllowedUser (not .Values.documentserver.proxy.infoAllowedExistingSecret) -}}
     {{- true -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Return info auth password
-*/}}
-{{- define "ds.info.password" -}}
-{{- if not (empty .Values.documentserver.proxy.infoAllowedPassword) }}
-    {{- .Values.documentserver.proxy.infoAllowedPassword }}
-{{- else }}
-    {{- required "A info auth Password is required!" .Values.documentserver.proxy.infoAllowedPassword }}
-{{- end }}
 {{- end -}}
 
 {{/*
@@ -155,6 +191,17 @@ Return true if a balancer service object should be created for ds
 {{- define "balancer.svc.create" -}}
 {{- if empty .Values.customBalancer.service.existing }}
     {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return balancer shutdown timer
+*/}}
+{{- define "balancer.shutdown.timer" -}}
+{{- if le (int .Values.customBalancer.terminationGracePeriodSeconds) 60 -}}
+    {{- printf "70" -}}
+{{- else }}
+    {{- printf "%s" .Values.customBalancer.terminationGracePeriodSeconds -}}
 {{- end -}}
 {{- end -}}
 
@@ -244,5 +291,26 @@ Get ds url for example
     {{- printf "%s/" (tpl .Values.ingress.path $) -}}
 {{- else }}
     {{- printf "%s" (tpl .Values.example.dsUrl $) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the Secret value
+*/}}
+{{- define "ds.secrets.lookup" -}}
+{{- $context := index . 0 -}}
+{{- $existValue := index . 1 -}}
+{{- $getSecretName := index . 2 -}}
+{{- $getSecretKey := index . 3 -}}
+{{- if not $existValue }}
+    {{- $secret_lookup := (lookup "v1" "Secret" $context.Release.Namespace $getSecretName).data }}
+    {{- $getSecretValue := (get $secret_lookup $getSecretKey) | b64dec }}
+    {{- if $getSecretValue -}}
+        {{- printf "%s" $getSecretValue -}}
+    {{- else -}}
+        {{- printf "%s" (randAlpha 16) -}}
+    {{- end -}}
+{{- else -}}
+    {{- printf "%s" $existValue -}}
 {{- end -}}
 {{- end -}}

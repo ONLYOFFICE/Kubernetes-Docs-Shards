@@ -108,6 +108,13 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          {{- if eq .Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" . }}
+                key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           - name: SHARD_IP
             valueFrom:
               fieldRef:
@@ -169,6 +176,8 @@ spec:
                 key: {{ .Values.documentserver.proxy.infoAllowedSecretKeyName }}
           {{- end }}
           envFrom:
+          - secretRef:
+              name: link-secret
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -201,7 +210,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["python", "/var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py"]
+                command: ["python3", "/var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py"]
           ports:
             - containerPort: {{ .Values.documentserver.docservice.containerPorts.http }}
           {{- if .Values.documentserver.docservice.startupProbe.enabled }}
@@ -227,6 +236,13 @@ spec:
             value: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
           - name: TERMINATION_GRACE_PERIOD
             value: {{ .Values.documentserver.terminationGracePeriodSeconds | quote }}
+          {{- if eq .Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" . }}
+                key: {{ .Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
           - name: REDIS_SERVER_DB_DS_VERSION
@@ -241,6 +257,26 @@ spec:
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" . }}
+          - secretRef:
+              name: link-secret
+          {{- if .Values.wopi.enabled }}
+          {{- if or .Values.wopi.keys.generation .Values.wopi.keys.newKeysExistingSecret }}
+          - secretRef:
+              {{- if .Values.wopi.keys.newKeysExistingSecret }}
+              name: {{ tpl .Values.wopi.keys.newKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys
+              {{- end }}
+          {{- end }}
+          {{- if or .Values.wopi.keys.generation .Values.wopi.keys.oldKeysExistingSecret }}
+          - secretRef:
+              {{- if .Values.wopi.keys.oldKeysExistingSecret }}
+              name: {{ tpl .Values.wopi.keys.oldKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys-old
+              {{- end }}
+          {{- end }}
+          {{- end }}
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -296,9 +332,36 @@ spec:
               secretKeyRef:
                 name: {{ template "ds.redis.secretName" $context }}
                 key: {{ $context.Values.connections.redisSecretKeyName }}
+          {{- if eq $context.Values.connections.redisConnectorName "ioredis" }}
+          - name: REDIS_SENTINEL_PWD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "ds.redis.sentinel.secretName" $context }}
+                key: {{ $context.Values.connections.redisSentinelSecretKeyName }}
+          {{- end }}
           envFrom:
           - secretRef:
               name: {{ template "ds.jwt.secretName" $context }}
+          - secretRef:
+              name: link-secret
+          {{- if $context.Values.wopi.enabled }}
+          {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.newKeysExistingSecret }}
+          - secretRef:
+              {{- if $context.Values.wopi.keys.newKeysExistingSecret }}
+              name: {{ tpl $context.Values.wopi.keys.newKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys
+              {{- end }}
+          {{- end }}
+          {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.oldKeysExistingSecret }}
+          - secretRef:
+              {{- if $context.Values.wopi.keys.oldKeysExistingSecret }}
+              name: {{ tpl $context.Values.wopi.keys.oldKeysExistingSecret $ }}
+              {{- else }}
+              name: docs-wopi-keys-old
+              {{- end }}
+          {{- end }}
+          {{- end }}
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -361,6 +424,8 @@ spec:
           - name: createdb
             mountPath: /docker-entrypoint-initdb.d/createdb.sql
             subPath: createdb.sql
+          - name: postgresql-data
+            mountPath: /var/lib/postgresql/data
           - name: pre-stop-scripts
             mountPath: /scripts/pre_stop.sh
             subPath: pre_stop.sh
@@ -381,6 +446,8 @@ spec:
           ports:
             - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
           volumeMounts:
+          - name: rabbitmq-data
+            mountPath: /var/lib/rabbitmq
           - name: pre-stop-scripts
             mountPath: /scripts/pre_stop.sh
             subPath: pre_stop.sh
@@ -390,6 +457,10 @@ spec:
         - name: ds-files
           emptyDir: {}
         - name: pre-stop-status
+          emptyDir: {}
+        - name: postgresql-data
+          emptyDir: {}
+        - name: rabbitmq-data
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:

@@ -1,7 +1,7 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: ds-balancer-role
+  name: balancer-probes
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
@@ -10,14 +10,5 @@ metadata:
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
-rules:
-- apiGroups: [""]
-  resources: ["endpoints", "pods", "configmaps"]
-  verbs: ["get", "watch", "list"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  resourceNames: ["documentserver"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["patch"]
+data:
+{{ (.Files.Glob "sources/scripts/balancer_probes.py").AsConfig | indent 2 }}

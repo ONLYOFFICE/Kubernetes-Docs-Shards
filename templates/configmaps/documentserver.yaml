@@ -26,6 +26,7 @@ data:
   {{- end }}
   {{- if eq .Values.connections.redisConnectorName "ioredis" }}
   REDIS_SENTINEL_GROUP_NAME: {{ .Values.connections.redisSentinelGroupName }}
+  REDIS_SENTINEL_USERNAME: {{ .Values.connections.redisSentinelUser }}
   {{- end }}
   AMQP_TYPE: "rabbitmq"
   AMQP_PORT: "5672"
@@ -46,7 +47,6 @@ data:
   NGINX_GZIP_PROXIED: {{ .Values.documentserver.proxy.gzipProxied | quote }}
   NGINX_WORKER_CONNECTIONS: {{ .Values.documentserver.proxy.workerConnections | quote }}
   NGINX_WORKER_PROCESSES: {{ .Values.documentserver.proxy.workerProcesses | quote }}
-  SECURE_LINK_SECRET: {{ .Values.documentserver.proxy.secureLinkSecret | quote }}
   {{- if .Values.example.enabled }}
   EXAMPLE_HOST_PORT: example:3000
   {{- end }}

@@ -327,8 +327,13 @@ documentserver:
   terminationGraceTimeSeconds: 600
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
-  ## documentserver.KeysExpireTime The time in seconds after which the key will be deleted from the balancing database. 172800 mean 48 hours
-  keysExpireTime: 172800
+  ## documentserver.keysExpire The time in seconds after which the key will be deleted from the balancing database.
+  keysExpire:
+    ## documentserver.keysExpire.enabled Enable or disable the TTL mechanism for balancing keys in redis. The mechanism helps periodically clean unused keys. HOWEVER, if the document is constantly open and edited without closing and saving longer than the value documentserver.keysExpire.time value, the key will be deleted and the editable version of document will most likely be lost. Use this setting if editing is not intended for longer than the timer value
+    enabled: false
+    ## documentserver.KeysExpire.time ttl in seconds after which the key will be deleted from the balancing database. 604800 mean 1 week.
+    ## This parameter used only when documentserver.KeysExpire.enabled set to `true`
+    time: 604800
   ## documentserver.annotations Defines annotations that will be additionally added to Documentserver Deployment
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
@@ -469,7 +474,7 @@ documentserver:
       ## documentserver.initContainers.image.repository Documentserver add-shardkey initContainer image repository
       repository: onlyoffice/docs-utils
       ## documentserver.initContainers.image.tag Documentserver add-shardkey initContainer image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## documentserver.initContainers.image.pullPolicy Documentserver add-shardkey initContainer image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for Documentserver add-shardkey initContainer container in Pod
@@ -523,7 +528,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-docservice-de
       ## documentserver.docservice.image.tag docservice container image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## documentserver.docservice.image.pullPolicy docservice container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Docservice container
@@ -666,7 +671,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-proxy-de
       ## documentserver.proxy.image.tag proxy container image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## documentserver.proxy.image.pullPolicy proxy container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Proxy container
@@ -761,7 +766,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-converter-de
       ## documentserver.converter.image.tag converter container image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## documentserver.converter.image.pullPolicy converter container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Converter container
@@ -969,7 +974,7 @@ example:
     ## example.image.repository example container image name
     repository: onlyoffice/docs-example
     ## example.image.tag example container image tag
-    tag: 8.3.0-1
+    tag: 8.3.1-1
     ## example.image.pullPolicy example container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Example container
@@ -1256,7 +1261,7 @@ customBalancer:
     ## customBalancer.image.repository specify balancer image repository
     repository: onlyoffice/docs-balancer
     ## customBalancer.image.tag specify balancer image tag
-    tag: 8.3.0-1
+    tag: 8.3.1-1
     ## customBalancer.image.pullPolicy balancer image pull policy
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
@@ -1378,7 +1383,7 @@ upgrade:
       ## upgrade.job.image.repository Job by pre-upgrade image repository
       repository: onlyoffice/docs-utils
       ## upgrade.job.image.tag Job by pre-upgrade image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## upgrade.job.image.pullPolicy Job by pre-upgrade image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-upgrade container
@@ -1452,7 +1457,7 @@ delete:
       ## delete.job.image.repository Job by pre-delete image repository
       repository: onlyoffice/docs-utils
       ## delete.job.image.tag Job by pre-delete image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## delete.job.image.pullPolicy Job by pre-delete image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-delete container
@@ -1519,7 +1524,7 @@ grafanaDashboard:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Grafana Dashboard container
@@ -1586,7 +1591,7 @@ wopiKeysGeneration:
       ## wopiKeysGeneration.job.image.repository Job by Wopi Keys Generation ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysGeneration.job.image.tag Job by Wopi Keys Generation ONLYOFFICE Docs image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## wopiKeysGeneration.job.image.pullPolicy Job by Wopi Keys Generation ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Generation container
@@ -1655,7 +1660,7 @@ wopiKeysDeletion:
       ## wopiKeysDeletion.job.image.repository Job by Wopi Keys Deletion ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysDeletion.job.image.tag Job by Wopi Keys Deletion ONLYOFFICE Docs image tag
-      tag: 8.3.0-1
+      tag: 8.3.1-1
       ## wopiKeysDeletion.job.image.pullPolicy Job by Wopi Keys Deletion ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Deletion container
@@ -1721,7 +1726,7 @@ tests:
     ## tests.image.repository test container image name
     repository: onlyoffice/docs-utils
     ## tests.image.tag test container image tag
-    tag: 8.3.0-1
+    tag: 8.3.1-1
     ## tests.image.pullPolicy test container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Test container

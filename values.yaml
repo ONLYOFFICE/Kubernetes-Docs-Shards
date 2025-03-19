@@ -1266,7 +1266,7 @@ customBalancer:
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
   containerPorts:
-    http: 80
+    http: 8080
   ## customBalancer.service specify parameters for balancer service
   service:
     ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service

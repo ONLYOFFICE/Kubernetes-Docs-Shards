@@ -119,6 +119,17 @@ $ helm install redis bitnami/redis \
 
 Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus.
 
+Redis also can be deployed with parameters that will help you achieve better performance under high load, mean 500k+ active connections.
+
+```bash
+$ helm install redis bitnami/redis \
+  --set architecture=standalone \
+  --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set master.persistence.size=8Gi \
+  --set metrics.enabled=false \
+  --set master.extraFlags="{--maxclients 1000000,--tcp-backlog 65535,--io-threads 4,--appendonly no}"
+```
+
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
 If you want to use **Redis Sentinel** cluster instead of default standalone Redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.

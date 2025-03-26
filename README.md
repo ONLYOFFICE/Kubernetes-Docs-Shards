@@ -127,7 +127,7 @@ $ helm install redis bitnami/redis \
   --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
   --set master.persistence.size=8Gi \
   --set metrics.enabled=false \
-  --set master.extraFlags="{--maxclients 1000000,--tcp-backlog 65535,--io-threads 4,--appendonly no}"
+  --set master.extraFlags="{--maxclients 30000,--tcp-backlog 65535,--io-threads 4,--appendonly no}"
 ```
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).

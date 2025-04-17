@@ -45,6 +45,7 @@ ONLYOFFICE Docs for Kubernetes
   * [11. Deploy ONLYOFFICE Docs via Redis Sentinel (optional)](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional)
     + [11.1 Deploy Redis Sentinel](#111-deploy-redis-sentinel)
     + [11.2 Deploy ONLYOFFICE Docs](#112-deploy-onlyoffice-docs)
+  * [12. Shutdown ONLYOFFICE Docs (optional)](#12-shutdown-onlyoffice-docs-optional)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -1011,6 +1012,35 @@ $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisSentinelExistingSecret=redis \
                --set connections.redisSentinelSecretKeyName=redis-password \
                --set connections.redisSentinelNoPass=false \
+```
+
+### 12. Shutdown ONLYOFFICE Docs (optional)
+
+To perform the shutdown, run the following command:
+
+```bash
+$ kubectl apply -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/shutdown-ds.yaml -n <NAMESPACE>
+```
+
+Where:
+ - `<NAMESPACE>` - Namespace where ONLYOFFICE Docs is installed. If not specified, the default value will be used: `default`.
+
+For example:
+
+```bash
+$ kubectl apply -f https://raw.githubusercontent.com/ONLYOFFICE/Kubernetes-Docs-Shards/master/sources/shutdown-ds.yaml -n onlyoffice
+```
+
+After successfully executing the Pod `shutdown-ds` that created the Job, delete this Job with the following command:
+
+```bash
+$ kubectl delete job shutdown-ds -n <NAMESPACE>
+```
+
+If after stopping ONLYOFFICE Docs you need to start it again then restart documentserver pods. For example, using the following command:
+
+```bash
+$ kubectl delete pod documentserver-*** -n <NAMESPACE>
 ```
 
 ## Using Grafana to visualize metrics (optional)

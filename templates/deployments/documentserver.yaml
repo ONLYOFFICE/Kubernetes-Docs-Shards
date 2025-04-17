@@ -245,8 +245,6 @@ spec:
           {{- end }}
           - name: REDIS_SERVER_DB_KEYS_NUM
             value: {{ .Values.documentserver.keysRedisDBNum | quote }}
-          - name: REDIS_SERVER_DB_DS_VERSION
-            value: {{ .Values.documentserver.dsVersionHashRedisDBNum | quote }}
           - name: REDIS_SERVER_PWD
             valueFrom:
               secretKeyRef:

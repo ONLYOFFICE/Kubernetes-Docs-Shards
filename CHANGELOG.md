@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.3
+
+### Changes
+
+* Released ONLYOFFICE Docs [v8.3.3](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#833)
+
 ## 2.1.2
 
 ### Changes

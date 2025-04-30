@@ -16,10 +16,10 @@ connections:
   ## connections.redisHost The IP address or the name of the Redis host
   ## If Redis is deployed inside a k8s cluster, then you need to specify the FQDN name of the service
   ## ref: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#services
-  ## Not used if values are set in `connections.redisClusterNodes`
+  ## Not used if the values are set in `connections.redisClusterNodes` and `connections.redisSentinelNodes`
   redisHost: redis-master.default.svc.cluster.local
   ## connections.redisPort The Redis server port number
-  ## Not used if values are set in `connections.redisClusterNodes`
+  ## Not used if the values are set in `connections.redisClusterNodes` and `connections.redisSentinelNodes`
   redisPort: "6379"
   ## connections.redisUser The Redis user name
   ## ref: https://redis.io/docs/management/security/acl/
@@ -53,6 +53,16 @@ connections:
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
   redisNoPass: false
+  ## connections.redisSentinelNodes: List of Redis Sentinel Nodes
+  ## There is no need to specify every node, 3 should be enough
+  ## You can specify multiple values
+  ## It must be specified in the `host:port` format
+  ## Used if `connections.redisConnectorName` is set to `ioredis`
+  ## Example:
+  ## redisSentinelNodes:
+  ## - 10.244.0.79:26379
+  ## - 192.168.1.25:26379
+  redisSentinelNodes: []
   ## connections.redisSentinelGroupName Name of a group of Redis instances composed of a master and one or more slaves
   ## Used if `connections.redisConnectorName` is set to `ioredis`
   redisSentinelGroupName: mymaster

@@ -27,6 +27,9 @@ data:
   {{- if eq .Values.connections.redisConnectorName "ioredis" }}
   REDIS_SENTINEL_GROUP_NAME: {{ .Values.connections.redisSentinelGroupName }}
   REDIS_SENTINEL_USERNAME: {{ .Values.connections.redisSentinelUser }}
+  {{- if.Values.connections.redisSentinelNodes }}
+  REDIS_SENTINEL_NODES: {{ join " " .Values.connections.redisSentinelNodes }}
+  {{- end }}
   {{- end }}
   AMQP_TYPE: "rabbitmq"
   AMQP_PORT: "5672"

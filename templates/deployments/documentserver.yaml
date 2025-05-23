@@ -177,7 +177,7 @@ spec:
           {{- end }}
           envFrom:
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" . }}
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -256,7 +256,7 @@ spec:
           - secretRef:
               name: {{ template "ds.jwt.secretName" . }}
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" . }}
           {{- if .Values.wopi.enabled }}
           {{- if or .Values.wopi.keys.generation .Values.wopi.keys.newKeysExistingSecret }}
           - secretRef:
@@ -341,7 +341,7 @@ spec:
           - secretRef:
               name: {{ template "ds.jwt.secretName" $context }}
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" $context }}
           {{- if $context.Values.wopi.enabled }}
           {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.newKeysExistingSecret }}
           - secretRef:

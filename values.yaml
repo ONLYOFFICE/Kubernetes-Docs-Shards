@@ -415,6 +415,13 @@ documentserver:
   ## documentserver.tolerations Tolerations for Documentserver Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## documentserver.extraVolumes An array with extra volumes for the Documentserver Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
   ## Horizontal Pod Autoscaling parameters
   ## Horizontal Pod Autoscaling is used for autoscaling of the Documentserver deployment
   ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
@@ -622,6 +629,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.docservice.extraVolumeMounts An array with extra volume mounts for the Docservice container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Proxy container
   ##
   proxy:
@@ -768,6 +782,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.proxy.extraVolumeMounts An array with extra volume mounts for the Proxy container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Converter container
   ##
   converter:
@@ -811,6 +832,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.converter.extraVolumeMounts An array with extra volume mounts for the Converter container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Postgresql container
   ##
   postgresql:
@@ -1127,6 +1155,13 @@ customBalancer:
   ## customBalancer.tolerations Tolerations for balancer Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## customBalancer.extraVolumes An array with extra volumes for the Balancer Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
   ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
   autoscaling:
     enabled: false
@@ -1280,6 +1315,13 @@ customBalancer:
   ## customBalancer.containerPorts balancer container port
   containerPorts:
     http: 80
+  ## customBalancer.extraVolumeMounts An array with extra volume mounts for the Balancer container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
   ## customBalancer.service specify parameters for balancer service
   service:
     ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service

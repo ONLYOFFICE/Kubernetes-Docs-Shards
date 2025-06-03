@@ -200,6 +200,9 @@ spec:
             mountPath: /etc/nginx/includes/ds-example.conf
             subPath: ds-example.conf
           {{- end }}
+          {{- with .Values.documentserver.proxy.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
 
         - name: docservice
           image: {{ .Values.documentserver.docservice.image.repository }}:{{ .Values.documentserver.docservice.image.tag }}
@@ -305,6 +308,9 @@ spec:
           - name: remove-shardkey
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py
             subPath: remove_shardkey.py
+          {{- with .Values.documentserver.docservice.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
 
         {{- $context := . }}
         {{- $converterCount := (toString .Values.documentserver.converter.count) }}
@@ -389,6 +395,9 @@ spec:
           - name: custom-themes
             mountPath: /var/www/{{ $context.Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ $context.Values.extraThemes.filename }}
             subPath: {{ $context.Values.extraThemes.filename }}
+          {{- end }}
+          {{- with $context.Values.documentserver.converter.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
           {{- end }}
         {{- end }}
 
@@ -504,3 +513,6 @@ spec:
           configMap:
             name: pre-stop
             defaultMode: 0755
+        {{- with .Values.documentserver.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

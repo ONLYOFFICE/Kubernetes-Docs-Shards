@@ -118,7 +118,13 @@ spec:
           - name: balancer-healthcheck
             mountPath: /scripts/balancer_probes.py
             subPath: balancer_probes.py
+          {{- with .Values.customBalancer.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
       volumes:
         - name: balancer-healthcheck
           configMap:
             name: balancer-probes
+        {{- with .Values.customBalancer.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

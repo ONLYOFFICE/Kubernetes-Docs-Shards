@@ -88,6 +88,9 @@ spec:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.documentserver.terminationGracePeriodSeconds }}
+      {{- if .Values.documentserver.hostAliases }}
+      hostAliases: {{- toYaml .Values.documentserver.hostAliases | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: add-shardkey
           image: {{ .Values.documentserver.initContainers.image.repository }}:{{ .Values.documentserver.initContainers.image.tag }}

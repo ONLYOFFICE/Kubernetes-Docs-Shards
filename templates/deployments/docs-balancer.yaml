@@ -88,6 +88,9 @@ spec:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.customBalancer.terminationGracePeriodSeconds }}
+      {{- if .Values.customBalancer.hostAliases }}
+      hostAliases: {{- toYaml .Values.customBalancer.hostAliases | nindent 8 }}
+      {{- end }}
       containers:
         - name: docs-balancer
           image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}

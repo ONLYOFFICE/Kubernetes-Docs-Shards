@@ -482,6 +482,14 @@ documentserver:
     ##       periodSeconds: 15
     ##     selectPolicy: Max
     behavior: {}
+  ## documentserver.hostAliases Adds additional entries to the hosts file in the all containers in a Pod
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## Documentserver initContainers parameters
   ## Containers that run before all containers in a Pod
   ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
@@ -1010,6 +1018,14 @@ example:
   ## example.tolerations Tolerations for Example Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## example.hostAliases Adds additional entries to the hosts file in the Example container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## Example container image parameters
   image:
     ## example.image.repository example container image name
@@ -1304,6 +1320,14 @@ customBalancer:
     ## customBalancer.containerSecurityContext.capabilities Defines the privileges granted to the process
     capabilities:
       drop: ["ALL"]
+  ## customBalancer.hostAliases Adds additional entries to the hosts file in the Balancer container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## customBalancer.image
   image:
     ## customBalancer.image.repository specify balancer image repository

@@ -869,7 +869,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: postgres
       ## documentserver.postgresql.image.tag Postgresql container image tag
-      tag: 16
+      tag: 17
       ## documentserver.postgresql.image.pullPolicy Postgresql container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Postgresql container
@@ -911,7 +911,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: rabbitmq
       ## documentserver.rabbitmq.image.tag Rabbitmq container image tag
-      tag: 3.12.10
+      tag: 4
       ## documentserver.rabbitmq.image.pullPolicy Rabbitmq container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Rabbitmq container

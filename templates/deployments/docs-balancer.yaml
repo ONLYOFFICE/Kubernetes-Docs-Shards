@@ -100,7 +100,7 @@ spec:
               exec:
                 command: ["python3", "/scripts/balancer-shutdown.py"]
           {{- if .Values.customBalancer.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          securityContext: {{- omit .Values.customBalancer.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}

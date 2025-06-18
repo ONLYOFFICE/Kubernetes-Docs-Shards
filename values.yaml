@@ -1351,7 +1351,7 @@ customBalancer:
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
   containerPorts:
-    http: 80
+    http: 8080
   ## customBalancer.extraVolumeMounts An array with extra volume mounts for the Balancer container
   ## Example:
   ## extraVolumeMounts:

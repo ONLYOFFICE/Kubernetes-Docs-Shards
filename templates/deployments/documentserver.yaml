@@ -288,6 +288,10 @@ spec:
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
           - name: ds-service-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files
+          {{- if .Values.persistence.runtimeConfig.enabled }}
+          - name: ds-runtime-config
+            mountPath: /var/www/{{ .Values.product.name }}/config
+          {{- end }}
           - name: config-file
             mountPath: /etc/{{ .Values.product.name }}/documentserver/local.json
             subPath: local.json
@@ -376,6 +380,10 @@ spec:
             mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files/{{ $context.Values.documentserver.docservice.image.tag }}
           - name: ds-service-files
             mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files
+          {{- if $context.Values.persistence.runtimeConfig.enabled }}
+          - name: ds-runtime-config
+            mountPath: /var/www/{{ $context.Values.product.name }}/config
+          {{- end }}
           - name: config-file
             mountPath: /etc/{{ $context.Values.product.name }}/documentserver/local.json
             subPath: local.json
@@ -474,7 +482,12 @@ spec:
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:
-            claimName: {{ template "ds.pvc.name" . }}
+            claimName: {{ include "ds.pvc.name" (list . .Values.persistence.existingClaim "ds-service-files") }}
+        {{- if .Values.persistence.runtimeConfig.enabled }}
+        - name: ds-runtime-config
+          persistentVolumeClaim:
+            claimName: {{ include "ds.pvc.name" (list . .Values.persistence.runtimeConfig.existingClaim "ds-runtime-config") }}
+        {{- end }}
         - name: config-file
           configMap:
             name: local-config

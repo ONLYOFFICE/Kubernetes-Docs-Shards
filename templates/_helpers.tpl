@@ -136,10 +136,13 @@ Return true if a secret object should be created for secure link
 Get the PVC name
 */}}
 {{- define "ds.pvc.name" -}}
-{{- if .Values.persistence.existingClaim -}}
-    {{- printf "%s" (tpl .Values.persistence.existingClaim $) -}}
+{{- $context := index . 0 -}}
+{{- $pvcExistingClaim := index . 1 -}}
+{{- $pvcName := index . 2 -}}
+{{- if $pvcExistingClaim -}}
+    {{- printf "%s" (tpl $pvcExistingClaim $context) -}}
 {{- else }}
-    {{- printf "ds-service-files" -}}
+    {{- printf "%s" $pvcName -}}
 {{- end -}}
 {{- end -}}
 
@@ -147,7 +150,7 @@ Get the PVC name
 Return true if a pvc object for ds-service-files should be created
 */}}
 {{- define "ds.pvc.create" -}}
-{{- if empty .Values.persistence.existingClaim }}
+{{- if empty . }}
     {{- true -}}
 {{- end -}}
 {{- end -}}

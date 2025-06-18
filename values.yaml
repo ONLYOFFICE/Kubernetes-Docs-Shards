@@ -147,17 +147,30 @@ serviceAccount:
   automountServiceAccountToken: true
 ## Persistence parameters for forgotten and error files. Also define parameters for PVC which is used as storage for caching static controller requests
 persistence:
-  ## persistence.existingClaim Name of an existing PVC to use
+  ## persistence.existingClaim The name of the existing PVC to use for Onlyoffice Docs service data
   ## If not specified, a PVC named "ds-service-files" will be created
   existingClaim: ""
   ## persistence.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
   annotations: {}
-  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data and runtime config volumes
   storageClass: "nfs"
   ## persistence.size PVC Storage Request for Onlyoffice Docs volume
   size: 8Gi
+  ## Persistence parameters for storing runtime config. Used if `persistence.runtimeConfig.enabled` is set to true
+  runtimeConfig:
+    ## persistence.runtimeConfig.enabled Defines whether to use PVC and whether to mount it in containers
+    enabled: true
+    ## persistence.runtimeConfig.existingClaim The name of the existing PVC used to store the runtime config
+    ## If not specified, a PVC named "ds-runtime-config" will be created
+    existingClaim: ""
+    ## persistence.runtimeConfig.annotations Defines annotations that will be additionally added to "ds-runtime-config" PVC
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## persistence.runtimeConfig.size PVC Storage Request for runtime config volume
+    size: 1Gi
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:

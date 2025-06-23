@@ -616,6 +616,7 @@ List of parameters for broker inside the documentserver pod
 | `ingress.ssl.enabled`                                       | Enable ssl for the ONLYOFFICE Docs ingress                                                                                                                              | `false`                                                                                   |
 | `ingress.ssl.secret`                                        | Secret name for ssl to mount into the Ingress                                                                                                                                  | `tls`                                                                                     |
 | `ingress.path`                                              | Specifies the path where ONLYOFFICE Docs will be available                                                                                                              | `/`                                                                                       |
+| `ingress.pathType`                                          | Specifies the path type for the ONLYOFFICE Docs ingress resource. Allowed values are `Exact`, `Prefix` or `ImplementationSpecific`                                      | `ImplementationSpecific`                                                                  |
 
 ### Grafana parameters
 

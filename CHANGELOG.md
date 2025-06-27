@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.0
+
+### New Features
+
+* Added the ability to connect to multiple Redis Sentinel nodes
+* Added the ability to specify an existing Secret for Proxy `secure_link`
+* Added the creation of a PVC to store a shared runtime config. You can specify an existing PVC
+* Added the ability to set up the `hostAliases`
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.0.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#900)
+* Balancer container is run by user with `ds(101:101)` permissions
+
 ## 2.1.3
 
 ### Changes

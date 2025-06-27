@@ -16,10 +16,10 @@ connections:
   ## connections.redisHost The IP address or the name of the Redis host
   ## If Redis is deployed inside a k8s cluster, then you need to specify the FQDN name of the service
   ## ref: https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#services
-  ## Not used if values are set in `connections.redisClusterNodes`
+  ## Not used if the values are set in `connections.redisClusterNodes` and `connections.redisSentinelNodes`
   redisHost: redis-master.default.svc.cluster.local
   ## connections.redisPort The Redis server port number
-  ## Not used if values are set in `connections.redisClusterNodes`
+  ## Not used if the values are set in `connections.redisClusterNodes` and `connections.redisSentinelNodes`
   redisPort: "6379"
   ## connections.redisUser The Redis user name
   ## ref: https://redis.io/docs/management/security/acl/
@@ -53,6 +53,16 @@ connections:
   ## connections.redisNoPass Defines whether to use a Redis auth without a password
   ## If the connection to Redis server does not require a password, set the value to `true`
   redisNoPass: false
+  ## connections.redisSentinelNodes: List of Redis Sentinel Nodes
+  ## There is no need to specify every node, 3 should be enough
+  ## You can specify multiple values
+  ## It must be specified in the `host:port` format
+  ## Used if `connections.redisConnectorName` is set to `ioredis`
+  ## Example:
+  ## redisSentinelNodes:
+  ## - 10.244.0.79:26379
+  ## - 192.168.1.25:26379
+  redisSentinelNodes: []
   ## connections.redisSentinelGroupName Name of a group of Redis instances composed of a master and one or more slaves
   ## Used if `connections.redisConnectorName` is set to `ioredis`
   redisSentinelGroupName: mymaster
@@ -137,17 +147,30 @@ serviceAccount:
   automountServiceAccountToken: true
 ## Persistence parameters for forgotten and error files. Also define parameters for PVC which is used as storage for caching static controller requests
 persistence:
-  ## persistence.existingClaim Name of an existing PVC to use
+  ## persistence.existingClaim The name of the existing PVC to use for Onlyoffice Docs service data
   ## If not specified, a PVC named "ds-service-files" will be created
   existingClaim: ""
   ## persistence.annotations Defines annotations that will be additionally added to "ds-service-files" PVC
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key
   annotations: {}
-  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data volume
+  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs service data and runtime config volumes
   storageClass: "nfs"
   ## persistence.size PVC Storage Request for Onlyoffice Docs volume
   size: 8Gi
+  ## Persistence parameters for storing runtime config. Used if `persistence.runtimeConfig.enabled` is set to true
+  runtimeConfig:
+    ## persistence.runtimeConfig.enabled Defines whether to use PVC and whether to mount it in containers
+    enabled: true
+    ## persistence.runtimeConfig.existingClaim The name of the existing PVC used to store the runtime config
+    ## If not specified, a PVC named "ds-runtime-config" will be created
+    existingClaim: ""
+    ## persistence.runtimeConfig.annotations Defines annotations that will be additionally added to "ds-runtime-config" PVC
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## persistence.runtimeConfig.size PVC Storage Request for runtime config volume
+    size: 1Gi
 ## Configure a Security Context for a Pod
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 podSecurityContext:
@@ -405,6 +428,13 @@ documentserver:
   ## documentserver.tolerations Tolerations for Documentserver Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## documentserver.extraVolumes An array with extra volumes for the Documentserver Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
   ## Horizontal Pod Autoscaling parameters
   ## Horizontal Pod Autoscaling is used for autoscaling of the Documentserver deployment
   ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
@@ -465,6 +495,14 @@ documentserver:
     ##       periodSeconds: 15
     ##     selectPolicy: Max
     behavior: {}
+  ## documentserver.hostAliases Adds additional entries to the hosts file in the all containers in a Pod
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## Documentserver initContainers parameters
   ## Containers that run before all containers in a Pod
   ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
@@ -474,7 +512,7 @@ documentserver:
       ## documentserver.initContainers.image.repository Documentserver add-shardkey initContainer image repository
       repository: onlyoffice/docs-utils
       ## documentserver.initContainers.image.tag Documentserver add-shardkey initContainer image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## documentserver.initContainers.image.pullPolicy Documentserver add-shardkey initContainer image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for Documentserver add-shardkey initContainer container in Pod
@@ -528,7 +566,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-docservice-de
       ## documentserver.docservice.image.tag docservice container image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## documentserver.docservice.image.pullPolicy docservice container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Docservice container
@@ -612,6 +650,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.docservice.extraVolumeMounts An array with extra volume mounts for the Docservice container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Proxy container
   ##
   proxy:
@@ -637,6 +682,9 @@ documentserver:
     ## If the value is empty, a random one will be generated, which will be used later in the upgrade
     ## If a value is set, it will be used
     secureLinkSecret: ""
+    ## documentserver.proxy.secureLinkExistingSecret Name of existing secret to use for secure_link
+    ## If set to, it takes priority over the `documentserver.proxy.secureLinkSecret`
+    secureLinkExistingSecret: ""
     ## documentserver.proxy.infoAllowedIP Defines ip addresses for accessing the info page
     ## Example:
     ## infoAllowedIP:
@@ -671,7 +719,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-proxy-de
       ## documentserver.proxy.image.tag proxy container image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## documentserver.proxy.image.pullPolicy proxy container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Proxy container
@@ -755,6 +803,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.proxy.extraVolumeMounts An array with extra volume mounts for the Proxy container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Converter container
   ##
   converter:
@@ -766,7 +821,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-converter-de
       ## documentserver.converter.image.tag converter container image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## documentserver.converter.image.pullPolicy converter container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Converter container
@@ -798,6 +853,13 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.converter.extraVolumeMounts An array with extra volume mounts for the Converter container
+    ## Example:
+    ## extraVolumeMounts:
+    ##   - name: my-volume
+    ##     mountPath: /my_dir/my_cm.txt
+    ##     subPath: my_cm.txt
+    extraVolumeMounts: []
   ## Parameters of the Postgresql container
   ##
   postgresql:
@@ -807,7 +869,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: postgres
       ## documentserver.postgresql.image.tag Postgresql container image tag
-      tag: 16
+      tag: 17
       ## documentserver.postgresql.image.pullPolicy Postgresql container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Postgresql container
@@ -849,7 +911,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: rabbitmq
       ## documentserver.rabbitmq.image.tag Rabbitmq container image tag
-      tag: 3.12.10
+      tag: 4
       ## documentserver.rabbitmq.image.pullPolicy Rabbitmq container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Rabbitmq container
@@ -969,12 +1031,20 @@ example:
   ## example.tolerations Tolerations for Example Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## example.hostAliases Adds additional entries to the hosts file in the Example container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## Example container image parameters
   image:
     ## example.image.repository example container image name
     repository: onlyoffice/docs-example
     ## example.image.tag example container image tag
-    tag: 8.3.3-1
+    tag: 9.0.2-1
     ## example.image.pullPolicy example container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Example container
@@ -1114,6 +1184,13 @@ customBalancer:
   ## customBalancer.tolerations Tolerations for balancer Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## customBalancer.extraVolumes An array with extra volumes for the Balancer Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
   ## customBalancer.autoscaling.enabled Enable or disable autoscaling for balancer replicas
   autoscaling:
     enabled: false
@@ -1256,17 +1333,32 @@ customBalancer:
     ## customBalancer.containerSecurityContext.capabilities Defines the privileges granted to the process
     capabilities:
       drop: ["ALL"]
+  ## customBalancer.hostAliases Adds additional entries to the hosts file in the Balancer container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
   ## customBalancer.image
   image:
     ## customBalancer.image.repository specify balancer image repository
     repository: onlyoffice/docs-balancer
     ## customBalancer.image.tag specify balancer image tag
-    tag: 8.3.3-1
+    tag: 9.0.2-1
     ## customBalancer.image.pullPolicy balancer image pull policy
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
   containerPorts:
-    http: 80
+    http: 8080
+  ## customBalancer.extraVolumeMounts An array with extra volume mounts for the Balancer container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
   ## customBalancer.service specify parameters for balancer service
   service:
     ## customBalancer.annotations Map of annotations to add to the ONLYOFFICE Docs balancer service
@@ -1318,6 +1410,9 @@ ingress:
   ## Example:
   ## path: "/ds"
   path: "/"
+  ## ingress.pathType Specifies the path type for the ONLYOFFICE Docs ingress resource
+  ## Allowed values: `Exact`, `Prefix` or `ImplementationSpecific`
+  pathType: ImplementationSpecific
 
 ## Grafana parameters
 ## See more details about installing Grafana here:
@@ -1383,7 +1478,7 @@ upgrade:
       ## upgrade.job.image.repository Job by pre-upgrade image repository
       repository: onlyoffice/docs-utils
       ## upgrade.job.image.tag Job by pre-upgrade image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## upgrade.job.image.pullPolicy Job by pre-upgrade image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-upgrade container
@@ -1457,7 +1552,7 @@ delete:
       ## delete.job.image.repository Job by pre-delete image repository
       repository: onlyoffice/docs-utils
       ## delete.job.image.tag Job by pre-delete image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## delete.job.image.pullPolicy Job by pre-delete image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-delete container
@@ -1524,7 +1619,7 @@ grafanaDashboard:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Grafana Dashboard container
@@ -1591,7 +1686,7 @@ wopiKeysGeneration:
       ## wopiKeysGeneration.job.image.repository Job by Wopi Keys Generation ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysGeneration.job.image.tag Job by Wopi Keys Generation ONLYOFFICE Docs image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## wopiKeysGeneration.job.image.pullPolicy Job by Wopi Keys Generation ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Generation container
@@ -1660,7 +1755,7 @@ wopiKeysDeletion:
       ## wopiKeysDeletion.job.image.repository Job by Wopi Keys Deletion ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysDeletion.job.image.tag Job by Wopi Keys Deletion ONLYOFFICE Docs image tag
-      tag: 8.3.3-1
+      tag: 9.0.2-1
       ## wopiKeysDeletion.job.image.pullPolicy Job by Wopi Keys Deletion ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Deletion container
@@ -1726,7 +1821,7 @@ tests:
     ## tests.image.repository test container image name
     repository: onlyoffice/docs-utils
     ## tests.image.tag test container image tag
-    tag: 8.3.3-1
+    tag: 9.0.2-1
     ## tests.image.pullPolicy test container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Test container

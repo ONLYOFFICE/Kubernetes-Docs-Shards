@@ -88,6 +88,9 @@ spec:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.documentserver.terminationGracePeriodSeconds }}
+      {{- if .Values.documentserver.hostAliases }}
+      hostAliases: {{- toYaml .Values.documentserver.hostAliases | nindent 8 }}
+      {{- end }}
       initContainers:
         - name: add-shardkey
           image: {{ .Values.documentserver.initContainers.image.repository }}:{{ .Values.documentserver.initContainers.image.tag }}
@@ -177,7 +180,7 @@ spec:
           {{- end }}
           envFrom:
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" . }}
           - configMapRef:
               name: documentserver
           volumeMounts:
@@ -199,6 +202,9 @@ spec:
           - name: ds-welcome-page
             mountPath: /etc/nginx/includes/ds-example.conf
             subPath: ds-example.conf
+          {{- end }}
+          {{- with .Values.documentserver.proxy.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
           {{- end }}
 
         - name: docservice
@@ -256,7 +262,7 @@ spec:
           - secretRef:
               name: {{ template "ds.jwt.secretName" . }}
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" . }}
           {{- if .Values.wopi.enabled }}
           {{- if or .Values.wopi.keys.generation .Values.wopi.keys.newKeysExistingSecret }}
           - secretRef:
@@ -282,6 +288,10 @@ spec:
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
           - name: ds-service-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files
+          {{- if .Values.persistence.runtimeConfig.enabled }}
+          - name: ds-runtime-config
+            mountPath: /var/www/{{ .Values.product.name }}/config
+          {{- end }}
           - name: config-file
             mountPath: /etc/{{ .Values.product.name }}/documentserver/local.json
             subPath: local.json
@@ -305,6 +315,9 @@ spec:
           - name: remove-shardkey
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py
             subPath: remove_shardkey.py
+          {{- with .Values.documentserver.docservice.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
 
         {{- $context := . }}
         {{- $converterCount := (toString .Values.documentserver.converter.count) }}
@@ -341,7 +354,7 @@ spec:
           - secretRef:
               name: {{ template "ds.jwt.secretName" $context }}
           - secretRef:
-              name: link-secret
+              name: {{ template "ds.secureLinkSecret.secretName" $context }}
           {{- if $context.Values.wopi.enabled }}
           {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.newKeysExistingSecret }}
           - secretRef:
@@ -367,6 +380,10 @@ spec:
             mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files/{{ $context.Values.documentserver.docservice.image.tag }}
           - name: ds-service-files
             mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files
+          {{- if $context.Values.persistence.runtimeConfig.enabled }}
+          - name: ds-runtime-config
+            mountPath: /var/www/{{ $context.Values.product.name }}/config
+          {{- end }}
           - name: config-file
             mountPath: /etc/{{ $context.Values.product.name }}/documentserver/local.json
             subPath: local.json
@@ -389,6 +406,9 @@ spec:
           - name: custom-themes
             mountPath: /var/www/{{ $context.Values.product.name }}/documentserver/web-apps/apps/common/main/resources/themes/{{ $context.Values.extraThemes.filename }}
             subPath: {{ $context.Values.extraThemes.filename }}
+          {{- end }}
+          {{- with $context.Values.documentserver.converter.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
           {{- end }}
         {{- end }}
 
@@ -462,7 +482,12 @@ spec:
           emptyDir: {}
         - name: ds-service-files
           persistentVolumeClaim:
-            claimName: {{ template "ds.pvc.name" . }}
+            claimName: {{ include "ds.pvc.name" (list . .Values.persistence.existingClaim "ds-service-files") }}
+        {{- if .Values.persistence.runtimeConfig.enabled }}
+        - name: ds-runtime-config
+          persistentVolumeClaim:
+            claimName: {{ include "ds.pvc.name" (list . .Values.persistence.runtimeConfig.existingClaim "ds-runtime-config") }}
+        {{- end }}
         - name: config-file
           configMap:
             name: local-config
@@ -504,3 +529,6 @@ spec:
           configMap:
             name: pre-stop
             defaultMode: 0755
+        {{- with .Values.documentserver.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

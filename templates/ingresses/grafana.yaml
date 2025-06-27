@@ -31,7 +31,7 @@ spec:
     http:
       paths:
       - path: /grafana/
-        pathType: Prefix
+        pathType: {{ .Values.ingress.pathType }}
         backend:
           service:
             name: grafana

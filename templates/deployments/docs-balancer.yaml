@@ -88,6 +88,9 @@ spec:
       - name: {{ .Values.imagePullSecrets }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.customBalancer.terminationGracePeriodSeconds }}
+      {{- if .Values.customBalancer.hostAliases }}
+      hostAliases: {{- toYaml .Values.customBalancer.hostAliases | nindent 8 }}
+      {{- end }}
       containers:
         - name: docs-balancer
           image: {{ .Values.customBalancer.image.repository }}:{{ .Values.customBalancer.image.tag }}
@@ -97,7 +100,7 @@ spec:
               exec:
                 command: ["python3", "/scripts/balancer-shutdown.py"]
           {{- if .Values.customBalancer.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.customBalancer.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          securityContext: {{- omit .Values.customBalancer.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           ports:
             - containerPort: {{ .Values.customBalancer.containerPorts.http }}
@@ -118,7 +121,13 @@ spec:
           - name: balancer-healthcheck
             mountPath: /scripts/balancer_probes.py
             subPath: balancer_probes.py
+          {{- with .Values.customBalancer.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
       volumes:
         - name: balancer-healthcheck
           configMap:
             name: balancer-probes
+        {{- with .Values.customBalancer.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}

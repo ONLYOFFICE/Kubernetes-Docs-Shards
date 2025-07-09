@@ -46,7 +46,10 @@ ONLYOFFICE Docs for Kubernetes
   * [11. Deploy ONLYOFFICE Docs via Redis Sentinel (optional)](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional)
     + [11.1 Deploy Redis Sentinel](#111-deploy-redis-sentinel)
     + [11.2 Deploy ONLYOFFICE Docs](#112-deploy-onlyoffice-docs)
-  * [12. Shutdown ONLYOFFICE Docs (optional)](#12-shutdown-onlyoffice-docs-optional)
+  * [12. Deploy ONLYOFFICE Docs via Redis Cluster (optional)](#12-deploy-onlyoffice-docs-shards-via-redis-cluster-optional)
+    + [12.1 Deploy Redis Cluster](#121-deploy-redis-cluster)
+    + [12.2 Deploy ONLYOFFICE Docs](#122-deploy-onlyoffice-docs)
+  * [13. Shutdown ONLYOFFICE Docs (optional)](#13-shutdown-onlyoffice-docs-optional)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -124,6 +127,8 @@ Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gath
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
 If you want to use **Redis Sentinel** cluster instead of default standalone Redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
+
+If you want to use **Redis Cluster** instead of default standalone Redis, please follow this [#12](#12-deploy-onlyoffice-docs-shards-via-redis-cluster-optional) instruction.
 
 ### 4. Deploy StatsD exporter
 
@@ -1035,7 +1040,29 @@ $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisSentinelNoPass=false \
 ```
 
-### 12. Shutdown ONLYOFFICE Docs (optional)
+### 12. Deploy ONLYOFFICE Docs Shards via redis cluster (optional)
+
+ONLYOFFICE Docs Shards can work with Redis cluster. To deploy in this mode, please follow the instructions below:
+
+#### 12.1 Deploy Redis cluster
+
+Deploy redis cluster using the command:
+
+```bash
+$ helm install redis bitnami/redis-cluster --set persistence.size=8Gi
+```
+
+#### 12.2 Deploy ONLYOFFICE Docs
+
+Deploy ONLYOFFICE Docs Shards with enabled redis cluster mode, you should specify cluster nodes:
+
+```bash
+$ helm install documentserver onlyoffice/docs-shards \
+               --set connections.redisExistingSecret=redis-redis-cluster \
+               --set connections.redisClusterNodes="{<address_node1>:6379,<address_node2>:6379}"
+```
+
+### 13. Shutdown ONLYOFFICE Docs (optional)
 
 To perform the shutdown, run the following command:
 

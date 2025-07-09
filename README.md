@@ -16,9 +16,10 @@ ONLYOFFICE Docs for Kubernetes
     + [5.2 Specify parameters when installing ONLYOFFICE Docs](#52-specify-parameters-when-installing-onlyoffice-docs)
   * [6. Add custom Fonts](#6-add-custom-fonts)
   * [7. Add Plugins](#7-add-plugins)
-  * [8. Change interface themes](#8-change-interface-themes)
-    + [8.1 Create a ConfigMap containing a json file](#81-create-a-configmap-containing-a-json-file)
-    + [8.2 Specify parameters when installing ONLYOFFICE Docs](#82-specify-parameters-when-installing-onlyoffice-docs)
+  * [8. Add custom dictionaries](#8-add-custom-dictionaries)
+  * [9. Change interface themes](#9-change-interface-themes)
+    + [9.1 Create a ConfigMap containing a json file](#91-create-a-configmap-containing-a-json-file)
+    + [9.2 Specify parameters when installing ONLYOFFICE Docs](#92-specify-parameters-when-installing-onlyoffice-docs)
 - [Deploy ONLYOFFICE Docs](#deploy-onlyoffice-docs)
   * [1. Deploy the ONLYOFFICE Docs license](#1-deploy-the-onlyoffice-docs-license)
     + [1.1 Create secret](#11-create-secret)
@@ -201,11 +202,18 @@ Then specify your images when installing the ONLYOFFICE Docs.
 In order to add plugins to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 8. Change interface themes
+### 8. Add custom dictionaries
 
-*This step is optional. You can skip step [#8](#8-change-interface-themes) entirely if you don't need to change the interface themes*
+*This step is optional. You can skip step [#8](#8-add-custom-dictionaries) entirely if you don't need to add your dictionaries*
 
-#### 8.1 Create a ConfigMap containing a json file
+In order to add your custom dictionaries to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
+Then specify your images when installing the ONLYOFFICE Docs.
+
+### 9. Change interface themes
+
+*This step is optional. You can skip step [#9](#9-change-interface-themes) entirely if you don't need to change the interface themes*
+
+#### 9.1 Create a ConfigMap containing a json file
 
 To create a ConfigMap with a json file that contains the interface themes, you need to run the following command:
 
@@ -216,7 +224,7 @@ $ kubectl create configmap custom-themes \
 
 Note: Instead of `custom-themes` and `custom-themes.json` you can use any other names.
 
-#### 8.2 Specify parameters when installing ONLYOFFICE Docs
+#### 9.2 Specify parameters when installing ONLYOFFICE Docs
 
 When installing ONLYOFFICE Docs, specify the `extraThemes.configMap=custom-themes` and `extraThemes.filename=custom-themes.json` parameters.
 

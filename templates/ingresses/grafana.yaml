@@ -10,8 +10,8 @@ metadata:
   {{- end }}
   annotations:
     {{- if or .Values.commonAnnotations .Values.grafana.ingress.annotations }}
-      {{- $dictValue := default .Values.commonAnnotations .Values.grafana.ingress.annotations }}
-      {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+    {{- $dictValue := default .Values.commonAnnotations .Values.grafana.ingress.annotations }}
+    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
     {{- end }}
     {{- if .Values.ingress.letsencrypt.enabled }}
     cert-manager.io/cluster-issuer: letsencrypt-prod

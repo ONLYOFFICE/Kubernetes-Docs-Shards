@@ -5,6 +5,7 @@
 ### New Features
 
 * Added the ability to specify multiple hostname for Ingress
+* Added the ability to set up the certificate request in Let's Encrypt
 
 ## 3.0.0
 
@@ -17,7 +18,7 @@
 
 ### Changes
 
-* Released ONLYOFFICE Docs [v9.0.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#900)
+* Released ONLYOFFICE Docs [v9.0.2](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#902)
 * Balancer container is run by user with `ds(101:101)` permissions
 
 ## 2.1.3

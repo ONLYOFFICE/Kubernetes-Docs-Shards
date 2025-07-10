@@ -36,6 +36,7 @@ ONLYOFFICE Docs for Kubernetes
     + [5.3.2.1 Installing the Kubernetes Nginx Ingress Controller](#5321-installing-the-kubernetes-nginx-ingress-controller)
     + [5.3.2.2 Expose ONLYOFFICE Docs via HTTP](#5322-expose-onlyoffice-docs-via-http)
     + [5.3.2.3 Expose ONLYOFFICE Docs via HTTPS](#5323-expose-onlyoffice-docs-via-https)
+    + [5.3.2.4 Expose ONLYOFFICE Docs on a virtual path](#5324-expose-onlyoffice-docs-on-a-virtual-path)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
     + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
     + [6.2 Manual scaling](#62-manual-scaling)
@@ -625,7 +626,9 @@ List of parameters for broker inside the documentserver pod
 | `ingress.enabled`                                           | Enable the creation of an ingress for the ONLYOFFICE Docs                                                                                                               | `false`                                                                                   |
 | `ingress.annotations`                                       | Map of annotations to add to the Ingress. If set to, it takes priority over the `commonAnnotations`                                                                            | `nginx.ingress.kubernetes.io/proxy-body-size: 100m`                                       |
 | `ingress.ingressClassName`                                  | Used to reference the IngressClass that should be used to implement this Ingress                                                                                               | `nginx`                                                                                   |
+| `ingress.controllerName`                                    | Used to distinguish between controllers with the same IngressClassName but from different vendors                                                                              | `ingress-nginx`                                                                           |
 | `ingress.host`                                              | Ingress hostname for the ONLYOFFICE Docs ingress                                                                                                                        | `""`                                                                                      |
+| `ingress.tenants`                                           | Ingress hostnames if you need to use more than one name. For example, for multitenancy. If set to, it takes priority over the `ingress.host`. If `ingress.ssl.enabled` is set to `true`, it is assumed that the certificate for all specified domains is kept secret by `ingress.ssl.secret` | `[]` |
 | `ingress.ssl.enabled`                                       | Enable ssl for the ONLYOFFICE Docs ingress                                                                                                                              | `false`                                                                                   |
 | `ingress.ssl.secret`                                        | Secret name for ssl to mount into the Ingress                                                                                                                                  | `tls`                                                                                     |
 | `ingress.path`                                              | Specifies the path where ONLYOFFICE Docs will be available                                                                                                              | `/`                                                                                       |
@@ -895,6 +898,21 @@ $ kubectl get ingress documentserver -o jsonpath="{.status.loadBalancer.ingress[
 Associate the `documentserver` ingress IP or hostname with your domain name through your DNS provider.
 
 After that, ONLYOFFICE Docs Shards will be available at `https://your-domain-name/`.
+
+#### 5.3.2.4 Expose ONLYOFFICE Docs on a virtual path
+This type of exposure allows you to expose ONLYOFFICE Docs on a virtual path, for example, `http://your-domain-name/docs`.
+To expose ONLYOFFICE Docs via ingress on a virtual path, set the `ingress.enabled`, `ingress.host` and `ingress.path` parameters.
+
+```bash
+$ helm install documentserver onlyoffice/docs --set ingress.enabled=true,ingress.host=your-domain-name,ingress.path=/docs
+```
+
+The list of supported ingress controllers for virtual path configuration:
+* [Ingress NGINX by Kubernetes](https://github.com/kubernetes/ingress-nginx)
+* [NGINX Ingress by NGINX](https://github.com/nginx/kubernetes-ingress/)
+* [HAProxy Ingress by HAProxy](https://github.com/haproxytech/kubernetes-ingress/)
+
+For virtual path configuration with `Ingress NGINX by Kubernetes`, append the pattern `(/|$)(.*)` to the `ingress.path`, for example, `/docs` becomes `/docs(/|$)(.*)`.
 
 ### 6. Scale ONLYOFFICE Docs (optional)
 

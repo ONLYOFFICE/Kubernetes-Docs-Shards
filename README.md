@@ -1079,8 +1079,7 @@ Deploy ONLYOFFICE Docs Shards with enabled sentinel mode with command:
 ```bash
 $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisConnectorName=ioredis \
-               --set connections.redisHost=redis.default.svc.cluster.local \
-               --set connections.redisPort=26379 \
+               --set connections.redisSentinelNodes="{SENTINEL_NODE_ADDRESS_1:26379,SENTINEL_NODE_ADDRESS_2:26379,SENTINEL_NODE_ADDRESS_3:26379}" \
                --set connections.redisSentinelExistingSecret=redis \
                --set connections.redisSentinelSecretKeyName=redis-password \
                --set connections.redisSentinelNoPass=false \

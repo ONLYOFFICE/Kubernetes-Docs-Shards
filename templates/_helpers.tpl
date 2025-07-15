@@ -296,13 +296,52 @@ Get the ds Grafana Namespace
 {{- end -}}
 
 {{/*
-Get the ds virtual path
+Get the ds virtual path with trailing slash
+/                   -> /
+/path               -> /path/
+/path/              -> /path/
+/path/path          -> /path/path/
+/path/path/         -> /path/path/
+/path(/|$)(.*)      -> /path(/|$)(.*)
+/path/path(/|$)(.*) -> /path/path(/|$)(.*)
 */}}
-{{- define "ds.ingress.path" -}}
-{{- if eq .Values.ingress.path "/" -}}
-    {{- printf "/" -}}
+{{- define "ds.path.withTrailingSlash" -}}
+{{- $pathValue := . -}}
+{{- if hasSuffix "/" $pathValue -}}
+    {{- printf "%s" $pathValue -}}
+{{- else if hasSuffix "(/|$)(.*)" $pathValue -}}
+    {{- printf "%s" $pathValue -}}
+{{- else -}}
+    {{- printf "%s/" $pathValue -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the ds virtual path without trailing slash
+/                   -> /
+/path               -> /path
+/path/              -> /path
+/path/path          -> /path/path
+/path/path/         -> /path/path
+/path(/|$)(.*)      -> /path
+/path/path(/|$)(.*) -> /path/path
+*/}}
+{{- define "ds.path.withoutTrailingSlash" -}}
+{{- $pathValue := . -}}
+{{- if hasSuffix "(/|$)(.*)" $pathValue -}}
+    {{- $pathValue = trimSuffix "(/|$)(.*)" $pathValue -}}
+{{- end -}}
+{{- trimSuffix "/" $pathValue | default "/" -}}
+{{- end -}}
+
+{{/*
+Get ds url
+*/}}
+{{- define "ds.dsUrl" -}}
+{{- if not (hasSuffix "/" .) -}}
+  {{- printf "%s/" . -}}
 {{- else }}
-    {{- printf "%s(/|$)(.*)" .Values.ingress.path -}}
+  {{- printf "%s" . -}}
 {{- end -}}
 {{- end -}}
 
@@ -310,10 +349,19 @@ Get the ds virtual path
 Get ds url for example
 */}}
 {{- define "ds.example.dsUrl" -}}
-{{- if and (ne .Values.ingress.path "/") (eq .Values.example.dsUrl "/") -}}
-    {{- printf "%s/" (tpl .Values.ingress.path $) -}}
+{{- $pathInput := (tpl .Values.example.dsUrl $) -}}
+{{- if eq $pathInput "/" -}}
+  {{- if .Values.ingress.enabled -}}
+    {{- $pathInput = .Values.ingress.path -}}
+  {{- end -}}
+  {{- if hasSuffix "(/|$)(.*)" $pathInput -}}
+    {{- $pathInput = trimSuffix "(/|$)(.*)" $pathInput -}}
+    {{- include "ds.dsUrl" $pathInput -}}
+  {{- else }}
+    {{- include "ds.dsUrl" $pathInput -}}
+  {{- end -}}
 {{- else }}
-    {{- printf "%s" (tpl .Values.example.dsUrl $) -}}
+  {{- include "ds.dsUrl" $pathInput -}}
 {{- end -}}
 {{- end -}}
 

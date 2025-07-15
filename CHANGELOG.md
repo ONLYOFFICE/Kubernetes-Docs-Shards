@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.1.0
+
+### New Features
+
+* Added the ability to connect to Redis Cluster
+* Added Retry when connecting to Redis
+* Added the ability to specify multiple hostname for Ingress
+* Added the ability to set up the certificate request in Let's Encrypt
+* Added the ability to use custom user dictionaries
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.0.3](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#903)
+
+### Fixes
+
+* Fixed Redis Sentinel connection error in initialization and key cleanup scripts when deleting a shard if multiple Sentinel nodes are specified
+
 ## 3.0.0
 
 ### New Features
@@ -11,7 +29,7 @@
 
 ### Changes
 
-* Released ONLYOFFICE Docs [v9.0.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#900)
+* Released ONLYOFFICE Docs [v9.0.2](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#902)
 * Balancer container is run by user with `ds(101:101)` permissions
 
 ## 2.1.3

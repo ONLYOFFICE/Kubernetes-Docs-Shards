@@ -16,9 +16,10 @@ ONLYOFFICE Docs for Kubernetes
     + [5.2 Specify parameters when installing ONLYOFFICE Docs](#52-specify-parameters-when-installing-onlyoffice-docs)
   * [6. Add custom Fonts](#6-add-custom-fonts)
   * [7. Add Plugins](#7-add-plugins)
-  * [8. Change interface themes](#8-change-interface-themes)
-    + [8.1 Create a ConfigMap containing a json file](#81-create-a-configmap-containing-a-json-file)
-    + [8.2 Specify parameters when installing ONLYOFFICE Docs](#82-specify-parameters-when-installing-onlyoffice-docs)
+  * [8. Add custom dictionaries](#8-add-custom-dictionaries)
+  * [9. Change interface themes](#9-change-interface-themes)
+    + [9.1 Create a ConfigMap containing a json file](#91-create-a-configmap-containing-a-json-file)
+    + [9.2 Specify parameters when installing ONLYOFFICE Docs](#92-specify-parameters-when-installing-onlyoffice-docs)
 - [Deploy ONLYOFFICE Docs](#deploy-onlyoffice-docs)
   * [1. Deploy the ONLYOFFICE Docs license](#1-deploy-the-onlyoffice-docs-license)
     + [1.1 Create secret](#11-create-secret)
@@ -35,6 +36,8 @@ ONLYOFFICE Docs for Kubernetes
     + [5.3.2.1 Installing the Kubernetes Nginx Ingress Controller](#5321-installing-the-kubernetes-nginx-ingress-controller)
     + [5.3.2.2 Expose ONLYOFFICE Docs via HTTP](#5322-expose-onlyoffice-docs-via-http)
     + [5.3.2.3 Expose ONLYOFFICE Docs via HTTPS](#5323-expose-onlyoffice-docs-via-https)
+    + [5.3.2.4 Expose ONLYOFFICE Docs via HTTPS using the Let's Encrypt certificate](#5324-expose-onlyoffice-docs-via-https-using-the-lets-encrypt-certificate)
+    + [5.3.2.5 Expose ONLYOFFICE Docs on a virtual path](#5325-expose-onlyoffice-docs-on-a-virtual-path)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
     + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
     + [6.2 Manual scaling](#62-manual-scaling)
@@ -45,7 +48,10 @@ ONLYOFFICE Docs for Kubernetes
   * [11. Deploy ONLYOFFICE Docs via Redis Sentinel (optional)](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional)
     + [11.1 Deploy Redis Sentinel](#111-deploy-redis-sentinel)
     + [11.2 Deploy ONLYOFFICE Docs](#112-deploy-onlyoffice-docs)
-  * [12. Shutdown ONLYOFFICE Docs (optional)](#12-shutdown-onlyoffice-docs-optional)
+  * [12. Deploy ONLYOFFICE Docs via Redis Cluster (optional)](#12-deploy-onlyoffice-docs-shards-via-redis-cluster-optional)
+    + [12.1 Deploy Redis Cluster](#121-deploy-redis-cluster)
+    + [12.2 Deploy ONLYOFFICE Docs](#122-deploy-onlyoffice-docs)
+  * [13. Shutdown ONLYOFFICE Docs (optional)](#13-shutdown-onlyoffice-docs-optional)
 - [Using Grafana to visualize metrics (optional)](#using-grafana-to-visualize-metrics-optional)
   * [1. Deploy Grafana](#1-deploy-grafana)
     + [1.1 Deploy Grafana without installing ready-made dashboards](#11-deploy-grafana-without-installing-ready-made-dashboards)
@@ -124,6 +130,8 @@ See more details about installing Redis via Helm [here](https://github.com/bitna
 
 If you want to use **Redis Sentinel** cluster instead of default standalone Redis, please follow this [#11](#11-deploy-onlyoffice-docs-shards-via-redis-sentinel-optional) instruction.
 
+If you want to use **Redis Cluster** instead of default standalone Redis, please follow this [#12](#12-deploy-onlyoffice-docs-shards-via-redis-cluster-optional) instruction.
+
 ### 4. Deploy StatsD exporter
 
 *This step is optional. You can skip step [#4](#4-deploy-statsd-exporter) entirely if you don't want to run StatsD exporter*
@@ -201,11 +209,18 @@ Then specify your images when installing the ONLYOFFICE Docs.
 In order to add plugins to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
 Then specify your images when installing the ONLYOFFICE Docs.
 
-### 8. Change interface themes
+### 8. Add custom dictionaries
 
-*This step is optional. You can skip step [#8](#8-change-interface-themes) entirely if you don't need to change the interface themes*
+*This step is optional. You can skip step [#8](#8-add-custom-dictionaries) entirely if you don't need to add your dictionaries*
 
-#### 8.1 Create a ConfigMap containing a json file
+In order to add your custom dictionaries to images, you need to rebuild the images. Refer to the relevant steps in [this](https://github.com/ONLYOFFICE/Docker-Docs#building-onlyoffice-docs) manual.
+Then specify your images when installing the ONLYOFFICE Docs.
+
+### 9. Change interface themes
+
+*This step is optional. You can skip step [#9](#9-change-interface-themes) entirely if you don't need to change the interface themes*
+
+#### 9.1 Create a ConfigMap containing a json file
 
 To create a ConfigMap with a json file that contains the interface themes, you need to run the following command:
 
@@ -216,7 +231,7 @@ $ kubectl create configmap custom-themes \
 
 Note: Instead of `custom-themes` and `custom-themes.json` you can use any other names.
 
-#### 8.2 Specify parameters when installing ONLYOFFICE Docs
+#### 9.2 Specify parameters when installing ONLYOFFICE Docs
 
 When installing ONLYOFFICE Docs, specify the `extraThemes.configMap=custom-themes` and `extraThemes.filename=custom-themes.json` parameters.
 
@@ -404,7 +419,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.autoscaling.behavior`                       | Configuring Documentserver deployment scaling behavior policies for the `scaleDown` and `scaleUp` fields                                                                       | `{}`                                                                                      |
 | `documentserver.hostAliases`                                | Adds [additional entries](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/) to the hosts file in the all containers in a Pod                                | `[]`                                                                                  |
 | `documentserver.initContainers.image.repository`            | Documentserver add-shardkey initContainer image repository                                                                                                                     | `onlyoffice/docs-utils`                                                                   |
-| `documentserver.initContainers.image.tag`                   | Documentserver add-shardkey initContainer image tag                                                                                                                            | `9.0.2-1`                                                                                 |
+| `documentserver.initContainers.image.tag`                   | Documentserver add-shardkey initContainer image tag                                                                                                                            | `9.0.3-1`                                                                                 |
 | `documentserver.initContainers.image.pullPolicy`            | Documentserver add-shardkey initContainer image pull policy                                                                                                                    | `IfNotPresent`                                                                            |
 | `documentserver.initContainers.containerSecurityContext.enabled`  |  Configure a Security Context for Documentserver add-shardkey initContainer container in Pod                                                                             | `false`                                                                                   |
 | `documentserver.initContainers.resources.requests.memory`   | The requested Memory for the Documentserver add-shardkey initContainer                                                                                                         | `256Mi`                                                                                   |
@@ -418,7 +433,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
 |-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | `documentserver.docservice.image.repository`                | Docservice container image repository*                                                                                                                                         | `onlyoffice/docs-docservice-de`                                                           |
-| `documentserver.docservice.image.tag`                       | Docservice container image tag                                                                                                                                                 | `9.0.2-1`                                                                                 |
+| `documentserver.docservice.image.tag`                       | Docservice container image tag                                                                                                                                                 | `9.0.3-1`                                                                                 |
 | `documentserver.docservice.image.pullPolicy`                | Docservice container image pull policy                                                                                                                                         | `IfNotPresent`                                                                            |
 | `documentserver.docservice.containerSecurityContext.enabled`| Enable security context for the Docservice container                                                                                                                           | `false`                                                                                   |
 | `documentserver.docservice.containerPorts.http`             | Define docservice container port                                                                                                                                               | `8000`                                                                                    |
@@ -450,7 +465,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.proxy.infoAllowedExistingSecret`            | Name of existing secret to use for info auth password. Used if `proxy.infoAllowedUser` is set. Must contain the key specified in `proxy.infoAllowedSecretKeyName`. If set to, it takes priority over the `proxy.infoAllowedPassword` | `""`                                |
 | `documentserver.proxy.welcomePage.enabled`                  | Defines whether the welcome page will be displayed                                                                                                                             | `true`                                                                                    |
 | `documentserver.proxy.image.repository`                     | Docservice Proxy container image repository*                                                                                                                                   | `onlyoffice/docs-proxy-de`                                                                |
-| `documentserver.proxy.image.tag`                            | Docservice Proxy container image tag                                                                                                                                           | `9.0.2-1`                                                                                 |
+| `documentserver.proxy.image.tag`                            | Docservice Proxy container image tag                                                                                                                                           | `9.0.3-1`                                                                                 |
 | `documentserver.proxy.image.pullPolicy`                     | Docservice Proxy container image pull policy                                                                                                                                   | `IfNotPresent`                                                                            |
 | `documentserver.proxy.containerSecurityContext.enabled`     | Enable security context for the Proxy container                                                                                                                                | `false`                                                                                   |
 | `documentserver.proxy.containerPorts.http`                  | proxy container port                                                                                                                                                           | `8888`                                                                                    |
@@ -469,7 +484,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 |-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | `documentserver.converter.count`                            | The mumber of Converter containers in the Documentserver Pod                                                                                                                   | `3`                                                                                       |
 | `documentserver.converter.image.repository`                 | Converter container image repository*                                                                                                                                          | `onlyoffice/docs-converter-de`                                                            |
-| `documentserver.converter.image.tag`                        | Converter container image tag                                                                                                                                                  | `9.0.2-1`                                                                                 |
+| `documentserver.converter.image.tag`                        | Converter container image tag                                                                                                                                                  | `9.0.3-1`                                                                                 |
 | `documentserver.converter.image.pullPolicy`                 | Converter container image pull policy                                                                                                                                          | `IfNotPresent`                                                                            |
 | `documentserver.converter.containerSecurityContext.enabled` | Enable security context for the Converter container                                                                                                                            | `false`                                                                                   |
 | `documentserver.converter.resources.requests.memory`        | The requested Memory for the Converter container                                                                                                                               | `256Mi`                                                                                   |
@@ -525,7 +540,7 @@ List of parameters for broker inside the documentserver pod
 | `example.tolerations`                                       | Tolerations for Example Pods assignment. If set to, it takes priority over the `tolerations`                                                                                   | `[]`                                                                                      |
 | `example.hostAliases`                                       | Adds [additional entries](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/) to the hosts file in the Example container                                  | `[]`                                                                                      |
 | `example.image.repository`                                  | Example container image name                                                                                                                                                   | `onlyoffice/docs-example`                                                                 |
-| `example.image.tag`                                         | Example container image tag                                                                                                                                                    | `9.0.2-1`                                                                                 |
+| `example.image.tag`                                         | Example container image tag                                                                                                                                                    | `9.0.3-1`                                                                                 |
 | `example.image.pullPolicy`                                  | Example container image pull policy                                                                                                                                            | `IfNotPresent`                                                                            |
 | `example.containerSecurityContext.enabled`                  | Enable security context for the Example container                                                                                                                              | `false`                                                                                   |
 | `example.dsUrl`                                             | ONLYOFFICE Docs external address. It should be changed only if it is necessary to check the operation of the conversion in Example (e.g. http://\<documentserver-address\>/)   | `/`                                                                                |
@@ -590,7 +605,7 @@ List of parameters for broker inside the documentserver pod
 | `customBalancer.extraVolumes`                               | An array with extra volumes for the Balancer Pod                                                                                                                               | `[]`                                                                                      |
 | `customBalancer.extraVolumeMounts`                          | An array with extra volume mounts for the balancer container                                                                                                                   | `[]`                                                                                      |
 | `customBalancer.image.repository`                           | Specify balancer image repository                                                                                                                                              | `onlyoffice/docs-balancer`                                                                |
-| `customBalancer.image.tag`                                  | Specify balancer image tag                                                                                                                                                     | `9.0.2-1`                                                                                   |
+| `customBalancer.image.tag`                                  | Specify balancer image tag                                                                                                                                                     | `9.0.3-1`                                                                                   |
 | `customBalancer.image.pullPolicy`                           | Balancer image pull policy                                                                                                                                                     | `IfNotPresent`                                                                            |
 | `customBalancer.replicas`                                   | Number of balancer replicas to deploy If the `customBalancer.autoscaling.enabled` parameter is enabled, it is ignored                                                          | `3`                                                                                       |
 | `customBalancer.containerPorts`                             | Balancer container port                                                                                                                                                        | `8080`                                                                                      |
@@ -609,14 +624,21 @@ List of parameters for broker inside the documentserver pod
 
 | Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
 |-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `ingress.enabled`                                           | Enable the creation of an ingress for the ONLYOFFICE Docs                                                                                                               | `false`                                                                                   |
+| `ingress.enabled`                                           | Enable the creation of an ingress for the ONLYOFFICE Docs                                                                                                               | `false`                                                                                          |
 | `ingress.annotations`                                       | Map of annotations to add to the Ingress. If set to, it takes priority over the `commonAnnotations`                                                                            | `nginx.ingress.kubernetes.io/proxy-body-size: 100m`                                       |
 | `ingress.ingressClassName`                                  | Used to reference the IngressClass that should be used to implement this Ingress                                                                                               | `nginx`                                                                                   |
-| `ingress.host`                                              | Ingress hostname for the ONLYOFFICE Docs ingress                                                                                                                        | `""`                                                                                      |
-| `ingress.ssl.enabled`                                       | Enable ssl for the ONLYOFFICE Docs ingress                                                                                                                              | `false`                                                                                   |
+| `ingress.controllerName`                                    | Used to distinguish between controllers with the same IngressClassName but from different vendors                                                                              | `ingress-nginx`                                                                           |
+| `ingress.host`                                              | Ingress hostname for the ONLYOFFICE Docs ingress                                                                                                                        | `""`                                                                                             |
+| `ingress.tenants`                                           | Ingress hostnames if you need to use more than one name. For example, for multitenancy. If set to, it takes priority over the `ingress.host`. If `ingress.ssl.enabled` is set to `true`, it is assumed that the certificate for all specified domains is kept secret by `ingress.ssl.secret` | `[]` |
+| `ingress.ssl.enabled`                                       | Enable ssl for the ONLYOFFICE Docs ingress                                                                                                                              | `false`                                                                                          |
 | `ingress.ssl.secret`                                        | Secret name for ssl to mount into the Ingress                                                                                                                                  | `tls`                                                                                     |
-| `ingress.path`                                              | Specifies the path where ONLYOFFICE Docs will be available                                                                                                              | `/`                                                                                       |
-| `ingress.pathType`                                          | Specifies the path type for the ONLYOFFICE Docs ingress resource. Allowed values are `Exact`, `Prefix` or `ImplementationSpecific`                                      | `ImplementationSpecific`                                                                  |
+| `ingress.path`                                              | Specifies the path where ONLYOFFICE Docs will be available                                                                                                              | `/`                                                                                               |
+| `ingress.pathType`                                          | Specifies the path type for the ONLYOFFICE Docs ingress resource. Allowed values are `Exact`, `Prefix` or `ImplementationSpecific`                                      | `ImplementationSpecific`                                                                          |
+| `ingress.letsencrypt.enabled`                               | Enabling certificate request creation in Let's Encrypt. Used if `ingress.enabled` is set to `true`                                                                      | `false`                                                                                           |
+| `ingress.letsencrypt.clusterIssuerName`                     | ClusterIssuer Name                                                                                                                                                      | `letsencrypt-prod`                                                                                |
+| `ingress.letsencrypt.email`                                 | Your email address used for ACME registration                                                                                                                           | `""`                                                                                              |
+| `ingress.letsencrypt.server`                                | The address of the Let's Encrypt server to which requests for certificates will be sent                                                                                 | `https://acme-v02.api.letsencrypt.org/directory`                                                  |
+| `ingress.letsencrypt.secretName`                            | Name of a secret used to store the ACME account private key                                                                                                             | `letsencrypt-prod-private-key`                                                                    |
 
 ### Grafana parameters
 
@@ -643,7 +665,7 @@ List of parameters for broker inside the documentserver pod
 | `upgrade.job.nodeSelector`                                  | Node labels for pre-upgrade Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                           | `{}`                                                                                      |
 | `upgrade.job.tolerations`                                   | Tolerations for pre-upgrade Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                            | `[]`                                                                                      |
 | `upgrade.job.image.repository`                              | Job by pre-upgrade image repository                                                                                                                                            | `onlyoffice/docs-utils`                                                                   |
-| `upgrade.job.image.tag`                                     | Job by pre-upgrade image tag                                                                                                                                                   | `9.0.2-1`                                                                                 |
+| `upgrade.job.image.tag`                                     | Job by pre-upgrade image tag                                                                                                                                                   | `9.0.3-1`                                                                                 |
 | `upgrade.job.image.pullPolicy`                              | Job by pre-upgrade image pull policy                                                                                                                                           | `IfNotPresent`                                                                            |
 | `upgrade.job.containerSecurityContext.enabled`              | Enable security context for the pre-upgrade container                                                                                                                          | `false`                                                                                   |
 | `upgrade.job.resources.requests`                            | The requested resources for the job pre-upgrade container                                                                                                                      | `{}`                                                                                      |
@@ -659,7 +681,7 @@ List of parameters for broker inside the documentserver pod
 | `delete.job.nodeSelector`                                   | Node labels for pre-delete Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                            | `{}`                                                                                      |
 | `delete.job.tolerations`                                    | Tolerations for pre-delete Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                             | `[]`                                                                                      |
 | `delete.job.image.repository`                               | Job by pre-delete image repository                                                                                                                                             | `onlyoffice/docs-utils`                                                                   |
-| `delete.job.image.tag`                                      | Job by pre-delete image tag                                                                                                                                                    | `9.0.2-1`                                                                                 |
+| `delete.job.image.tag`                                      | Job by pre-delete image tag                                                                                                                                                    | `9.0.3-1`                                                                                 |
 | `delete.job.image.pullPolicy`                               | Job by pre-delete image pull policy                                                                                                                                            | `IfNotPresent`                                                                            |
 | `delete.job.containerSecurityContext.enabled`               | Enable security context for the pre-delete container                                                                                                                           | `false`                                                                                   |
 | `delete.job.resources.requests`                             | The requested resources for the job pre-delete container                                                                                                                       | `{}`                                                                                      |
@@ -672,7 +694,7 @@ List of parameters for broker inside the documentserver pod
 | `grafanaDashboard.job.nodeSelector`                         | Node labels for Grafana Dashboard Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                     | `{}`                                                                                      |
 | `grafanaDashboard.job.tolerations`                          | Tolerations for Grafana Dashboard Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                      | `[]`                                                                                      |
 | `grafanaDashboard.job.image.repository`                     | Job by Grafana Dashboard ONLYOFFICE Docs image repository                                                                                                               | `onlyoffice/docs-utils`                                                                   |
-| `grafanaDashboard.job.image.tag`                            | Job by Grafana Dashboard ONLYOFFICE Docs image tag                                                                                                                      | `9.0.2-1`                                                                                 |
+| `grafanaDashboard.job.image.tag`                            | Job by Grafana Dashboard ONLYOFFICE Docs image tag                                                                                                                      | `9.0.3-1`                                                                                 |
 | `grafanaDashboard.job.image.pullPolicy`                     | Job by Grafana Dashboard ONLYOFFICE Docs image pull policy                                                                                                              | `IfNotPresent`                                                                            |
 | `grafanaDashboard.job.containerSecurityContext.enabled`     | Enable security context for the Grafana Dashboard container                                                                                                                    | `false`                                                                                   |
 | `grafanaDashboard.job.resources.requests`                   | The requested resources for the job Grafana Dashboard container                                                                                                                | `{}`                                                                                      |
@@ -685,7 +707,7 @@ List of parameters for broker inside the documentserver pod
 | `wopiKeysGeneration.job.nodeSelector`                       | Node labels for Wopi Keys Generation Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                  | `{}`                                                                                      |
 | `wopiKeysGeneration.job.tolerations`                        | Tolerations for Wopi Keys Generation Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                   | `[]`                                                                                      |
 | `wopiKeysGeneration.job.image.repository`                   | Job by Wopi Keys Generation ONLYOFFICE Docs image repository                                                                                                                   | `onlyoffice/docs-utils`                                                                   |
-| `wopiKeysGeneration.job.image.tag`                          | Job by Wopi Keys Generation ONLYOFFICE Docs image tag                                                                                                                          | `9.0.2-1`                                                                                 |
+| `wopiKeysGeneration.job.image.tag`                          | Job by Wopi Keys Generation ONLYOFFICE Docs image tag                                                                                                                          | `9.0.3-1`                                                                                 |
 | `wopiKeysGeneration.job.image.pullPolicy`                   | Job by Wopi Keys Generation ONLYOFFICE Docs image pull policy                                                                                                                  | `IfNotPresent`                                                                            |
 | `wopiKeysGeneration.job.containerSecurityContext.enabled`   | Enable security context for the Wopi Keys Generation container                                                                                                                 | `false`                                                                                   |
 | `wopiKeysGeneration.job.resources.requests`                 | The requested resources for the job Wopi Keys Generation container                                                                                                             | `{}`                                                                                      |
@@ -699,7 +721,7 @@ List of parameters for broker inside the documentserver pod
 | `wopiKeysDeletion.job.nodeSelector`                         | Node labels for Wopi Keys Deletion Job Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                    | `{}`                                                                                      |
 | `wopiKeysDeletion.job.tolerations`                          | Tolerations for Wopi Keys Deletion Job Pod assignment. If set to, it takes priority over the `tolerations`                                                                     | `[]`                                                                                      |
 | `wopiKeysDeletion.job.image.repository`                     | Job by Wopi Keys Deletion ONLYOFFICE Docs image repository                                                                                                                     | `onlyoffice/docs-utils`                                                                   |
-| `wopiKeysDeletion.job.image.tag`                            | Job by Wopi Keys Deletion ONLYOFFICE Docs image tag                                                                                                                            | `9.0.2-1`                                                                                 |
+| `wopiKeysDeletion.job.image.tag`                            | Job by Wopi Keys Deletion ONLYOFFICE Docs image tag                                                                                                                            | `9.0.3-1`                                                                                 |
 | `wopiKeysDeletion.job.image.pullPolicy`                     | Job by Wopi Keys Deletion ONLYOFFICE Docs image pull policy                                                                                                                    | `IfNotPresent`                                                                            |
 | `wopiKeysDeletion.job.containerSecurityContext.enabled`     | Enable security context for the Wopi Keys Deletion container                                                                                                                   | `false`                                                                                   |
 | `wopiKeysDeletion.job.resources.requests`                   | The requested resources for the job Wopi Keys Deletion container                                                                                                               | `{}`                                                                                      |
@@ -717,7 +739,7 @@ List of parameters for broker inside the documentserver pod
 | `tests.nodeSelector`                                        | Node labels for Test Pod assignment. If set to, it takes priority over the `nodeSelector`                                                                                      | `{}`                                                                                      |
 | `tests.tolerations`                                         | Tolerations for Test Pod assignment. If set to, it takes priority over the `tolerations`                                                                                       | `[]`                                                                                      |
 | `tests.image.repository`                                    | Test container image name                                                                                                                                                      | `onlyoffice/docs-utils`                                                                   |
-| `tests.image.tag`                                           | Test container image tag                                                                                                                                                       | `9.0.2-1`                                                                                 |
+| `tests.image.tag`                                           | Test container image tag                                                                                                                                                       | `9.0.3-1`                                                                                 |
 | `tests.image.pullPolicy`                                    | Test container image pull policy                                                                                                                                               | `IfNotPresent`                                                                            |
 | `tests.containerSecurityContext.enabled`                    | Enable security context for the Test container                                                                                                                                 | `false`                                                                                   |
 | `tests.resources.requests`                                  | The requested resources for the test container                                                                                                                                 | `{}`                                                                                      |
@@ -883,6 +905,37 @@ Associate the `documentserver` ingress IP or hostname with your domain name thro
 
 After that, ONLYOFFICE Docs Shards will be available at `https://your-domain-name/`.
 
+#### 5.3.2.4 Expose ONLYOFFICE Docs via HTTPS using the Let's Encrypt certificate
+- Add Helm repositories:
+  ```bash
+  $ helm repo add jetstack https://charts.jetstack.io
+  $ helm repo update
+  ```
+- Installing cert-manager
+  ```bash
+  $ helm install cert-manager --version v1.17.4 jetstack/cert-manager \
+    --namespace cert-manager \
+    --create-namespace \
+    --set crds.enabled=true \
+    --set crds.keep=false
+  ```
+Next, perform the installation or upgrade by setting the `ingress.enabled`, `ingress.ssl.enabled` and `ingress.letsencrypt.enabled` parameters to `true`. Also set your own values in the parameters `ingress.letsencrypt.email`, `ingress.host` or `ingress.tenants`(for example, `--set "ingress.tenants={tenant1.example.com,tenant2.example.com}"`) if you want to use multiple domain names.
+
+#### 5.3.2.5 Expose ONLYOFFICE Docs on a virtual path
+This type of exposure allows you to expose ONLYOFFICE Docs on a virtual path, for example, `http://your-domain-name/docs`.
+To expose ONLYOFFICE Docs via ingress on a virtual path, set the `ingress.enabled`, `ingress.host` and `ingress.path` parameters.
+
+```bash
+$ helm install documentserver onlyoffice/docs --set ingress.enabled=true,ingress.host=your-domain-name,ingress.path=/docs
+```
+
+The list of supported ingress controllers for virtual path configuration:
+* [Ingress NGINX by Kubernetes](https://github.com/kubernetes/ingress-nginx)
+* [NGINX Ingress by NGINX](https://github.com/nginx/kubernetes-ingress/)
+* [HAProxy Ingress by HAProxy](https://github.com/haproxytech/kubernetes-ingress/)
+
+For virtual path configuration with `Ingress NGINX by Kubernetes`, append the pattern `(/|$)(.*)` to the `ingress.path`, for example, `/docs` becomes `/docs(/|$)(.*)`.
+
 ### 6. Scale ONLYOFFICE Docs (optional)
 
 *This step is optional. You can skip step [6](#6-scale-onlyoffice-docs-optional) entirely if you want to use default deployment settings.*
@@ -936,6 +989,8 @@ When the `helm upgrade` command is executed, replicas will be turned off one by 
 
 ### 8. Update ONLYOFFICE Docs license (optional)
 
+After the release v3.1.0, you can update the license by simply recreating the secret with the new license, without deleting or rebooting pods. The document server is now able to dynamically reread the license file after replacing it. For example:
+
 In order to update the license, you need to perform the following steps:
  - Place the license.lic file containing the new key in some directory
  - Run the following commands:
@@ -945,6 +1000,10 @@ $ kubectl create secret generic [SECRET_LICENSE_NAME] --from-file=path/to/licens
 ```
 
  - Where `SECRET_LICENSE_NAME` is the name of an existing secret with a license
+
+Thats all, the document server will reread the new license itself.
+
+**[DEPRECATED METHOD]**
 
  - Restart `documentserver` pods. For example, using the following command:
 ```bash
@@ -1020,14 +1079,35 @@ Deploy ONLYOFFICE Docs Shards with enabled sentinel mode with command:
 ```bash
 $ helm install documentserver onlyoffice/docs-shards \
                --set connections.redisConnectorName=ioredis \
-               --set connections.redisHost=redis.default.svc.cluster.local \
-               --set connections.redisPort=26379 \
+               --set connections.redisSentinelNodes="{SENTINEL_NODE_ADDRESS_1:26379,SENTINEL_NODE_ADDRESS_2:26379,SENTINEL_NODE_ADDRESS_3:26379}" \
                --set connections.redisSentinelExistingSecret=redis \
                --set connections.redisSentinelSecretKeyName=redis-password \
                --set connections.redisSentinelNoPass=false \
 ```
 
-### 12. Shutdown ONLYOFFICE Docs (optional)
+### 12. Deploy ONLYOFFICE Docs Shards via redis cluster (optional)
+
+ONLYOFFICE Docs Shards can work with Redis cluster. To deploy in this mode, please follow the instructions below:
+
+#### 12.1 Deploy Redis cluster
+
+Deploy redis cluster using the command:
+
+```bash
+$ helm install redis bitnami/redis-cluster --set persistence.size=8Gi
+```
+
+#### 12.2 Deploy ONLYOFFICE Docs
+
+Deploy ONLYOFFICE Docs Shards with enabled redis cluster mode, you should specify cluster nodes:
+
+```bash
+$ helm install documentserver onlyoffice/docs-shards \
+               --set connections.redisExistingSecret=redis-redis-cluster \
+               --set connections.redisClusterNodes="{<address_node1>:6379,<address_node2>:6379}"
+```
+
+### 13. Shutdown ONLYOFFICE Docs (optional)
 
 To perform the shutdown, run the following command:
 

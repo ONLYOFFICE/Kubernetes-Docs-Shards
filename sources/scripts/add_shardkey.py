@@ -18,6 +18,10 @@ if os.environ.get('REDIS_CLUSTER_NODES'):
     redisClusterPort = redisClusterNodes[0].split(":")[1]
 if redisConnectorName == 'ioredis':
     redisSentinelGroupName = os.environ.get('REDIS_SENTINEL_GROUP_NAME')
+    if os.environ.get('REDIS_SENTINEL_NODES'):
+        redisSentinelNodes = list(os.environ.get('REDIS_SENTINEL_NODES').split(" "))
+        redisSentinelNode = redisSentinelNodes[0].split(":")[0]
+        redisSentinelPort = redisSentinelNodes[0].split(":")[1]
 
 shardKey = os.environ.get('DEFAULT_SHARD_KEY')
 epIP = os.environ.get('SHARD_IP')
@@ -62,6 +66,9 @@ def init_logger(name):
 
 def get_redis_status():
     import redis
+    from redis.retry import Retry
+    from redis.backoff import ExponentialBackoff
+    retry_strategy = Retry(ExponentialBackoff(), retries=3)
     global rc
     try:
         rc = redis.Redis(
@@ -71,7 +78,7 @@ def get_redis_status():
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
-            retry_on_timeout=True
+            retry=retry_strategy
         )
         rc.ping()
     except Exception as msg_redis:
@@ -85,6 +92,9 @@ def get_redis_status():
 def get_redis_cluster_status():
     from redis.cluster import RedisCluster as Redis
     from redis.cluster import ClusterNode
+    from redis.retry import Retry
+    from redis.backoff import ExponentialBackoff
+    retry_strategy = Retry(ExponentialBackoff(), retries=3)
     global rc
     try:
         nodes = [ClusterNode(redisClusterNode, redisClusterPort)]
@@ -93,7 +103,7 @@ def get_redis_cluster_status():
             username=redisUser,
             password=redisPassword,
             socket_connect_timeout=redisConnectTimeout,
-            retry_on_timeout=True
+            retry=retry_strategy
         )
         rc.ping()
     except Exception as msg_redis:
@@ -107,9 +117,12 @@ def get_redis_cluster_status():
 def get_redis_sentinel_status():
     import redis
     from redis import Sentinel
+    from redis.retry import Retry
+    from redis.backoff import ExponentialBackoff
+    retry_strategy = Retry(ExponentialBackoff(), retries=3)
     global rc
     try:
-        sentinel = Sentinel([(redisHost, redisPort)], socket_timeout=redisConnectTimeout, sentinel_kwargs={'password': redisSentinelPassword, 'username': redisSentinelUsername})
+        sentinel = Sentinel([(redisSentinelNode, redisSentinelPort)], socket_timeout=redisConnectTimeout, sentinel_kwargs={'password': redisSentinelPassword, 'username': redisSentinelUsername})
         master_host, master_port = sentinel.discover_master(redisSentinelGroupName)
         rc = redis.Redis(
             host=master_host,
@@ -118,7 +131,7 @@ def get_redis_sentinel_status():
             password=redisPassword,
             username=redisUser,
             socket_connect_timeout=redisConnectTimeout,
-            retry_on_timeout=True
+            retry=retry_strategy
         )
         rc.ping()
     except Exception as msg_redis:

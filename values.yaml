@@ -350,13 +350,6 @@ documentserver:
   terminationGraceTimeSeconds: 600
   ## documentserver.keysRedisDBNum The number of the database for storing the balancing results
   keysRedisDBNum: "1"
-  ## documentserver.keysExpire The time in seconds after which the key will be deleted from the balancing database.
-  keysExpire:
-    ## documentserver.keysExpire.enabled Enable or disable the TTL mechanism for balancing keys in redis. The mechanism helps periodically clean unused keys. HOWEVER, if the document is constantly open and edited without closing and saving longer than the value documentserver.keysExpire.time value, the key will be deleted and the editable version of document will most likely be lost. Use this setting if editing is not intended for longer than the timer value
-    enabled: false
-    ## documentserver.KeysExpire.time ttl in seconds after which the key will be deleted from the balancing database. 604800 mean 1 week.
-    ## This parameter used only when documentserver.KeysExpire.enabled set to `true`
-    time: 604800
   ## documentserver.annotations Defines annotations that will be additionally added to Documentserver Deployment
   ## If set to, it takes priority over the `commonAnnotations`
   ## You can also use `tpl` as the value for the key

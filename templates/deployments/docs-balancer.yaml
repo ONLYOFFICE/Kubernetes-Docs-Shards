@@ -98,10 +98,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - python3 -u /scripts/balancer-shutdown.py > /proc/1/fd/1 2>&1
+                command: ["/bin/sh", "-c", "python3 -u /scripts/balancer-shutdown.py > /proc/1/fd/1 2>&1"]
           {{- if .Values.customBalancer.containerSecurityContext.enabled }}
           securityContext: {{- omit .Values.customBalancer.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}

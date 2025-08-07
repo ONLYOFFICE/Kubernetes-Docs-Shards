@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.2.0
+
+### New Features
+
+* Added a mechanism for clearing outdated keys in Redis
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.0.4](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#904)
+
 ## 3.1.0
 
 ### New Features

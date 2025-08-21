@@ -895,6 +895,38 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.postgresql.metrics configuration where postgresql metrics exporter can be enabled
+    metrics:
+      ## documentserver.postgresql.metrics.enabled Defines enabled or disabled sidecar container with psql metrics prometheus exporter
+      enabled: true
+      ## documentserver.postgresql.metrics.port Define which port will be exposed in psql metrics exporter sidecar container
+      port: 9187
+      ## documentserver.postgresql.metrics.pullPolicy postgresql prometheus metrics exporter container image pull policy
+      pullPolicy: IfNotPresent
+      ## Configure a Security Context for the Postgresql container
+      containerSecurityContext:
+        ## documentserver.postgresql.containerSecurityContext.enabled Enable security context for the Postgresql container
+        enabled: false
+        ## documentserver.postgresql.containerSecurityContext.runAsUser User ID for the Postgresql container
+        runAsUser: 0
+        ## documentserver.postgresql.containerSecurityContext.runAsGroup Group ID for the Postgresql container
+        runAsGroup: 0
+        ## documentserver.postgresql.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+        allowPrivilegeEscalation: false
+        ## documentserver.postgresql.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Postgresql container
+        seccompProfile:
+          type: RuntimeDefault
+        ## documentserver.postgresql.containerSecurityContext.capabilities Defines the privileges granted to the process
+        capabilities:
+          drop: ["ALL"]
+      ## documentserver.postgresql.metrics.resources.limits The resources limits for the psql metric exporter container
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "200m"
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
   ## Parameters of the Rabbitmq container
   ##
   rabbitmq:
@@ -907,6 +939,12 @@ documentserver:
       tag: 4
       ## documentserver.rabbitmq.image.pullPolicy Rabbitmq container image pull policy
       pullPolicy: IfNotPresent
+    ## documentserver.rabbitmq.metrics If enabled, open-up metrics port for rabbitmq container
+    metrics:
+      ## documentserver.rabbitmq.metrics.enabled Disable or enable metrics for rabbitmq image
+      enabled: true
+      ## documentserver.rabbitmq.metrics.port Define metrics port for rabbimq metrics
+      port: 15692
     ## Configure a Security Context for the Rabbitmq container
     containerSecurityContext:
       ## documentserver.rabbitmq.containerSecurityContext.enabled Enable security context for the Rabbitmq container

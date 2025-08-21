@@ -22,6 +22,17 @@ spec:
       protocol: TCP
       port: {{ .Values.service.port }}
       targetPort: {{ .Values.documentserver.proxy.containerPorts.http }}
+    {{- if .Values.documentserver.rabbitmq.metrics.enabled }}
+    - name: amqp-metrics
+      protocol: TCP
+      port: {{ .Values.documentserver.rabbitmq.metrics.port }}
+      targetPort: {{ .Values.documentserver.rabbitmq.metrics.port }}
+    {{- end }}
+    {{- if .Values.documentserver.postgresql.metrics.enabled }}
+    - name: psql-metrics
+      port: {{ .Values.documentserver.postgresql.metrics.port }}
+      targetPort: {{ .Values.documentserver.postgresql.metrics.port }}
+    {{- end }}
   type: {{ .Values.service.type }}
   {{- if .Values.service.sessionAffinity }}
   sessionAffinity: {{ .Values.service.sessionAffinity }}

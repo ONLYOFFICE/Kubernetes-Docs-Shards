@@ -898,7 +898,7 @@ documentserver:
     ## documentserver.postgresql.metrics configuration where postgresql metrics exporter can be enabled
     metrics:
       ## documentserver.postgresql.metrics.enabled Defines enabled or disabled sidecar container with psql metrics prometheus exporter
-      enabled: true
+      enabled: false
       ## documentserver.postgresql.metrics.port Define which port will be exposed in psql metrics exporter sidecar container
       port: 9187
       ## documentserver.postgresql.metrics.pullPolicy postgresql prometheus metrics exporter container image pull policy
@@ -942,7 +942,7 @@ documentserver:
     ## documentserver.rabbitmq.metrics If enabled, open-up metrics port for rabbitmq container
     metrics:
       ## documentserver.rabbitmq.metrics.enabled Disable or enable metrics for rabbitmq image
-      enabled: true
+      enabled: false
       ## documentserver.rabbitmq.metrics.port Define metrics port for rabbimq metrics
       port: 15692
     ## Configure a Security Context for the Rabbitmq container

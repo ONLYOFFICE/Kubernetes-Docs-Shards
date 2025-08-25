@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: documentserver
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   namespace: {{ include "ds.namespace" . | quote }}
   labels:
-    app: documentserver
+    app: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
@@ -18,7 +18,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app: documentserver
+      app: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
       {{- if .Values.commonLabels }}
       {{- include "ds.labels.commonLabels" . | trim | nindent 6 }}
       {{- end }}
@@ -28,7 +28,7 @@ spec:
   template:
     metadata:
       labels:
-        app: documentserver
+        app: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
         {{- if .Values.commonLabels }}
         {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
         {{- end }}
@@ -53,7 +53,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - documentserver
+                  - {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
               topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
             weight: {{ .Values.podAntiAffinity.weight }}
           {{- else if eq .Values.podAntiAffinity.type "hard" }}
@@ -63,7 +63,7 @@ spec:
               - key: app
                 operator: In
                 values:
-                - documentserver
+                - {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
             topologyKey: {{ .Values.podAntiAffinity.topologyKey }}
           {{- end }}
           {{- with .Values.documentserver.customPodAntiAffinity }}
@@ -128,7 +128,7 @@ spec:
             value: {{ regexFind "[0-9.]+" .Values.documentserver.docservice.image.tag | quote }}
           envFrom:
           - configMapRef:
-              name: documentserver
+              name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
           command: ['python', '/scripts/add_shardkey.py']
           volumeMounts:
           - name: add-shardkey
@@ -182,7 +182,7 @@ spec:
           - secretRef:
               name: {{ template "ds.secureLinkSecret.secretName" . }}
           - configMapRef:
-              name: documentserver
+              name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
           volumeMounts:
           - name: ds-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
@@ -269,7 +269,7 @@ spec:
               {{- if .Values.wopi.keys.newKeysExistingSecret }}
               name: {{ tpl .Values.wopi.keys.newKeysExistingSecret $ }}
               {{- else }}
-              name: docs-wopi-keys
+              name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docs-wopi-keys") }}
               {{- end }}
           {{- end }}
           {{- if or .Values.wopi.keys.generation .Values.wopi.keys.oldKeysExistingSecret }}
@@ -277,12 +277,12 @@ spec:
               {{- if .Values.wopi.keys.oldKeysExistingSecret }}
               name: {{ tpl .Values.wopi.keys.oldKeysExistingSecret $ }}
               {{- else }}
-              name: docs-wopi-keys-old
+              name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docs-wopi-keys-old") }}
               {{- end }}
           {{- end }}
           {{- end }}
           - configMapRef:
-              name: documentserver
+              name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
           volumeMounts:
           - name: ds-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files/{{ .Values.documentserver.docservice.image.tag }}
@@ -361,7 +361,7 @@ spec:
               {{- if $context.Values.wopi.keys.newKeysExistingSecret }}
               name: {{ tpl $context.Values.wopi.keys.newKeysExistingSecret $ }}
               {{- else }}
-              name: docs-wopi-keys
+              name: {{ include "ds.resources.name" (list $context $context.Values.commonNameSuffix "docs-wopi-keys") }}
               {{- end }}
           {{- end }}
           {{- if or $context.Values.wopi.keys.generation $context.Values.wopi.keys.oldKeysExistingSecret }}
@@ -369,12 +369,12 @@ spec:
               {{- if $context.Values.wopi.keys.oldKeysExistingSecret }}
               name: {{ tpl $context.Values.wopi.keys.oldKeysExistingSecret $ }}
               {{- else }}
-              name: docs-wopi-keys-old
+              name: {{ include "ds.resources.name" (list $context $context.Values.commonNameSuffix "docs-wopi-keys-old") }}
               {{- end }}
           {{- end }}
           {{- end }}
           - configMapRef:
-              name: documentserver
+              name: {{ include "ds.resources.name" (list $context $context.Values.commonNameSuffix "documentserver") }}
           volumeMounts:
           - name: ds-files
             mountPath: /var/lib/{{ $context.Values.product.name }}/documentserver/App_Data/cache/files/{{ $context.Values.documentserver.docservice.image.tag }}
@@ -429,12 +429,12 @@ spec:
           - name: POSTGRES_DB
             valueFrom:
               configMapKeyRef:
-                name: documentserver
+                name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
                 key: DB_NAME
           - name: POSTGRES_USER
             valueFrom:
               configMapKeyRef:
-                name: documentserver
+                name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
                 key: DB_USER
           - name: POSTGRES_HOST_AUTH_METHOD
             value: trust
@@ -490,7 +490,7 @@ spec:
         {{- end }}
         - name: config-file
           configMap:
-            name: local-config
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "local-config") }}
         - name: ds-license
           {{- if .Values.license.existingClaim }}
           persistentVolumeClaim:
@@ -512,22 +512,22 @@ spec:
         {{- if not .Values.documentserver.proxy.welcomePage.enabled }}
         - name: ds-welcome-page
           configMap:
-            name: ds-welcome-page
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "ds-welcome-page") }}
         {{- end }}
         - name: createdb
           configMap:
-            name: createdb
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "createdb") }}
         - name: add-shardkey
           configMap:
-            name: add-shardkey
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "add-shardkey") }}
             defaultMode: 0755
         - name: remove-shardkey
           configMap:
-            name: remove-shardkey
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "remove-shardkey") }}
             defaultMode: 0755
         - name: pre-stop-scripts
           configMap:
-            name: pre-stop
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "pre-stop") }}
             defaultMode: 0755
         {{- with .Values.documentserver.extraVolumes }}
         {{- toYaml . | nindent 8 }}

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: docs-balancer
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docs-balancer") }}
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
@@ -14,12 +14,12 @@ metadata:
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.commonAnnotations "context" $ ) | nindent 4 }}
     {{- end }}
 data:
-  DS_EP_NAME: "documentserver"
+  DS_EP_NAME: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   BALANCER_WORKER_CONNECTIONS: {{ .Values.customBalancer.workerConnections | quote }}
   BALANCER_WORKER_PROCESSES: {{ .Values.customBalancer.workerProcesses | quote }}
   BALANCER_WORKER_TIMEOUT: {{ .Values.documentserver.terminationGracePeriodSeconds | quote }}
-  DS_POD_LABEL: "app=documentserver"
+  DS_POD_LABEL: app={{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   SHARD_PORT: {{ .Values.documentserver.proxy.containerPorts.http | quote }}
-  DS_DEPLOYMENT_NAME: "documentserver"
+  DS_DEPLOYMENT_NAME: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   SHUTDOWN_TIMER: {{ include "balancer.shutdown.timer" . | quote }}
   LOG_LEVEL: {{ .Values.customBalancer.log.level | quote }}

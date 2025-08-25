@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: documentserver
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
@@ -51,7 +51,7 @@ data:
   NGINX_WORKER_CONNECTIONS: {{ .Values.documentserver.proxy.workerConnections | quote }}
   NGINX_WORKER_PROCESSES: {{ .Values.documentserver.proxy.workerProcesses | quote }}
   {{- if .Values.example.enabled }}
-  EXAMPLE_HOST_PORT: example:3000
+  EXAMPLE_HOST_PORT: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "example") }}:3000
   {{- end }}
   WOPI_ENABLED: {{ .Values.wopi.enabled | quote }}
   {{- if .Values.webProxy.enabled }}

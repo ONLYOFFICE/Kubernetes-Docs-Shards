@@ -2,10 +2,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: wopi-keys-del
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "wopi-keys-del") }}
   namespace: {{ include "ds.namespace" . | quote }}
   labels:
-    app.kubernetes.io/component: wopi-keys-del
+    app.kubernetes.io/component: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "wopi-keys-del") }}
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/component: wopi-keys-del
+        app.kubernetes.io/component: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "wopi-keys-del") }}
         {{- if .Values.commonLabels }}
         {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.wopiKeysDeletion.job.podAnnotations "context" $ ) | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: wopi-sa
+      serviceAccountName: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "wopi-sa") }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext: {{- toYaml .Values.podSecurityContext.jobs | nindent 8 }}
       {{- end }}
@@ -62,7 +62,7 @@ spec:
       volumes:
       - name: wopi-keys-del
         configMap:
-          name: wopi-keys-del
+          name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "wopi-keys-del") }}
           defaultMode: 0755
       containers:
       - name: wopi-keys
@@ -74,9 +74,9 @@ spec:
         resources: {{- toYaml .Values.wopiKeysDeletion.job.resources | nindent 10 }}
         env:
         - name: WOPI_SECRET_NAME
-          value: docs-wopi-keys
+          value: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docs-wopi-keys") }}
         - name: WOPI_OLD_SECRET_NAME
-          value: docs-wopi-keys-old
+          value: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docs-wopi-keys-old") }}
         command: ['python', '/scripts/wopi_keys_del.py']
         volumeMounts:
         - name: wopi-keys-del

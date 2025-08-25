@@ -3,7 +3,7 @@ Get the Redis password secret
 */}}
 {{- define "ds.redis.secretName" -}}
 {{- if or .Values.connections.redisPassword .Values.connections.redisNoPass -}}
-    {{- printf "%s-redis" .Release.Name -}}
+    {{- printf "%s-%s" .Release.Name (include "ds.resources.name" (list . .Values.commonNameSuffix "redis")) -}}
 {{- else if .Values.connections.redisExistingSecret -}}
     {{- printf "%s" (tpl .Values.connections.redisExistingSecret $) -}}
 {{- end -}}
@@ -50,7 +50,7 @@ Get the Redis Sentinel password secret
 */}}
 {{- define "ds.redis.sentinel.secretName" -}}
 {{- if or .Values.connections.redisSentinelPassword .Values.connections.redisSentinelNoPass -}}
-    {{- printf "%s-redis-sentinel" .Release.Name -}}
+    {{- printf "%s-%s" .Release.Name (include "ds.resources.name" (list . .Values.commonNameSuffix "redis-sentinel")) -}}
 {{- else if .Values.connections.redisSentinelExistingSecret -}}
     {{- printf "%s" (tpl .Values.connections.redisSentinelExistingSecret $) -}}
 {{- end -}}
@@ -99,7 +99,7 @@ Get the info auth password secret
 {{- if .Values.documentserver.proxy.infoAllowedExistingSecret -}}
     {{- printf "%s" (tpl .Values.documentserver.proxy.infoAllowedExistingSecret $) -}}
 {{- else if .Values.documentserver.proxy.infoAllowedUser -}}
-    {{- printf "%s-info-auth" .Release.Name -}}
+    {{- printf "%s-%s" .Release.Name (include "ds.resources.name" (list . .Values.commonNameSuffix "info-auth")) -}}
 {{- end -}}
 {{- end -}}
 
@@ -119,7 +119,7 @@ Get the secure link secret name
 {{- if .Values.documentserver.proxy.secureLinkExistingSecret -}}
     {{- printf "%s" (tpl .Values.documentserver.proxy.secureLinkExistingSecret $) -}}
 {{- else -}}
-    {{- printf "link-secret" -}}
+    {{- printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix "link-secret")) -}}
 {{- end -}}
 {{- end -}}
 
@@ -142,7 +142,7 @@ Get the PVC name
 {{- if $pvcExistingClaim -}}
     {{- printf "%s" (tpl $pvcExistingClaim $context) -}}
 {{- else }}
-    {{- printf "%s" $pvcName -}}
+    {{- printf "%s" (include "ds.resources.name" (list $context $context.Values.commonNameSuffix $pvcName)) -}}
 {{- end -}}
 {{- end -}}
 
@@ -162,7 +162,7 @@ Get the license name
 {{- if .Values.license.existingSecret -}}
     {{- printf "%s" (tpl .Values.license.existingSecret $) -}}
 {{- else }}
-    {{- printf "license" -}}
+    {{- printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix "license")) -}}
 {{- end -}}
 {{- end -}}
 
@@ -182,7 +182,7 @@ Get the jwt name
 {{- if .Values.jwt.existingSecret -}}
     {{- printf "%s" (tpl .Values.jwt.existingSecret $) -}}
 {{- else }}
-    {{- printf "jwt" -}}
+    {{- printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix "jwt")) -}}
 {{- end -}}
 {{- end -}}
 
@@ -202,9 +202,9 @@ Get the service name for ds
 {{- if not (empty .Values.customBalancer.service.existing) }}
     {{- printf "%s" (tpl .Values.customBalancer.service.existing $) -}}
 {{- else if empty .Values.customBalancer.service.existing }}
-    {{- printf "docs-balancer" -}}
+    {{- printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix "docs-balancer")) -}}
 {{- else }}
-    {{- printf "documentserver" -}}
+    {{- printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver")) -}}
 {{- end -}}
 {{- end -}}
 
@@ -264,10 +264,25 @@ Get the update strategy type for ds
 Get the ds Service Account name
 */}}
 {{- define "ds.serviceAccountName" -}}
+{{- $saName := default "default" .Values.serviceAccount.name }}
 {{- if .Values.serviceAccount.create -}}
-    {{ default .Release.Name .Values.serviceAccount.name }}
+    {{ default (printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix .Release.Name))) (printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix $saName))) }}
 {{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
+    {{ printf "%s" (include "ds.resources.name" (list . .Values.commonNameSuffix $saName)) }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Get the ds Resource name
+*/}}
+{{- define "ds.resources.name" -}}
+{{- $context := index . 0 -}}
+{{- $suffixName := index . 1 -}}
+{{- $resourceName := index . 2 -}}
+{{- if $suffixName -}}
+    {{- printf "%s-%s" $resourceName (tpl $suffixName $context) -}}
+{{- else -}}
+    {{- printf "%s" $resourceName -}}
 {{- end -}}
 {{- end -}}
 

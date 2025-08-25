@@ -2,10 +2,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pre-upgrade
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "pre-upgrade") }}
   namespace: {{ include "ds.namespace" . | quote }}
   labels:
-    app.kubernetes.io/component: upgrade
+    app.kubernetes.io/component: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "upgrade") }}
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
@@ -22,7 +22,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/component: upgrade
+        app.kubernetes.io/component: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "upgrade") }}
         {{- if .Values.commonLabels }}
         {{- include "ds.labels.commonLabels" . | trim | nindent 8 }}
         {{- end }}
@@ -30,7 +30,7 @@ spec:
       annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" .Values.upgrade.job.podAnnotations "context" $ ) | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: ds-balancer-sa
+      serviceAccountName: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "ds-balancer-sa") }}
       {{- if .Values.upgrade.job.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.upgrade.job.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
@@ -65,7 +65,7 @@ spec:
             claimName: {{ include "ds.pvc.name" (list . .Values.persistence.existingClaim "ds-service-files") }}
         - name: clear-previous-versions
           configMap:
-            name: pre-upgrade
+            name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "pre-upgrade") }}
             defaultMode: 0755
       containers:
         - name: pre-upgrade
@@ -79,9 +79,9 @@ spec:
           - name: PRODUCT_NAME
             value: {{ .Values.product.name | quote }}
           - name: DS_DEPLOYMENT_NAME
-            value: "documentserver"
+            value: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
           - name: DS_EP_NAME
-            value: "documentserver"
+            value: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
           volumeMounts:
           - name: ds-service-files
             mountPath: /var/lib/{{ .Values.product.name }}/documentserver/App_Data/cache/files

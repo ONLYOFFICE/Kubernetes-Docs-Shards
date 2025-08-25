@@ -4,8 +4,6 @@ import subprocess
 import time
 import logging
 
-url = 'http://docservice:8000/healthcheck'
-
 redisConnectorName = os.environ.get('REDIS_CONNECTOR_NAME')
 redisHost = os.environ.get('REDIS_SERVER_HOST')
 redisPort = os.environ.get('REDIS_SERVER_PORT')
@@ -25,6 +23,9 @@ if redisConnectorName == 'ioredis':
         redisSentinelNodes = list(os.environ.get('REDIS_SENTINEL_NODES').split(" "))
         redisSentinelNode = redisSentinelNodes[0].split(":")[0]
         redisSentinelPort = redisSentinelNodes[0].split(":")[1]
+
+dsAddress = os.environ.get('DS_ADDRESS')
+url = f'http://{dsAddress}:8000/healthcheck'
 
 total_result = {}
 

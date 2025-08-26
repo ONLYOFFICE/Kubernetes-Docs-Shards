@@ -101,6 +101,16 @@ spec:
           securityContext: {{- omit .Values.documentserver.postgresql.metrics.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           resources: {{- toYaml .Values.documentserver.postgresql.metrics.resources | nindent 12 }}
+          env:
+          - name: DATA_SOURCE_URI
+            value: "localhost:5432/postgres?sslmode=disable"
+          - name: DATA_SOURCE_USER
+            valueFrom:
+              configMapKeyRef:
+                name: documentserver
+                key: DB_USER
+          - name: DATA_SOURCE_PASS
+            value: postgres
           ports:
             - containerPort: {{ .Values.documentserver.postgresql.metrics.port }}
               name: psql-metrics

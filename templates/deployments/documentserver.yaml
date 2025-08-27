@@ -109,8 +109,6 @@ spec:
               configMapKeyRef:
                 name: documentserver
                 key: DB_USER
-          - name: DATA_SOURCE_PASS
-            value: postgres
           ports:
             - containerPort: {{ .Values.documentserver.postgresql.metrics.port }}
               name: psql-metrics

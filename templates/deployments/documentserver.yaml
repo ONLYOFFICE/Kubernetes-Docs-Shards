@@ -10,7 +10,9 @@ metadata:
     {{- end }}
   {{- if or .Values.commonAnnotations .Values.documentserver.annotations }}
   {{- $dictValue := default .Values.commonAnnotations .Values.documentserver.annotations }}
-  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+  annotations: 
+    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+    {{- include "ds.annotations.metrics" . | nindent 4 }}
   {{- end }}
 spec:
   {{- if not .Values.documentserver.autoscaling.enabled }}
@@ -110,7 +112,7 @@ spec:
                 name: documentserver
                 key: DB_USER
           ports:
-            - containerPort: {{ .Values.documentserver.postgresql.metrics.port }}
+            - containerPort: 9187
               name: psql-metrics
         {{- end }}
         - name: add-shardkey
@@ -485,7 +487,7 @@ spec:
           ports:
             - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
             {{- if .Values.documentserver.rabbitmq.metrics.enabled }}
-            - containerPort: {{ .Values.documentserver.rabbitmq.metrics.port }}
+            - containerPort: 
             {{- end }}
           volumeMounts:
           - name: rabbitmq-data

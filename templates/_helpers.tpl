@@ -250,6 +250,22 @@ Get the ds annotations
 {{- end -}}
 
 {{/*
+Additional annotation if metrics psql or rmq metrics are enabled
+*/}}
+{{- define "ds.annotations.metrics" -}}
+{{- if .Values.documentserver.postgresql.metrics }}
+prometheus.io/scrape-pg: "true"
+prometheus.io/port-pg: "9187"
+prometheus.io/path-pg: "/metrics"
+{{- end }}
+{{- if .Values.documentserver.rabbitmq.metrics }}
+prometheus.io/scrape-rmq: "true"
+prometheus.io/port-rmq: "15692"
+prometheus.io/path-rmq: "/metrics/per-object"
+{{- end }}
+{{- end -}}
+
+{{/*
 Get the update strategy type for ds
 */}}
 {{- define "ds.update.strategyType" -}}

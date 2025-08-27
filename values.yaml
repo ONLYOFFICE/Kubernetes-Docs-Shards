@@ -899,8 +899,6 @@ documentserver:
     metrics:
       ## documentserver.postgresql.metrics.enabled Defines enabled or disabled sidecar container with psql metrics prometheus exporter
       enabled: false
-      ## documentserver.postgresql.metrics.port Define which port will be exposed in psql metrics exporter sidecar container
-      port: 9187
       ## documentserver.postgresql.metrics.pullPolicy postgresql prometheus metrics exporter container image pull policy
       pullPolicy: IfNotPresent
       ## Configure a Security Context for the Postgresql container

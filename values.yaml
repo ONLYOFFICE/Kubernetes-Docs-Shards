@@ -941,8 +941,6 @@ documentserver:
     metrics:
       ## documentserver.rabbitmq.metrics.enabled Disable or enable metrics for rabbitmq image
       enabled: false
-      ## documentserver.rabbitmq.metrics.port Define metrics port for rabbimq metrics
-      port: 15692
     ## Configure a Security Context for the Rabbitmq container
     containerSecurityContext:
       ## documentserver.rabbitmq.containerSecurityContext.enabled Enable security context for the Rabbitmq container

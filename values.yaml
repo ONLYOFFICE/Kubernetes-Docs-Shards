@@ -903,25 +903,27 @@ documentserver:
       pullPolicy: IfNotPresent
       ## Configure a Security Context for the Postgresql container
       containerSecurityContext:
-        ## documentserver.postgresql.containerSecurityContext.enabled Enable security context for the Postgresql container
+        ## documentserver.postgresql.metrics.containerSecurityContext.enabled Enable security context for the Postgresql container
         enabled: false
-        ## documentserver.postgresql.containerSecurityContext.runAsUser User ID for the Postgresql container
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsUser User ID for the Postgresql container
         runAsUser: 0
-        ## documentserver.postgresql.containerSecurityContext.runAsGroup Group ID for the Postgresql container
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsGroup Group ID for the Postgresql container
         runAsGroup: 0
-        ## documentserver.postgresql.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+        ## documentserver.postgresql.metrics.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
         allowPrivilegeEscalation: false
-        ## documentserver.postgresql.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Postgresql container
+        ## documentserver.postgresql.metrics.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Postgresql container
         seccompProfile:
           type: RuntimeDefault
-        ## documentserver.postgresql.containerSecurityContext.capabilities Defines the privileges granted to the process
+        ## documentserver.postgresql.metrics.containerSecurityContext.capabilities Defines the privileges granted to the process
         capabilities:
           drop: ["ALL"]
-      ## documentserver.postgresql.metrics.resources.limits The resources limits for the psql metric exporter container
+      ## documentserver.postgresql.metrics.resources
       resources:
+        ## documentserver.postgresql.metrics.resources.requests The resources requests for the psql metric exporter container
         requests:
           memory: "256Mi"
           cpu: "200m"
+        ## documentserver.postgresql.metrics.resources.limits The resources limits for the psql metric exporter container
         limits:
           memory: "1Gi"
           cpu: "1000m"

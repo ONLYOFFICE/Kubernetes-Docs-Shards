@@ -117,14 +117,18 @@ Note: If you want to enable `WOPI`, please set the parameter `wopi.enabled=true`
 To install Redis to your cluster, run the following command:
 
 ```bash
-$ helm install redis bitnami/redis \
+$ helm install redis --version 22.0.7 bitnami/redis \
   --set architecture=standalone \
   --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
   --set master.persistence.size=8Gi \
+  --set master.resourcesPreset=none \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/redis \
+  --set image.tag=8.2.1-debian-12-r0 \
   --set metrics.enabled=false
 ```
 
-Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus.
+Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus. Also add the following parameters: `metrics.image.repository=bitnamilegacy/redis-exporter` and `metrics.image.tag=1.76.0-debian-12-r0`.
 
 See more details about installing Redis via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
@@ -1058,17 +1062,29 @@ ONLYOFFICE Docs Shards can work with Redis sentinel. To deploy in this mode, ple
 Deploy redis sentinel using the command:
 
 ```bash
-$ helm install redis bitnami/redis \
-               --set architecture=replication \
-               --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
-               --set sentinel.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
-               --set replica.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
-               --set master.persistence.size=8Gi \
-               --set replica.persistence.size=8Gi \
-               --set sentinel.persistence.size=8Gi \
-               --set metrics.enabled=false \
-               --set sentinel.enabled=true \
+$ helm install redis --version 22.0.7 bitnami/redis \
+  --set architecture=replication \
+  --set sentinel.enabled=true \
+  --set master.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set sentinel.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set replica.persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set master.persistence.size=8Gi \
+  --set replica.persistence.size=8Gi \
+  --set sentinel.persistence.size=8Gi \
+  --set master.resourcesPreset=none \
+  --set replica.resourcesPreset=none \
+  --set sentinel.resourcesPreset=none \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/redis \
+  --set image.tag=8.2.1-debian-12-r0 \
+  --set sentinel.image.repository=bitnamilegacy/redis-sentinel \
+  --set sentinel.image.tag=8.2.1-debian-12-r0 \
+  --set metrics.enabled=false
 ```
+
+Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus. Also add the following parameters: `metrics.image.repository=bitnamilegacy/redis-exporter` and `metrics.image.tag=1.76.0-debian-12-r0`.
+
+See more details about installing Redis Sentinel via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis).
 
 #### 11.2 Deploy ONLYOFFICE Docs
 
@@ -1092,8 +1108,19 @@ ONLYOFFICE Docs Shards can work with Redis cluster. To deploy in this mode, plea
 Deploy redis cluster using the command:
 
 ```bash
-$ helm install redis bitnami/redis-cluster --set persistence.size=8Gi
+$ helm install redis --version 13.0.4 bitnami/redis-cluster \
+  --set redis.resourcesPreset=none \
+  --set global.security.allowInsecureImages=true \
+  --set image.repository=bitnamilegacy/redis-cluster \
+  --set image.tag=8.2.1-debian-12-r0 \
+  --set persistence.storageClass=PERSISTENT_STORAGE_CLASS \
+  --set persistence.size=8Gi \
+  --set metrics.enabled=false
 ```
+
+Note: Set the `metrics.enabled=true` to enable exposing Redis metrics to be gathered by Prometheus. Also add the following parameters: `metrics.image.repository=bitnamilegacy/redis-exporter` and `metrics.image.tag=1.76.0-debian-12-r0`.
+
+See more details about installing Redis Cluster via Helm [here](https://github.com/bitnami/charts/tree/main/bitnami/redis-cluster).
 
 #### 12.2 Deploy ONLYOFFICE Docs
 
@@ -1149,11 +1176,15 @@ Note: It is assumed that step [#4.2](#42-installing-prometheus) has already been
 To install Grafana to your cluster, run the following command:
 
 ```bash
-$ helm install grafana bitnami/grafana \
+$ helm install grafana --version 12.1.8 bitnami/grafana \
   --set service.ports.grafana=80 \
   --set config.useGrafanaIniFile=true \
   --set config.grafanaIniConfigMap=grafana-ini \
-  --set datasources.secretName=grafana-datasource
+  --set datasources.secretName=grafana-datasource \
+  --set resourcesPreset=none \
+  --set image.repository=bitnamilegacy/grafana \
+  --set image.tag=12.1.1-debian-12-r1 \
+  --set global.security.allowInsecureImages=true
 ```
 
 #### 1.2 Deploy Grafana with the installation of ready-made dashboards
@@ -1170,11 +1201,15 @@ the necessary edits will be made to them and configmap will be created from them
 To install Grafana to your cluster, run the following command:
 
 ```bash
-$ helm install grafana bitnami/grafana \
+$ helm install grafana --version 12.1.8 bitnami/grafana \
   --set service.ports.grafana=80 \
   --set config.useGrafanaIniFile=true \
   --set config.grafanaIniConfigMap=grafana-ini \
   --set datasources.secretName=grafana-datasource \
+  --set resourcesPreset=none \
+  --set image.repository=bitnamilegacy/grafana \
+  --set image.tag=12.1.1-debian-12-r1 \
+  --set global.security.allowInsecureImages=true \
   --set dashboardsProvider.enabled=true \
   --set dashboardsConfigMaps[0].configMapName=dashboard-node-exporter \
   --set dashboardsConfigMaps[0].fileName=dashboard-node-exporter.json \

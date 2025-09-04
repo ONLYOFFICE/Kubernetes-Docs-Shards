@@ -216,7 +216,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["python3", "/var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py"]
+                command: ["python3", "-u",  "/var/lib/{{ .Values.product.name }}/documentserver/scripts/remove_shardkey.py"]
           ports:
             - containerPort: {{ .Values.documentserver.docservice.containerPorts.http }}
           {{- if .Values.documentserver.docservice.startupProbe.enabled }}

@@ -18,3 +18,4 @@ data:
       echo "waiting for the build to complete"
       sleep 5
     done
+    echo "the build is completed" > /proc/1/fd/1 2>&1

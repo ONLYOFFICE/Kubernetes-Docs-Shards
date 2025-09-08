@@ -8,10 +8,15 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
-  {{- if or .Values.commonAnnotations .Values.documentserver.annotations }}
+  {{- $hasCommon := or .Values.commonAnnotations .Values.documentserver.annotations -}}
+  {{- $hasPg := .Values.documentserver.postgresql.metrics -}}
+  {{- $hasRmq := .Values.documentserver.rabbitmq.metrics -}}
+  {{- if or $hasCommon $hasPg $hasRmq }}
   {{- $dictValue := default .Values.commonAnnotations .Values.documentserver.annotations }}
-  annotations: 
+  annotations:
+    {{- if $hasCommon }}
     {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
+    {{- end }}
     {{- include "ds.annotations.metrics" . | nindent 4 }}
   {{- end }}
 spec:

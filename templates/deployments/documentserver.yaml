@@ -10,9 +10,7 @@ metadata:
     {{- end }}
   {{- if or .Values.commonAnnotations .Values.documentserver.annotations }}
   {{- $dictValue := default .Values.commonAnnotations .Values.documentserver.annotations }}
-  annotations: 
-    {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
-    {{- include "ds.annotations.metrics" . | nindent 4 }}
+  annotations: {{- include "ds.annotations.commonAnnotations" ( dict "keyName" $dictValue "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   {{- if not .Values.documentserver.autoscaling.enabled }}

@@ -67,6 +67,10 @@ spec:
           configMap:
             name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "pre-upgrade") }}
             defaultMode: 0755
+      {{- with .Values.upgrade.job.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: pre-upgrade
           image: {{ .Values.upgrade.job.image.repository }}:{{ .Values.upgrade.job.image.tag }}

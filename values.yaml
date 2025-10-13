@@ -1668,6 +1668,10 @@ upgrade:
     ## upgrade.job.tolerations Tolerations for pre-upgrade Job Pod assignment
     ## If set to, it takes priority over the `tolerations`
     tolerations: []
+    ## pre-upgrade Job initContainers parameters
+    ## upgrade.job.initContainers Containers that run before pre-upgrade container in a Pod
+    ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+    initContainers: []
     image:
       ## upgrade.job.image.repository Job by pre-upgrade image repository
       repository: onlyoffice/docs-utils
@@ -1742,6 +1746,10 @@ delete:
     ## delete.job.tolerations Tolerations for pre-delete Job Pod assignment
     ## If set to, it takes priority over the `tolerations`
     tolerations: []
+    ## pre-delete Job initContainers parameters
+    ## delete.job.initContainers Containers that run before pre-delete container in a Pod
+    ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+    initContainers: []
     image:
       ## delete.job.image.repository Job by pre-delete image repository
       repository: onlyoffice/docs-utils
@@ -1809,6 +1817,10 @@ grafanaDashboard:
     ## grafanaDashboard.job.tolerations Tolerations for Grafana Dashboard Job Pod assignment
     ## If set to, it takes priority over the `tolerations`
     tolerations: []
+    ## Grafana Dashboard initContainers parameters
+    ## grafanaDashboard.job.initContainers Containers that run before Grafana Dashboard container in a Pod
+    ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+    initContainers: []
     image:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
@@ -1876,6 +1888,10 @@ wopiKeysGeneration:
     ## wopiKeysGeneration.job.tolerations Tolerations for Wopi Keys Generation Job Pod assignment
     ## If set to, it takes priority over the `tolerations`
     tolerations: []
+    ## Wopi Keys Generation Job initContainers parameters
+    ## wopiKeysGeneration.job.initContainers Containers that run before Wopi Keys Generation container in a Pod
+    ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+    initContainers: []
     image:
       ## wopiKeysGeneration.job.image.repository Job by Wopi Keys Generation ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
@@ -1945,6 +1961,10 @@ wopiKeysDeletion:
     ## wopiKeysDeletion.job.tolerations Tolerations for Wopi Keys Deletion Job Pod assignment
     ## If set to, it takes priority over the `tolerations`
     tolerations: []
+    ## Wopi Keys Deletion Job initContainers parameters
+    ## wopiKeysDeletion.job.initContainers Containers that run before Wopi Keys Deletion container in a Pod
+    ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+    initContainers: []
     image:
       ## wopiKeysDeletion.job.image.repository Job by Wopi Keys Deletion ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
@@ -2010,6 +2030,10 @@ tests:
   ## tests.tolerations Tolerations for Test Pod assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## Test initContainers parameters
+  ## tests.initContainers Containers that run before Test container in a Pod
+  ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  initContainers: []
   ## Test container image parameters
   image:
     ## tests.image.repository test container image name

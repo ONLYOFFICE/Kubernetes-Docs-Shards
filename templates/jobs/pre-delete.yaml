@@ -64,6 +64,10 @@ spec:
           configMap:
             name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "pre-delete") }}
             defaultMode: 0755
+      {{- with .Values.delete.job.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: pre-delete
           image: {{ .Values.delete.job.image.repository }}:{{ .Values.delete.job.image.tag }}

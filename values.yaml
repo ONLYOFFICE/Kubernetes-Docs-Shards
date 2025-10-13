@@ -1190,6 +1190,8 @@ example:
   ## example.tolerations Tolerations for Example Pods assignment
   ## If set to, it takes priority over the `tolerations`
   tolerations: []
+  ## example.terminationGracePeriodSeconds The time to terminate gracefully during which the Example Pod will have the `Terminating` status
+  terminationGracePeriodSeconds: 30
   ## example.hostAliases Adds additional entries to the hosts file in the Example container
   ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
   ## Example:

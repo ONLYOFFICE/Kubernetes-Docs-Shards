@@ -142,7 +142,7 @@ spec:
           image: {{ .Values.documentserver.proxy.image.repository }}:{{ .Values.documentserver.proxy.image.tag }}
           imagePullPolicy: {{ .Values.documentserver.proxy.image.pullPolicy }}
           {{- if .Values.documentserver.proxy.containerSecurityContext.enabled }}
-          securityContext: {{- omit .Values.documentserver.proxy.containerSecurityContext.enabled "enabled" | toYaml | nindent 12 }}
+          securityContext: {{- omit .Values.documentserver.proxy.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
           lifecycle:
             preStop:
@@ -165,6 +165,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
+          - name: DOCS_SHARDS
+            value: "true"
           {{- if .Values.documentserver.proxy.infoAllowedIP }}
           - name: INFO_ALLOWED_IP
             value: {{ join " " .Values.documentserver.proxy.infoAllowedIP }}

@@ -38,6 +38,7 @@ ONLYOFFICE Docs for Kubernetes
     + [5.3.2.3 Expose ONLYOFFICE Docs via HTTPS](#5323-expose-onlyoffice-docs-via-https)
     + [5.3.2.4 Expose ONLYOFFICE Docs via HTTPS using the Let's Encrypt certificate](#5324-expose-onlyoffice-docs-via-https-using-the-lets-encrypt-certificate)
     + [5.3.2.5 Expose ONLYOFFICE Docs on a virtual path](#5325-expose-onlyoffice-docs-on-a-virtual-path)
+  * [5.4 Admin Panel deployment (optional)](#54-admin-panel-deployment-optional)
   * [6. Scale ONLYOFFICE Docs (optional)](#6-scale-onlyoffice-docs-optional) 
     + [6.1 Horizontal Pod Autoscaling](#61-horizontal-pod-autoscaling)
     + [6.2 Manual scaling](#62-manual-scaling)
@@ -488,7 +489,7 @@ The `helm delete` command removes all the Kubernetes components associated with 
 | `documentserver.converter.containerSecurityContext.enabled` | Enable security context for the Converter container                                                                                                                            | `false`                                                                                   |
 | `documentserver.converter.resources.requests.memory`        | The requested Memory for the Converter container                                                                                                                               | `256Mi`                                                                                   |
 | `documentserver.converter.resources.requests.cpu`           | The requested CPU for the Converter container                                                                                                                                  | `200m`                                                                                    |
-| `documentserver.converter.resources.limits.memory`          | The Memory limits for the Converter container                                                                                                                                  | `4Gi`                                                                                     |
+| `documentserver.converter.resources.limits.memory`          | The Memory limits for the Converter container                                                                                                                                  | `6Gi`                                                                                     |
 | `documentserver.converter.resources.limits.cpu`             | The CPU limits for the Converter container                                                                                                                                     | `4000m`                                                                                   |
 | `documentserver.converter.extraVolumeMounts`                | An array with extra volume mounts for the Converter container                                                                                                                  | `[]`                                                                                      |
 
@@ -524,6 +525,34 @@ List of parameters for broker inside the documentserver pod
 | `documentserver.rabbitmq.resources.limits.memory`           | The Memory limits for the Rabbitmq container                                                                                                                                   | `4Gi`                                                                                     |
 | `documentserver.rabbitmq.resources.limits.cpu`              | The CPU limits for the Rabbitmq container                                                                                                                                      | `4000m`                                                                                   |
 
+### Admin panel parameters
+
+| Parameter                                                   | Description                                                                                                                                                                      | Default                                                                                 |
+|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `adminpanel.enabled`                                        | Enables Admin panel installation                                                                                                                                                 | `false`                                                                                 |
+| `adminpanel.annotations`                                    | Defines annotations that will be additionally added to Admin panel Deployment. If set to, it takes priority over the `commonAnnotations`                                         | `{}`                                                                                    |
+| `adminpanel.podAnnotations`                                 | Map of annotations to add to the Admin panel deployment pods                                                                                                                     | `rollme: "{{ randAlphaNum 5 \| quote }}"`                                               |
+| `adminpanel.updateStrategy.type`                            | Admin panel StatefulSet update strategy type                                                                                                                                     | `RollingUpdate`                                                                         |
+| `adminpanel.customPodAntiAffinity`                          | Prohibiting the scheduling of Admin panel Pods relative to other Pods containing the specified labels on the same node                                                           | `{}`                                                                                    |
+| `adminpanel.podAffinity`                                    | Defines [Pod affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity) rules for Admin panel Pods scheduling by nodes relative to other Pods | `{}`                                                         |
+| `adminpanel.nodeAffinity`                                   | Defines [Node affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity) rules for Admin panel Pods scheduling by nodes                   | `{}`                                                                                    |
+| `adminpanel.nodeSelector`                                   | Node labels for Admin panel Pods assignment. If set to, it takes priority over the `nodeSelector`                                                                                | `{}`                                                                                    |
+| `adminpanel.tolerations`                                    | Tolerations for Admin panel Pods assignment. If set to, it takes priority over the `tolerations`                                                                                 | `[]`                                                                                    |
+| `adminpanel.terminationGracePeriodSeconds`                  | The time to terminate gracefully during which the Admin panel Pod will have the `Terminating` status                                                                             | `30`                                                                                    |
+| `adminpanel.hostAliases`                                    | Adds [additional entries](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/) to the hosts file in the Admin panel container                                | `[]`                                                                                    |
+| `adminpanel.initContainers`                                 | Defines containers that run before Admin panel container in the Admin panel deployment pod. For example, a container that changes the owner of the PersistentVolume              | `[]`                                                                                    |
+| `adminpanel.image.repository`                               | Admin panel container image repository*                                                                                                                                          | `onlyoffice/docs-adminpanel-de`                                                         |
+| `adminpanel.image.tag`                                      | Admin panel container image tag                                                                                                                                                  | `9.0.4-1`                                                                               |
+| `adminpanel.image.pullPolicy`                               | Admin panel container image pull policy                                                                                                                                          | `IfNotPresent`                                                                          |
+| `adminpanel.containerSecurityContext.enabled`               | Enable security context for the Admin panel container                                                                                                                            | `false`                                                                                 |
+| `adminpanel.lifecycleHooks`                                 | Defines the Admin panel [container lifecycle hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks). It is used to trigger events to run at certain points in a container's lifecycle | `{}`                                                     |
+| `adminpanel.containerPorts.http`                            | Adminpanel container port                                                                                                                                                        | `9000`                                                                                  |
+| `adminpanel.resources.requests`                             | The requested resources for the Admin panel container                                                                                                                            | `{}`                                                                                    |
+| `adminpanel.resources.limits`                               | The resources limits for the Admin panel container                                                                                                                               | `{}`                                                                                    |
+| `adminpanel.extraEnvVars`                                   | An array with extra env variables for the Admin panel container                                                                                                                  | `[]`                                                                                    |
+| `adminpanel.extraVolumes`                                   | An array with extra volumes for the Admin panel Pod                                                                                                                              | `[]`                                                                                    |
+| `adminpanel.extraVolumeMounts`                              | An array with extra volume mounts for the Admin panel container                                                                                                                  | `[]`                                                                                    |
+
 ### Example parameters
 
 | Parameter                                                   | Description                                                                                                                                                                    | Default                                                                                   |
@@ -542,7 +571,8 @@ List of parameters for broker inside the documentserver pod
 | `example.image.tag`                                         | Example container image tag                                                                                                                                                    | `9.0.4-1`                                                                                 |
 | `example.image.pullPolicy`                                  | Example container image pull policy                                                                                                                                            | `IfNotPresent`                                                                            |
 | `example.containerSecurityContext.enabled`                  | Enable security context for the Example container                                                                                                                              | `false`                                                                                   |
-| `example.dsUrl`                                             | ONLYOFFICE Docs external address. It should be changed only if it is necessary to check the operation of the conversion in Example (e.g. http://\<documentserver-address\>/)   | `/`                                                                                |
+| `example.lifecycleHooks`                                    | Defines the Example [container lifecycle hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/). It is used to trigger events to run at certain points in a container's lifecycle | `{}`                                                        |
+| `example.dsUrl`                                             | ONLYOFFICE Docs external address. It should be changed only if it is necessary to check the operation of the conversion in Example (e.g. http://\<documentserver-address\>/)   | `/`                                                                                       |
 | `example.resources.requests`                                | The requested resources for the Example container                                                                                                                              | `{}`                                                                                      |
 | `example.resources.limits`                                  | The resources limits for the Example container                                                                                                                                 | `{}`                                                                                      |
 | `example.extraConf.configMap`                               | The name of the ConfigMap containing the json file that override the default values. See an example of creation [here](https://github.com/ONLYOFFICE/Kubernetes-Docs?tab=readme-ov-file#71-create-a-configmap-containing-a-json-file) | `""`                               |
@@ -925,7 +955,7 @@ This type of exposure allows you to expose ONLYOFFICE Docs on a virtual path, fo
 To expose ONLYOFFICE Docs via ingress on a virtual path, set the `ingress.enabled`, `ingress.host` and `ingress.path` parameters.
 
 ```bash
-$ helm install documentserver onlyoffice/docs --set ingress.enabled=true,ingress.host=your-domain-name,ingress.path=/docs
+$ helm install documentserver onlyoffice/docs-shards --set ingress.enabled=true,ingress.host=your-domain-name,ingress.path=/docs
 ```
 
 The list of supported ingress controllers for virtual path configuration:
@@ -934,6 +964,16 @@ The list of supported ingress controllers for virtual path configuration:
 * [HAProxy Ingress by HAProxy](https://github.com/haproxytech/kubernetes-ingress/)
 
 For virtual path configuration with `Ingress NGINX by Kubernetes`, append the pattern `(/|$)(.*)` to the `ingress.path`, for example, `/docs` becomes `/docs(/|$)(.*)`.
+
+### 5.4 Admin Panel deployment (optional)
+
+To deploy the Admin Panel, set the `adminpanel.enabled` parameter to true:
+
+```bash
+$ helm install documentserver onlyoffice/docs-shards --set adminpanel.enabled=true
+```
+
+For first authorization, use the secret value `Bootstrap code`. You can find it by opening the adminpanel Pod log. The `Bootstrap code` is valid for 1 hour.
 
 ### 6. Scale ONLYOFFICE Docs (optional)
 

@@ -34,12 +34,23 @@ grace_time = int(os.environ.get('TERMINATION_GRACE_TIME'))
 
 total_result = {}
 
+def redirect_streams_to_proc1():
+    try:
+        out_fd = os.open("/proc/1/fd/1", os.O_WRONLY | os.O_APPEND)
+        os.dup2(out_fd, 1)
+        os.dup2(out_fd, 2)
+        sys.stdout = os.fdopen(1, "w", buffering=1)
+        sys.stderr = os.fdopen(2, "w", buffering=1)
+    except Exception:
+        pass
+
+redirect_streams_to_proc1()
 
 def init_logger(name):
     logger = logging.getLogger(name)
     formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logger.setLevel(logging.DEBUG)
-    stdout = logging.StreamHandler()
+    stdout = logging.StreamHandler(stream=sys.stdout)
     stdout.setFormatter(logging.Formatter(formatter))
     stdout.setLevel(logging.DEBUG)
     logger.addHandler(stdout)

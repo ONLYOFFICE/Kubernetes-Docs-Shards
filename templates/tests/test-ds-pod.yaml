@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: test-ds
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "test-ds") }}
   namespace: {{ include "ds.namespace" . | quote }}
   labels:
-    app.kubernetes.io/component: test-ds
+    app.kubernetes.io/component: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "test-ds") }}
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
@@ -47,6 +47,10 @@ spec:
   imagePullSecrets:
   - name: {{ .Values.imagePullSecrets }}
   {{- end }}
+  {{- with .Values.tests.initContainers }}
+  initContainers:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   containers:
   - name: test-ds
     image: {{ .Values.tests.image.repository }}:{{ .Values.tests.image.tag }}
@@ -68,9 +72,11 @@ spec:
           name: {{ template "ds.redis.sentinel.secretName" . }}
           key: {{ .Values.connections.redisSentinelSecretKeyName }}
     {{- end }}
+    - name: DS_ADDRESS
+      value: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "docservice") }}
     envFrom:
     - configMapRef:
-        name: documentserver
+        name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
     volumeMounts:
     - name: test-ds
       mountPath: /scripts/test_ds.py
@@ -83,7 +89,7 @@ spec:
   volumes:
   - name: test-ds
     configMap:
-      name: test-ds
+      name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "test-ds") }}
       defaultMode: 0755
   restartPolicy: Never
 {{- end }}

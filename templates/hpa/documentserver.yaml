@@ -2,7 +2,7 @@
 apiVersion: {{ .Capabilities.APIVersions.Has "autoscaling/v2" | ternary "autoscaling/v2" "autoscaling/v2beta2" }}
 kind: HorizontalPodAutoscaler
 metadata:
-  name: documentserver-hpa
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver-hpa") }}
   namespace: {{ include "ds.namespace" . | quote }}
   {{- if .Values.commonLabels }}
   labels:
@@ -16,7 +16,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: documentserver
+    name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "documentserver") }}
   minReplicas: {{ .Values.documentserver.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.documentserver.autoscaling.maxReplicas }}
   metrics:

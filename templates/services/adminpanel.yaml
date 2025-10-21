@@ -1,11 +1,11 @@
-{{- if .Values.example.enabled }}
+{{- if .Values.adminpanel.enabled }}
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "example") }}
+  name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "adminpanel") }}
   namespace: {{ include "ds.namespace" . | quote }}
   labels:
-    app: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "example") }}
+    app: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "adminpanel") }}
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}
@@ -16,10 +16,10 @@ spec:
   ports:
   - name: http
     protocol: TCP
-    port: {{ .Values.example.containerPorts.http }}
-    targetPort: {{ .Values.example.containerPorts.http }}
+    port: {{ .Values.adminpanel.containerPorts.http }}
+    targetPort: {{ .Values.adminpanel.containerPorts.http }}
   selector:
-    statefulset.kubernetes.io/pod-name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "example") }}-0
+    statefulset.kubernetes.io/pod-name: {{ include "ds.resources.name" (list . .Values.commonNameSuffix "adminpanel") }}-0
     {{- if .Values.commonLabels }}
     {{- include "ds.labels.commonLabels" . | trim | nindent 4 }}
     {{- end }}

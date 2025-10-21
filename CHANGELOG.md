@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.3.0
+
+### New Features
+
+* Added Admin panel service
+* Added the ability to connect Oracle Thick Mode
+* Added the ability to modify the names of created resources by appending a specified suffix
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.1.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#910)
+
 ## 3.2.0
 
 ### New Features

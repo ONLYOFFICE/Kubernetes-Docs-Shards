@@ -138,13 +138,7 @@ def get_redis_sentinel_status():
 def clear_shard_key():
     if rc.exists(ipShard):
         try:
-            get_keys_shard = rc.get(ipShard).decode('utf-8')
-            keys_shard = get_keys_shard.split()
-            pipe = rc.pipeline()
-            for key in keys_shard:
-                pipe.delete(key)
-            pipe.execute()
-            rc.delete(ipShard)
+            rc.delete(ipShard, shardKey)
         except Exception as msg_check_redis:
             logger_endpoints_ds.error('Error when trying to delete keys belonging to the {sk} shard from Redis... {em}\n'.format(sk=shardKey, em=msg_check_redis))
             total_result['CheckRedis'] = 'Failed'
@@ -203,6 +197,20 @@ def shutdown_shard():
             sys.exit(1)
 
 
+def pre_shutdown_shard():
+    try:
+        pre_shutdown_cmd = ["/bin/bash", "-c", "curl http://localhost:8000/internal/cluster/pre-stop -X PUT -s"]
+        pre_process = subprocess.Popen(pre_shutdown_cmd, stdout=subprocess.PIPE)
+        pre_shutdown_result = pre_process.communicate()[0].decode('utf-8')
+    except Exception as msg_pre_shutdown:
+        logger_endpoints_ds.error('Failed when trying to switch to pre-shutdown mode... {}\n'.format(msg_pre_shutdown))
+    else:
+        if pre_shutdown_result == "true":
+            logger_endpoints_ds.info('Successfully switched to pre-shutdown mode')
+        else:
+            logger_endpoints_ds.error('The {psk} shard could not be switched to pre-shutdown mode... {psr}'.format(psk=shardKey, psr=pre_shutdown_result))
+
+
 def prepare_for_shutdown_shard():
     current_grace_period = grace_period
     current_grace_time = grace_time
@@ -227,5 +235,6 @@ def total_status():
 
 init_logger('endpoints')
 logger_endpoints_ds = logging.getLogger('endpoints.ds')
+pre_shutdown_shard()
 prepare_for_shutdown_shard()
 total_status()

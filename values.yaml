@@ -898,6 +898,38 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.postgresql.metrics configuration where postgresql metrics exporter can be enabled
+    metrics:
+      ## documentserver.postgresql.metrics.enabled Defines enabled or disabled sidecar container with psql metrics prometheus exporter
+      enabled: false
+      ## documentserver.postgresql.metrics.pullPolicy postgresql prometheus metrics exporter container image pull policy
+      pullPolicy: IfNotPresent
+      ## Configure a Security Context for the Postgresql container
+      containerSecurityContext:
+        ## documentserver.postgresql.metrics.containerSecurityContext.enabled Enable security context for the Postgresql container
+        enabled: false
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsUser User ID for the Postgresql container
+        runAsUser: 0
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsGroup Group ID for the Postgresql container
+        runAsGroup: 0
+        ## documentserver.postgresql.metrics.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+        allowPrivilegeEscalation: false
+        ## documentserver.postgresql.metrics.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Postgresql container
+        seccompProfile:
+          type: RuntimeDefault
+        ## documentserver.postgresql.metrics.containerSecurityContext.capabilities Defines the privileges granted to the process
+        capabilities:
+          drop: ["ALL"]
+      ## documentserver.postgresql.metrics.resources
+      resources:
+        ## documentserver.postgresql.metrics.resources.requests The resources requests for the psql metric exporter container
+        requests:
+          memory: "256Mi"
+          cpu: "200m"
+        ## documentserver.postgresql.metrics.resources.limits The resources limits for the psql metric exporter container
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
   ## Parameters of the Rabbitmq container
   ##
   rabbitmq:
@@ -910,6 +942,10 @@ documentserver:
       tag: 4
       ## documentserver.rabbitmq.image.pullPolicy Rabbitmq container image pull policy
       pullPolicy: IfNotPresent
+    ## documentserver.rabbitmq.metrics If enabled, open-up metrics port for rabbitmq container
+    metrics:
+      ## documentserver.rabbitmq.metrics.enabled Disable or enable metrics for rabbitmq image
+      enabled: false
     ## Configure a Security Context for the Rabbitmq container
     containerSecurityContext:
       ## documentserver.rabbitmq.containerSecurityContext.enabled Enable security context for the Rabbitmq container

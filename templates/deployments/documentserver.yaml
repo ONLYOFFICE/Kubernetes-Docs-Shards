@@ -92,6 +92,27 @@ spec:
       hostAliases: {{- toYaml .Values.documentserver.hostAliases | nindent 8 }}
       {{- end }}
       initContainers:
+        {{- if .Values.documentserver.postgresql.metrics.enabled }}
+        - name: postgresql-metrics-exporter
+          image: bitnamisecure/postgres-exporter:latest
+          restartPolicy: Always
+          imagePullPolicy: {{ .Values.documentserver.postgresql.metrics.pullPolicy }}
+          {{- if .Values.documentserver.postgresql.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.documentserver.postgresql.metrics.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.documentserver.postgresql.metrics.resources | nindent 12 }}
+          env:
+          - name: DATA_SOURCE_URI
+            value: "localhost:5432/postgres?sslmode=disable"
+          - name: DATA_SOURCE_USER
+            valueFrom:
+              configMapKeyRef:
+                name: documentserver
+                key: DB_USER
+          ports:
+            - containerPort: 9187
+              name: psql-metrics
+        {{- end }}
         - name: add-shardkey
           image: {{ .Values.documentserver.initContainers.image.repository }}:{{ .Values.documentserver.initContainers.image.tag }}
           imagePullPolicy: {{ .Values.documentserver.initContainers.image.pullPolicy }}
@@ -464,6 +485,9 @@ spec:
                 command: ["/bin/sh", "-c", "/scripts/pre_stop.sh"]
           ports:
             - containerPort: {{ .Values.documentserver.rabbitmq.containerPorts.amqp }}
+            {{- if .Values.documentserver.rabbitmq.metrics.enabled }}
+            - containerPort: 15692
+            {{- end }}
           volumeMounts:
           - name: rabbitmq-data
             mountPath: /var/lib/rabbitmq

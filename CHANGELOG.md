@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.4.0
+
+### New Features
+
+* Added Redis cleanup of inactive keys when Terminating
+* Added the ability to enable metrics for PostgreSQL and RabbitMQ
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.2.0](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#920)
+* The Redis key cleanup policy has been changed when the shard replica switches to Terminating mode
+
+### Fixes
+
+* Fixed the lack of WOPI keys when enabling WOPI in the Admin panel
+
 ## 3.3.0
 
 ### New Features

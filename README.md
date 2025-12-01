@@ -2,6 +2,7 @@
 ONLYOFFICE Docs for Kubernetes
 
 ## Contents
+- [Requirements](#requirements)
 - [Introduction](#introduction)
 - [Deploy prerequisites](#deploy-prerequisites)
   * [1. Add Helm repositories](#1-add-helm-repositories)
@@ -60,9 +61,17 @@ ONLYOFFICE Docs for Kubernetes
   * [2 Access to Grafana via Ingress](#2-access-to-grafana-via-ingress)
   * [3. View gathered metrics in Grafana](#3-view-gathered-metrics-in-grafana)
 
+## Requirements
+- Kubernetes version no lower than 1.19+
+- A minimum of two worker nodes is required for the Kubernetes cluster
+- Resources for the cluster hosts: 4 CPU \ 8 GB RAM min
+- Kubectl is installed on the cluster management host
+- Helm v3.15+ is installed on the cluster management host
+
 ## Introduction
 
 - You must have a Kubernetes cluster installed. Please, checkout [the reference](https://kubernetes.io/docs/setup/) to set up Kubernetes.
+- Although installation is possible using the Kubernetes cluster version 1.19+, we recommend [using at least one of three latest minor release versions](https://kubernetes.io/releases/).
 - You should also have a local configured copy of `kubectl`. See [this](https://kubernetes.io/docs/tasks/tools/install-kubectl/) guide how to install and configure `kubectl`.
 - You should install Helm v3.15+. Please follow the instruction [here](https://helm.sh/docs/intro/install/) to install it.
 

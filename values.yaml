@@ -250,7 +250,6 @@ wopi:
   enabled: false
   keys:
     ## wopi.keys.generation Defines whether to generate API keys
-    ## Used if you set `wopi.enabled` to `true`
     generation: true
     ## wopi.keys.newKeysExistingSecret Name of existing secret containing the WOPI keys
     ## Must contain the keys `WOPI_PRIVATE_KEY`, `WOPI_PUBLIC_KEY`, `WOPI_MODULUS_KEY` and `WOPI_EXPONENT_KEY`
@@ -509,7 +508,7 @@ documentserver:
       ## documentserver.initContainers.image.repository Documentserver add-shardkey initContainer image repository
       repository: onlyoffice/docs-utils
       ## documentserver.initContainers.image.tag Documentserver add-shardkey initContainer image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## documentserver.initContainers.image.pullPolicy Documentserver add-shardkey initContainer image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for Documentserver add-shardkey initContainer container in Pod
@@ -563,7 +562,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-docservice-de
       ## documentserver.docservice.image.tag docservice container image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## documentserver.docservice.image.pullPolicy docservice container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Docservice container
@@ -716,7 +715,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-proxy-de
       ## documentserver.proxy.image.tag proxy container image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## documentserver.proxy.image.pullPolicy proxy container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Proxy container
@@ -818,7 +817,7 @@ documentserver:
       ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
       repository: onlyoffice/docs-converter-de
       ## documentserver.converter.image.tag converter container image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## documentserver.converter.image.pullPolicy converter container image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Converter container
@@ -899,6 +898,38 @@ documentserver:
       limits:
         memory: "4Gi"
         cpu: "4000m"
+    ## documentserver.postgresql.metrics configuration where postgresql metrics exporter can be enabled
+    metrics:
+      ## documentserver.postgresql.metrics.enabled Defines enabled or disabled sidecar container with psql metrics prometheus exporter
+      enabled: false
+      ## documentserver.postgresql.metrics.pullPolicy postgresql prometheus metrics exporter container image pull policy
+      pullPolicy: IfNotPresent
+      ## Configure a Security Context for the Postgresql container
+      containerSecurityContext:
+        ## documentserver.postgresql.metrics.containerSecurityContext.enabled Enable security context for the Postgresql container
+        enabled: false
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsUser User ID for the Postgresql container
+        runAsUser: 0
+        ## documentserver.postgresql.metrics.containerSecurityContext.runAsGroup Group ID for the Postgresql container
+        runAsGroup: 0
+        ## documentserver.postgresql.metrics.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+        allowPrivilegeEscalation: false
+        ## documentserver.postgresql.metrics.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Postgresql container
+        seccompProfile:
+          type: RuntimeDefault
+        ## documentserver.postgresql.metrics.containerSecurityContext.capabilities Defines the privileges granted to the process
+        capabilities:
+          drop: ["ALL"]
+      ## documentserver.postgresql.metrics.resources
+      resources:
+        ## documentserver.postgresql.metrics.resources.requests The resources requests for the psql metric exporter container
+        requests:
+          memory: "256Mi"
+          cpu: "200m"
+        ## documentserver.postgresql.metrics.resources.limits The resources limits for the psql metric exporter container
+        limits:
+          memory: "1Gi"
+          cpu: "1000m"
   ## Parameters of the Rabbitmq container
   ##
   rabbitmq:
@@ -911,6 +942,10 @@ documentserver:
       tag: 4
       ## documentserver.rabbitmq.image.pullPolicy Rabbitmq container image pull policy
       pullPolicy: IfNotPresent
+    ## documentserver.rabbitmq.metrics If enabled, open-up metrics port for rabbitmq container
+    metrics:
+      ## documentserver.rabbitmq.metrics.enabled Disable or enable metrics for rabbitmq image
+      enabled: false
     ## Configure a Security Context for the Rabbitmq container
     containerSecurityContext:
       ## documentserver.rabbitmq.containerSecurityContext.enabled Enable security context for the Rabbitmq container
@@ -1042,7 +1077,7 @@ adminpanel:
     ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
     repository: onlyoffice/docs-adminpanel-de
     ## adminpanel.image.tag adminpanel container image tag
-    tag: 9.1.0-1
+    tag: 9.2.0-1
     ## adminpanel.image.pullPolicy adminpanel container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Adminpanel container
@@ -1205,7 +1240,7 @@ example:
     ## example.image.repository example container image name
     repository: onlyoffice/docs-example
     ## example.image.tag example container image tag
-    tag: 9.1.0-1
+    tag: 9.2.0-1
     ## example.image.pullPolicy example container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Example container
@@ -1507,7 +1542,7 @@ customBalancer:
     ## customBalancer.image.repository specify balancer image repository
     repository: onlyoffice/docs-balancer
     ## customBalancer.image.tag specify balancer image tag
-    tag: 9.1.0-1
+    tag: 9.2.0-1
     ## customBalancer.image.pullPolicy balancer image pull policy
     pullPolicy: IfNotPresent
   ## customBalancer.containerPorts balancer container port
@@ -1676,7 +1711,7 @@ upgrade:
       ## upgrade.job.image.repository Job by pre-upgrade image repository
       repository: onlyoffice/docs-utils
       ## upgrade.job.image.tag Job by pre-upgrade image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## upgrade.job.image.pullPolicy Job by pre-upgrade image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-upgrade container
@@ -1754,7 +1789,7 @@ delete:
       ## delete.job.image.repository Job by pre-delete image repository
       repository: onlyoffice/docs-utils
       ## delete.job.image.tag Job by pre-delete image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## delete.job.image.pullPolicy Job by pre-delete image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the pre-delete container
@@ -1825,7 +1860,7 @@ grafanaDashboard:
       ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Grafana Dashboard container
@@ -1863,7 +1898,7 @@ grafanaDashboard:
 ## Job by Wopi Keys Generation has pre-install and pre-upgrade hooks and executes before any resources are created in Kubernetes
 ## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
 ## He generates WOPI keys and creates a secret from them
-## It is executed if `wopi.enabled` and `wopi.keys.generation` are set to `true`
+## It is executed if the `wopi.keys.generation` is set to `true`
 wopiKeysGeneration:
   job:
     ## wopiKeysGeneration.job.annotations Defines annotations that will be additionally added to Wopi Keys Generation Job
@@ -1896,7 +1931,7 @@ wopiKeysGeneration:
       ## wopiKeysGeneration.job.image.repository Job by Wopi Keys Generation ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysGeneration.job.image.tag Job by Wopi Keys Generation ONLYOFFICE Docs image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## wopiKeysGeneration.job.image.pullPolicy Job by Wopi Keys Generation ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Generation container
@@ -1934,7 +1969,7 @@ wopiKeysGeneration:
 ## Job by Wopi Keys Deletion has a pre-delete hook and executes on a deletion request before all of the release's resources have been deleted
 ## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
 ## He removes the WOPI secrets generated automatically
-## It is executed if `wopi.enabled`, `wopi.keys.generation` and `wopiKeysDeletion.job.enabled` are set to `true`
+## It is executed if `wopi.keys.generation` and `wopiKeysDeletion.job.enabled` are set to `true`
 wopiKeysDeletion:
   job:
     ## wopiKeysDeletion.job.enabled Enable the execution of Wopi Keys Deletion job before deleting ONLYOFFICE Docs
@@ -1969,7 +2004,7 @@ wopiKeysDeletion:
       ## wopiKeysDeletion.job.image.repository Job by Wopi Keys Deletion ONLYOFFICE Docs image repository
       repository: onlyoffice/docs-utils
       ## wopiKeysDeletion.job.image.tag Job by Wopi Keys Deletion ONLYOFFICE Docs image tag
-      tag: 9.1.0-1
+      tag: 9.2.0-1
       ## wopiKeysDeletion.job.image.pullPolicy Job by Wopi Keys Deletion ONLYOFFICE Docs image pull policy
       pullPolicy: IfNotPresent
     ## Configure a Security Context for the Wopi Keys Deletion container
@@ -2039,7 +2074,7 @@ tests:
     ## tests.image.repository test container image name
     repository: onlyoffice/docs-utils
     ## tests.image.tag test container image tag
-    tag: 9.1.0-1
+    tag: 9.2.0-1
     ## tests.image.pullPolicy test container image pull policy
     pullPolicy: IfNotPresent
   ## Configure a Security Context for the Test container

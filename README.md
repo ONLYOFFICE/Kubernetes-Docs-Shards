@@ -1289,12 +1289,12 @@ $ helm install grafana --version 12.1.8 bitnami/grafana \
   --set dashboardsConfigMaps[1].fileName=dashboard-deployment.json \
   --set dashboardsConfigMaps[2].configMapName=dashboard-redis \
   --set dashboardsConfigMaps[2].fileName=dashboard-redis.json \
-  --set dashboardsConfigMaps[5].configMapName=dashboard-nginx-ingress \
-  --set dashboardsConfigMaps[5].fileName=dashboard-nginx-ingress.json \
-  --set dashboardsConfigMaps[6].configMapName=dashboard-documentserver \
-  --set dashboardsConfigMaps[6].fileName=dashboard-documentserver.json \
-  --set dashboardsConfigMaps[7].configMapName=dashboard-cluster-resourses \
-  --set dashboardsConfigMaps[7].fileName=dashboard-cluster-resourses.json
+  --set dashboardsConfigMaps[3].configMapName=dashboard-nginx-ingress \
+  --set dashboardsConfigMaps[3].fileName=dashboard-nginx-ingress.json \
+  --set dashboardsConfigMaps[4].configMapName=dashboard-documentserver \
+  --set dashboardsConfigMaps[4].fileName=dashboard-documentserver.json \
+  --set dashboardsConfigMaps[5].configMapName=dashboard-cluster-resourses \
+  --set dashboardsConfigMaps[5].fileName=dashboard-cluster-resourses.json
 ```
 
 After executing this command, the following dashboards will be imported into Grafana:

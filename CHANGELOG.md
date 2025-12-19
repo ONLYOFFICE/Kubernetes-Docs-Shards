@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.4.1
+
+### Changes
+
+* Released ONLYOFFICE Docs [v9.2.1](https://github.com/ONLYOFFICE/DocumentServer/blob/master/CHANGELOG.md#921)
+* Changed the base image to Fedora
+
+### Fixes
+
+* Fixed a bug with starting services on ARM
+
 ## 3.4.0
 
 ### New Features
